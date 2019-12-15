@@ -1,0 +1,87 @@
+<div id="mkdocs-encrypted-content" style="display:none">{{ ciphertext_bundle }}</div>
+<div id="mkdocs-decrypted-content">
+    <form id="mkdocs-decrypt-form">
+        <h1>{{ summary }}</h1>
+        <input type="password" id="mkdocs-content-password" placeholder="Provide password and press enter" />
+        <p id="mkdocs-decrypt-msg"></p>
+    </form>
+</div>
+
+{% for library in js_libraries %}
+<script type="text/javascript" src="{{ library }}"></script>
+{% endfor %}
+
+<script type="text/javascript">
+    (function() {
+        var strip_padding = function(padded_content, padding_char) {
+            /* Strips the padding character from decrypted content. */
+            for (var i = padded_content.length; i > 0; i--) {
+                if (padded_content[i - 1] !== padding_char) {
+                    return padded_content.slice(0, i);
+                }
+            }
+        };
+        var decrypt_content = function(password, iv_b64, ciphertext_b64, padding_char) {
+            /* Decrypts the content from the ciphertext bundle. */
+            var key = CryptoJS.MD5(password),
+                iv = CryptoJS.enc.Base64.parse(iv_b64),
+                ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64),
+                bundle = {
+                    key: key,
+                    iv: iv,
+                    ciphertext: ciphertext
+                };
+            var plaintext = CryptoJS.AES.decrypt(bundle, key, {
+                iv: iv,
+                padding: CryptoJS.pad.NoPadding
+            });
+            try {
+                return strip_padding(plaintext.toString(CryptoJS.enc.Utf8), padding_char);
+            } catch (err) {
+                // encoding failed; wrong password
+                return false;
+            }
+        };
+        var init_decryptor = function() {
+            var password_input = document.getElementById('mkdocs-content-password'),
+                encrypted_content = document.getElementById('mkdocs-encrypted-content'),
+                decrypted_content = document.getElementById('mkdocs-decrypted-content'),
+                decrypt_form = document.getElementById('mkdocs-decrypt-form');
+            password_input.addEventListener('keypress', function(event) {
+                if (event.key === "Enter") {
+                    // grab the ciphertext bundle
+                    var parts = encrypted_content.innerHTML.split(';');
+                    // decrypt it
+                    var content = decrypt_content(
+                        password_input.value,
+                        parts[0],
+                        parts[1],
+                        parts[2]
+                    );
+                    if (content) {
+                        // success; display the decrypted content
+                        decrypted_content.innerHTML = content;
+                        encrypted_content.parentNode.removeChild(encrypted_content);
+                        // any post processing on the decrypted content should be done here
+                        {% if hljs %}
+                        document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
+                            hljs.highlightBlock(block);
+                        });
+                        {% endif %}
+                    } else {
+                        // Create HTML element for the informe message
+                        var decrypt_msg = document.createElement('p');
+                        decrypt_msg.setAttribute('id', 'mkdocs-decrypt-msg')
+                        var node = document.createTextNode('Content decryption failed !')
+                        decrypt_msg.appendChild(node)
+                        // Update the message before reload (~2s)
+                        var mkdocs_decrypt_msg = document.getElementById('mkdocs-decrypt-msg');
+                        mkdocs_decrypt_msg.appendChild(decrypt_msg);
+                        password_input.value = '';
+                    }
+                }
+            });
+        };
+        document.addEventListener('DOMContentLoaded', init_decryptor);
+    })();
+</script>
