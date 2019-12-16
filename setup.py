@@ -1,7 +1,6 @@
 import os
 import sys
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
 
 def read(fname):
     file_path = os.path.join(os.path.dirname(__file__), fname)
@@ -9,37 +8,18 @@ def read(fname):
         content = file.read()
     return content if content else 'no content read'
 
-class PyTest(TestCommand):
-    user_options = []
-
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-        self.pytest_args = []
-
-    def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
-        import pytest
-        errno = pytest.main(self.pytest_args)
-        sys.exit(errno)
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='0.0.1',
+    version='0.0.2',
+    author='CoinK0in',
+    author_email='12155947+CoinK0in@users.noreply.github.com',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
     keywords='mkdocs python markdown encrypt decrypt content',
-    url='https://github.com/coink0in/mkdocs-encrypt-content-plugin/',
-    author='CoinK0in',
-    author_email='coink0in@protonmail.com',
+    url='https://github.com/coink0in/mkdocs-encryptcontent-plugin/',
     license='MIT',
-    tests_require=[
-        'pytest',
-        'mkdocs',
-        'pyyaml',
-        'click',
-    ],
-    cmdclass = {'test': PyTest},
     python_requires='>=2.7.9,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
     install_requires=[
         'mkdocs',
