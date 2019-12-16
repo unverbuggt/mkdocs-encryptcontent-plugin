@@ -19,7 +19,6 @@ If a password is defined as an empty character string, the page is not encrypted
 Install the package with pip:
 
 ```bash
-pip install -r requirements.txt
 pip install mkdocs-encryptcontent-plugin
 ```
 
@@ -28,7 +27,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-0.0.1-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-0.0.2-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -72,16 +71,6 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
     hljs.highlightBlock(block);
 });
 {% endif %}
-```
-
-
-## Testing
-
-```bash
-virtualenv venv -p python3.5
-source venv/bin/activate
-python setup.py test
-pytest test
 ```
 
 ## Contributing
