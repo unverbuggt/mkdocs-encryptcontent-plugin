@@ -9,6 +9,11 @@ from itertools import chain
 from Crypto.Cipher import AES
 from mkdocs.plugins import BasePlugin
 
+try:
+    from mkdocs.utils import string_types
+except ImportError:
+    string_types = str
+
 JS_LIBRARIES = [
     '//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/core.js',
     '//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/enc-base64.js',
@@ -34,7 +39,7 @@ class encryptContentPlugin(BasePlugin):
     """ Plugin that encrypt markdown content with AES and inject decrypt form. """
 
     config_scheme = (
-        ('password', mkdocs.config.config_options.Type(mkdocs.utils.string_types, default=None)),
+        ('password', mkdocs.config.config_options.Type(string_types, default=None)),
         ('hljs', mkdocs.config.config_options.Type(bool, default=False)),
     )
 
