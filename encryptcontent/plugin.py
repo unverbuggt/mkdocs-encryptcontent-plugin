@@ -90,6 +90,7 @@ class encryptContentPlugin(BasePlugin):
             global_password = self.config.get('global_password')
             setattr(self, 'password', global_password)
         # Check if hljs is enable in theme config
+        setattr(self, 'hljs', None)
         if 'highlightjs' in config['theme']._vars:
             highlightjs = config['theme']._vars['highlightjs']       
             if highlightjs:
