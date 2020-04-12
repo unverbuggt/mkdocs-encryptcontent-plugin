@@ -62,6 +62,8 @@ If a password is defined in an article, it will ALWAYS overwrite the global pass
 
 Optionally you can add `title_prefix` and `summary` in plugin config variables to customize default messages.
 
+Optionally you can add `remember_password: True` in plugin config variables to enable remember_password feature.
+
 ```yaml
 plugins:
     - search
@@ -69,6 +71,7 @@ plugins:
         global_password: 'your_password'
         title_prefix: '[LOCK]'
         summary: 'another informational message than the default one'
+        remember_password: true
 ```
 
 Default prefix title is `[Protected]` and default summary message is `This content is protected with AES encryption. `  
@@ -88,6 +91,16 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
 });
 {% endif %}
 ```
+
+### Rebember password
+
+If like me, your lazy, you can set `remember_password: True` in the configuration variable of this plugin to enable password remember feature.
+
+When enabled, that's allow you to press `CTRL+Enter` key on input password field form, to write your input password on cookie named **encryptcontent_cookie_password**. 
+When **encryptcontent_cookie_password** is set and if you just press `Enter` without input on password form, decrypt function use cookie value as default password.
+You can update **encryptcontent_cookie_password** value by re-using `CTRL+Enter` after entering your password.
+
+> **NOTE** Disabled by default
 
 ## Contributing
 

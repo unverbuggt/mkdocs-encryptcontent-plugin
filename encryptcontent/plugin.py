@@ -43,6 +43,7 @@ class encryptContentPlugin(BasePlugin):
         ('global_password', mkdocs.config.config_options.Type(string_types, default=None)),
         ('password', mkdocs.config.config_options.Type(string_types, default=None)),
         ('hljs', mkdocs.config.config_options.Type(bool, default=False)),
+        ('remember_password', mkdocs.config.config_options.Type(bool, default=False)),
     )
 
     def __hash_md5__(self, text):
@@ -72,13 +73,15 @@ class encryptContentPlugin(BasePlugin):
         """ Replaces page or article content with decrypt form. """
         ciphertext_bundle = self.__encrypt_text_aes__(content, self.password)
         hljs = self.hljs
+        remember_password = self.remember_password
         decrypt_form = Template(DECRYPT_FORM_TPL).render({
             'summary': self.summary,
             # this benign decoding is necessary before writing to the template, 
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
             'js_libraries': JS_LIBRARIES,
-            'hljs': hljs
+            'hljs': hljs,
+            'remember_password': remember_password,
         })
         return decrypt_form
 
@@ -110,6 +113,11 @@ class encryptContentPlugin(BasePlugin):
             highlightjs = config['theme']._vars['highlightjs']       
             if highlightjs:
                 setattr(self, 'hljs', highlightjs)
+        # Check if cookie_password is enable en encryptcontent config
+        setattr(self, 'remember_password', False)
+        if 'remember_password' in plugin_config.keys():
+            remember_password = self.config.get('remember_password')
+            setattr(self, 'remember_password', remember_password)
 
     def on_page_markdown(self, markdown, page, config, **kwargs):
         """

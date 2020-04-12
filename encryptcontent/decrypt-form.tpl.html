@@ -42,15 +42,49 @@
                 return false;
             }
         };
+        {% if remember_password %}
+        var setCookie = function(name,value,days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days*24*60*60*1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            encryptcontent_cookie_password = name + "=" + (value || "")  + expires + "; path=/";
+            return encryptcontent_cookie_password;
+        };
+        var getCookie = function(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for(var i=0;i < ca.length;i++) {
+                var c = ca[i];
+                while (c.charAt(0)==' ') c = c.substring(1,c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+            }
+            return null;
+        };
+        {% endif %}
         var init_decryptor = function() {
             var password_input = document.getElementById('mkdocs-content-password'),
                 encrypted_content = document.getElementById('mkdocs-encrypted-content'),
                 decrypted_content = document.getElementById('mkdocs-decrypted-content'),
                 decrypt_form = document.getElementById('mkdocs-decrypt-form');
-            password_input.addEventListener('keypress', function(event) {
+            password_input.addEventListener('keydown', function(event) {
+                {% if remember_password %}
+                if (event.ctrlKey && event.key === "Enter") {
+                    // set password on cookie
+                    document.cookie = setCookie("encryptcontent_cookie_password", password_input.value, 1)
+                }
+                {% endif %}
                 if (event.key === "Enter") {
                     // grab the ciphertext bundle
                     var parts = encrypted_content.innerHTML.split(';');
+                    {% if remember_password %}
+                    // if password.input is empty, use cookie password
+                    if (password_input.value == "") {
+                        password_input.value = getCookie("encryptcontent_cookie_password")
+                    }
+                    {% endif %}
                     // decrypt it
                     var content = decrypt_content(
                         password_input.value,
@@ -69,7 +103,7 @@
                         });
                         {% endif %}
                     } else {
-                        // Create HTML element for the informe message
+                        // Create HTML element for the inform message
                         var decrypt_msg = document.createElement('p');
                         decrypt_msg.setAttribute('id', 'mkdocs-decrypt-msg')
                         var node = document.createTextNode('Content decryption failed !')
