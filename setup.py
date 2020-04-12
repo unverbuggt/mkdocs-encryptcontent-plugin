@@ -1,5 +1,4 @@
 import os
-import sys
 from setuptools import setup, find_packages
 
 def read(fname):
@@ -11,7 +10,7 @@ def read(fname):
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='0.0.2',
+    version='0.0.3',
     author='CoinK0in',
     author_email='12155947+CoinK0in@users.noreply.github.com',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',
@@ -24,6 +23,7 @@ setup(
     install_requires=[
         'mkdocs',
         'pyyaml',
+        'pycryptodome',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',

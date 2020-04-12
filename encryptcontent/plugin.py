@@ -5,7 +5,6 @@ import base64
 import hashlib
 from Crypto import Random
 from jinja2 import Template
-from itertools import chain
 from Crypto.Cipher import AES
 from mkdocs.plugins import BasePlugin
 
@@ -15,12 +14,12 @@ except ImportError:
     string_types = str
 
 JS_LIBRARIES = [
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/core.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/enc-base64.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/cipher-core.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/pad-nopadding.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/aes.js'
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/enc-base64.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/cipher-core.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/pad-nopadding.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/md5.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/aes.js'
 ]
 
 PLUGIN_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -30,7 +29,7 @@ with open(DECRYPT_FORM_TPL_PATH, 'r') as template:
     DECRYPT_FORM_TPL = template.read()
 
 settings = {
-    'title_prefix': '[Protected]',
+    'title_prefix': '[Protected] ',
     'summary': 'This content is protected with AES encryption. '
 }
 
@@ -39,6 +38,9 @@ class encryptContentPlugin(BasePlugin):
     """ Plugin that encrypt markdown content with AES and inject decrypt form. """
 
     config_scheme = (
+        ('title_prefix', mkdocs.config.config_options.Type(string_types, default=str(settings['title_prefix']))),
+        ('summary', mkdocs.config.config_options.Type(string_types, default=str(settings['summary']))),
+        ('global_password', mkdocs.config.config_options.Type(string_types, default=None)),
         ('password', mkdocs.config.config_options.Type(string_types, default=None)),
         ('hljs', mkdocs.config.config_options.Type(bool, default=False)),
     )
@@ -71,7 +73,7 @@ class encryptContentPlugin(BasePlugin):
         ciphertext_bundle = self.__encrypt_text_aes__(content, self.password)
         hljs = self.hljs
         decrypt_form = Template(DECRYPT_FORM_TPL).render({
-            'summary': settings['summary'],
+            'summary': self.summary,
             # this benign decoding is necessary before writing to the template, 
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
@@ -86,14 +88,22 @@ class encryptContentPlugin(BasePlugin):
         """
         The pre_build event does not alter any variables. Use this event to call pre-build scripts.
         Here, we load global_password from mkdocs.yml config plugins if global password is define.
+        Add some extra vars to customize template
         And check if hljs is needed by theme.
 
-        :param config: global configuration object
+        :param config: global configuration object (mkdocs.yml)
         """
+        plugin_config = config['plugins']['encryptcontent'].config
         # Check if global password is set on plugin configuration
         if 'global_password' in config.keys():
             global_password = self.config.get('global_password')
             setattr(self, 'password', global_password)
+        # Check if prefix title is set on plugin configuration to overwrite
+        title_prefix = plugin_config.get('title_prefix')
+        setattr(self, 'title_prefix', title_prefix)
+        # Check if summary description is set on plugin configuration to overwrite
+        summary = plugin_config.get('summary')
+        setattr(self, 'summary', summary)
         # Check if hljs is enable in theme config
         setattr(self, 'hljs', None)
         if 'highlightjs' in config['theme']._vars:
@@ -140,8 +150,12 @@ class encryptContentPlugin(BasePlugin):
         :param site_navigation: global navigation object
         :return: HTML rendered from Markdown source as string encrypt with AES
         """
-        # Never encrypt home page with global_password
+        # Never apply on home page
         if not page.is_homepage:
+            # Add prefix on title if define
+            if self.title_prefix:
+                page.title = str(self.title_prefix) + str(page.title)
+            # Encrypt content with password
             if self.password is not None:
                 html = self.__encrypt_content__(html)
         return html

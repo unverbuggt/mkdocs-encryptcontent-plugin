@@ -1,6 +1,6 @@
 # mkdocs-encryptcontent-plugin
 
-*This plugin allows you to have password protected articles and pages in MKdocs. The content is encrypted with AES-256 in Python using PyCrypto, and decrypted in the browser with Crypto-JS. It has been tested in Python 2.7 and Python 3.5.*
+*This plugin allows you to have password protected articles and pages in MKdocs. The content is encrypted with AES-256 in Python using PyCryptodome, and decrypted in the browser with Crypto-JS. It has been tested in Python 2.7 and Python 3.5+*
 
 An mkdocs version of the plugin [Encrypt content](https://github.com/mindcruzer/pelican-encrypt-content) for Pelican.
 
@@ -27,7 +27,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-0.0.2-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-0.0.3-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -58,6 +58,22 @@ If a password is defined in an article, it will ALWAYS overwrite the global pass
 
 > **NOTE** Keep in mind that if the `password:` tag exists without value in an article, it will not be protected !
 
+### Extra vars customization
+
+Optionally you can add `title_prefix` and `summary` in plugin config variables to customize default messages.
+
+```yaml
+plugins:
+    - search
+    - encryptcontent:
+        global_password: 'your_password'
+        title_prefix: '[LOCK]'
+        summary: 'another informational message than the default one'
+```
+
+Default prefix title is `[Protected]` and default summary message is `This content is protected with AES encryption. `  
+
+> **NOTE** Adding a prefix to the title does not change the default navigation path !
 
 ## Features
 
@@ -85,4 +101,4 @@ If you want to contribute to the code of this project, please read the [Contribu
 
 ### Contributors
 
-- [](https://github.com/)
+- [anthonyeden](https://github.com/anthonyeden)
