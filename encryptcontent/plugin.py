@@ -95,9 +95,11 @@ class encryptContentPlugin(BasePlugin):
             global_password = self.config.get('global_password')
             setattr(self, 'password', global_password)
         # Check if hljs is enable in theme config
-        highlightjs = config['theme']._vars['highlightjs']       
-        if highlightjs:
-            setattr(self, 'hljs', highlightjs)
+        setattr(self, 'hljs', None)
+        if 'highlightjs' in config['theme']._vars:
+            highlightjs = config['theme']._vars['highlightjs']       
+            if highlightjs:
+                setattr(self, 'hljs', highlightjs)
 
     def on_page_markdown(self, markdown, page, config, **kwargs):
         """
