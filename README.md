@@ -100,7 +100,10 @@ When enabled, that's allow you to press `CTRL+Enter` key on input password field
 When **encryptcontent_cookie_password** is set and if you just press `Enter` without input on password form, decrypt function use cookie value as default password.
 You can update **encryptcontent_cookie_password** value by re-using `CTRL+Enter` after entering your password.
 
-> **NOTE** Disabled by default
+> **NOTE** Disabled by default. Cookie are not protected / ! \\
+
+> **TODO**: Add some flag -> Secure; HttpOnly; SameSite strict; 
+
 
 ## Contributing
 

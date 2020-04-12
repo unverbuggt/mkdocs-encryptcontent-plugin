@@ -50,7 +50,7 @@
                 date.setTime(date.getTime() + (days*24*60*60*1000));
                 expires = "; expires=" + date.toUTCString();
             }
-            encryptcontent_cookie_password = name + "=" + (value || "")  + expires + "; path=/";
+            encryptcontent_cookie_password = name + "=" + (value || "")  + expires + "; path=/; Secure";
             return encryptcontent_cookie_password;
         };
         var getCookie = function(name) {
