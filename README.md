@@ -14,7 +14,7 @@ An mkdocs version of the plugin [Encrypt content](https://github.com/mindcruzer/
 >
 > It is possible to define a password to protect each article independently or a global password to encrypt all of them.
 >
-> If a global password exists, all articles and pages except the homepage are encrypted with this password.
+> If a global password exists, all articles and pages are encrypted with this password.
 >
 > If a password is defined in an article or a page, it is always used even if a global password exists.
 >
@@ -34,7 +34,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-0.0.4-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-0.0.5-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -107,7 +107,13 @@ Add `css_class: 'your_class_name'` in plugin config variable, to add some custom
 
 When enable the title of your article, `{title}` is replaced by `<span class="{css_class}">{title}</span>'` which allows you to create custome CSS Class for display locked content as you want.
 
-The CSS class must be defined in your theme or your CSS file.  
+The CSS class must be defined in your theme css file and your configuration should look like this when you enabled this feature :
+```yaml
+plugins:
+    - search
+    - encryptcontent:
+        css_class: 'mkdocs-encrypted-class'
+```
 
 ### Rebember password
 

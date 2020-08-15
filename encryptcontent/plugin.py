@@ -5,7 +5,6 @@ import base64
 import hashlib
 from Crypto import Random
 from jinja2 import Template
-from bs4 import BeautifulSoup
 from Crypto.Cipher import AES
 from mkdocs.plugins import BasePlugin
 
@@ -174,20 +173,17 @@ class encryptContentPlugin(BasePlugin):
         :param site_navigation: global navigation object
         :return: HTML rendered from Markdown source as string encrypt with AES
         """
-        soup = BeautifulSoup(html, 'html.parser')
-        # Never apply on home page
-        if not page.is_homepage:
-            # Add prefix on title if define
-            if self.title_prefix:
-                page.title = str(self.title_prefix) + str(page.title)
-            # Add class on title if define
-            if self.css_class:
-                page.title = '<span class="{locked_class}">{title}</span>'.format(
-                    locked_class=str(self.css_class),
-                    title=str(page.title)
-                )
-            # Encrypt content with password
-            if self.password is not None:
-                html = self.__encrypt_content__(html)
+        # Add prefix on title if define
+        if self.title_prefix:
+            page.title = str(self.title_prefix) + str(page.title)
+        # Add class on title if define
+        if self.css_class:
+            page.title = '<span class="{locked_class}">{title}</span>'.format(
+                locked_class=str(self.css_class),
+                title=str(page.title)
+            )
+        # Encrypt content with password
+        if self.password is not None:
+            html = self.__encrypt_content__(html)
         return html
 
