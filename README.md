@@ -99,6 +99,16 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
 {% endif %}
 ```
 
+### Custome CSS class
+
+Related to [issue #7](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/7)
+
+Add `css_class: 'your_class_name'` in plugin config variable, to add some customization on title prefix.
+
+When enable the title of your article, `{title}` is replaced by `<span class="{css_class}">{title}</span>'` which allows you to create custome CSS Class for display locked content as you want.
+
+The CSS class must be defined in your theme or your CSS file.  
+
 ### Rebember password
 
 Related to [issue #6](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/6)

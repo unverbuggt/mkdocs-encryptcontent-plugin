@@ -5,6 +5,7 @@ import base64
 import hashlib
 from Crypto import Random
 from jinja2 import Template
+from bs4 import BeautifulSoup
 from Crypto.Cipher import AES
 from mkdocs.plugins import BasePlugin
 
@@ -45,6 +46,7 @@ class encryptContentPlugin(BasePlugin):
         ('hljs', mkdocs.config.config_options.Type(bool, default=False)),
         ('remember_password', mkdocs.config.config_options.Type(bool, default=False)),
         ('disable_cookie_protection', mkdocs.config.config_options.Type(bool, default=False)),
+        ('css_class', mkdocs.config.config_options.Type(string_types, default=None)),
     )
 
     def __hash_md5__(self, text):
@@ -116,6 +118,11 @@ class encryptContentPlugin(BasePlugin):
             highlightjs = config['theme']._vars['highlightjs']       
             if highlightjs:
                 setattr(self, 'hljs', highlightjs)
+        # Check if css_class is set to add some customization on encrypted pages
+        setattr(self, 'css_class', None)
+        if 'css_class' in plugin_config.keys():
+            css_class = self.config.get('css_class')
+            setattr(self, 'css_class', css_class)
         # Check if cookie_password is enable en encryptcontent config
         setattr(self, 'remember_password', False)
         setattr(self, 'disable_cookie_protection', False)
@@ -167,11 +174,18 @@ class encryptContentPlugin(BasePlugin):
         :param site_navigation: global navigation object
         :return: HTML rendered from Markdown source as string encrypt with AES
         """
+        soup = BeautifulSoup(html, 'html.parser')
         # Never apply on home page
         if not page.is_homepage:
             # Add prefix on title if define
             if self.title_prefix:
                 page.title = str(self.title_prefix) + str(page.title)
+            # Add class on title if define
+            if self.css_class:
+                page.title = '<span class="{locked_class}">{title}</span>'.format(
+                    locked_class=str(self.css_class),
+                    title=str(page.title)
+                )
             # Encrypt content with password
             if self.password is not None:
                 html = self.__encrypt_content__(html)
