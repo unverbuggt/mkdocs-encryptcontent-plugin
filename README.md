@@ -1,18 +1,25 @@
 # mkdocs-encryptcontent-plugin
 
-*This plugin allows you to have password protected articles and pages in MKdocs. The content is encrypted with AES-256 in Python using PyCryptodome, and decrypted in the browser with Crypto-JS. It has been tested in Python 2.7 and Python 3.5+*
+*This plugin allows you to have password protected articles and pages in MKdocs.* 
+
+*The content is encrypted with AES-256 in Python using PyCryptodome, and decrypted in the browser with Crypto-JS.*
+
+*It has been tested in Python 2.7 and Python 3.5+*
 
 An mkdocs version of the plugin [Encrypt content](https://github.com/mindcruzer/pelican-encrypt-content) for Pelican.
 
-**usecase**
+**Usecase**
 
-```
-I want to be able to protect my articles with password. And I would like this protection to be as granular as possible.
-It is possible to define a password to protect each article independently or a global password to encrypt all of them.
-If a global password exists, all articles and pages except the homepage are encrypted with this password.
-If a password is defined in an article or a page, it is always used even if a global password exists.
-If a password is defined as an empty character string, the page is not encrypted.
-```
+> I want to be able to protect my articles with password. And I would like this protection to be as granular as possible.
+>
+> It is possible to define a password to protect each article independently or a global password to encrypt all of them.
+>
+> If a global password exists, all articles and pages except the homepage are encrypted with this password.
+>
+> If a password is defined in an article or a page, it is always used even if a global password exists.
+>
+> If a password is defined as an empty character string, the page is not encrypted.
+
 
 ## Installation
 
@@ -27,7 +34,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-0.0.3-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-0.0.4-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -62,8 +69,6 @@ If a password is defined in an article, it will ALWAYS overwrite the global pass
 
 Optionally you can add `title_prefix` and `summary` in plugin config variables to customize default messages.
 
-Optionally you can add `remember_password: True` in plugin config variables to enable remember_password feature.
-
 ```yaml
 plugins:
     - search
@@ -71,18 +76,20 @@ plugins:
         global_password: 'your_password'
         title_prefix: '[LOCK]'
         summary: 'another informational message than the default one'
-        remember_password: true
 ```
 
 Default prefix title is `[Protected]` and default summary message is `This content is protected with AES encryption. `  
 
 > **NOTE** Adding a prefix to the title does not change the default navigation path !
 
+
 ## Features
 
 ### HighlightJS support
 
-If your theme use HighlightJS module to improve color, and `highlightjs: true` is set in your `mkdocs.yml`, this plugin enable this part of the jinja template to force reload heiglighting in decrypted content.
+If your theme use HighlightJS module to improve color, set `highlightjs: true` in your `mkdocs.yml`, to enable color reloading after decryption process.
+ 
+When enable the following part of the template is add to force reloading decrypted content.
 
 ```jinja
 {% if hljs %}
@@ -94,16 +101,41 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
 
 ### Rebember password
 
-If like me, your lazy, you can set `remember_password: True` in the configuration variable of this plugin to enable password remember feature.
+Related to [issue #6](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/6)
 
-When enabled, that's allow you to press `CTRL+Enter` key on input password field form, to write your input password on cookie named **encryptcontent_cookie_password**. 
-When **encryptcontent_cookie_password** is set and if you just press `Enter` without input on password form, decrypt function use cookie value as default password.
-You can update **encryptcontent_cookie_password** value by re-using `CTRL+Enter` after entering your password.
+> :warning: **This feature is not really secure !** Password are store in clear text inside local cookie without httpOnly flag.
+>
+> Instead of using this feature, I recommend to use a password manager with its web plugins.
+> For example **KeepassXC** allows you, with a simple keyboard shortcut, to detect the password field `mkdocs-content-password` and to fill it automatically in a much more secure way.
 
-> **NOTE** Disabled by default. Cookie are not protected / ! \\
+If you do not have password manager , you can set `remember_password: True` in your `mkdocs.yml` to enable password remember feature.
 
-> **TODO**: Add some flag -> Secure; HttpOnly; SameSite strict; 
+When enabled, each time you fill password form and press `Enter` a cookie is create with your password as value. 
+When you reload the page, if you already have an 'encryptcontent' cookie in your browser,
+the page will be automatically decrypted using the value of the cookie.
 
+By default, the cookie is created with a `path=` relative to the page on which it was generated.
+This 'specific' cookie will always be used as first attempt to decrypt the current page when loading.
+
+If your password is a global password, you can fill in the `mkdocs-content-password` field,
+then use the keyboard shortcut `CTRL + ENTER` instead of the classic `ENTER`. 
+The cookie that will be created with a `path=/` making it accessible, by default, on all the pages of your site.
+
+The form of decryption remains visible as long as the content has not been successfully decrypted,
+ which allows in case of error to modify the created cookie.
+
+All cookies created with this feature have the default security options `Secure` and` SameSite=Strict`, just cause ...
+
+However *(optionally)*, its possible to remove these two security options by adding `disable_cookie_protection: True` in your` mkdocs.yml`.
+
+Your configuration should look like this when you enabled this feature :
+```yaml
+plugins:
+    - search
+    - encryptcontent:
+        remember_password: True
+        disable_cookie_protection: True   # <-- Really a bad idea
+```
 
 ## Contributing
 

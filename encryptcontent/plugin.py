@@ -44,6 +44,7 @@ class encryptContentPlugin(BasePlugin):
         ('password', mkdocs.config.config_options.Type(string_types, default=None)),
         ('hljs', mkdocs.config.config_options.Type(bool, default=False)),
         ('remember_password', mkdocs.config.config_options.Type(bool, default=False)),
+        ('disable_cookie_protection', mkdocs.config.config_options.Type(bool, default=False)),
     )
 
     def __hash_md5__(self, text):
@@ -74,6 +75,7 @@ class encryptContentPlugin(BasePlugin):
         ciphertext_bundle = self.__encrypt_text_aes__(content, self.password)
         hljs = self.hljs
         remember_password = self.remember_password
+        disable_cookie_protection = self.disable_cookie_protection
         decrypt_form = Template(DECRYPT_FORM_TPL).render({
             'summary': self.summary,
             # this benign decoding is necessary before writing to the template, 
@@ -82,6 +84,7 @@ class encryptContentPlugin(BasePlugin):
             'js_libraries': JS_LIBRARIES,
             'hljs': hljs,
             'remember_password': remember_password,
+            'disable_cookie_protection': disable_cookie_protection,
         })
         return decrypt_form
 
@@ -115,9 +118,15 @@ class encryptContentPlugin(BasePlugin):
                 setattr(self, 'hljs', highlightjs)
         # Check if cookie_password is enable en encryptcontent config
         setattr(self, 'remember_password', False)
+        setattr(self, 'disable_cookie_protection', False)
         if 'remember_password' in plugin_config.keys():
             remember_password = self.config.get('remember_password')
             setattr(self, 'remember_password', remember_password)
+            # Check if cookie protection is disable *not good idea*
+            setattr(self, 'disable_cookie_protection', False)
+            if 'disable_cookie_protection' in plugin_config.keys():
+                disable_cookie_protection = self.config.get('disable_cookie_protection')
+                setattr(self, 'disable_cookie_protection', disable_cookie_protection)
 
     def on_page_markdown(self, markdown, page, config, **kwargs):
         """

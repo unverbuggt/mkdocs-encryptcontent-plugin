@@ -43,15 +43,25 @@
             }
         };
         {% if remember_password %}
-        var setCookie = function(name,value,days) {
+        var setCookie = function(name,value,days,path) {
             var expires = "";
+            var current_path = "; path=/"
             if (days) {
                 var date = new Date();
                 date.setTime(date.getTime() + (days*24*60*60*1000));
                 expires = "; expires=" + date.toUTCString();
             }
-            encryptcontent_cookie_password = name + "=" + (value || "")  + expires + "; path=/; Secure";
-            return encryptcontent_cookie_password;
+            if (path) {
+                current_path = "; path=" + path
+            }
+            {% if disable_cookie_protection %}
+            encryptcontent = name + "=" + encodeURIComponent(value || "") + expires + current_path;
+            {% else %}
+            encryptcontent = name + "=" + encodeURIComponent(value || "") + expires + current_path;
+            // httpOnly cannot be add here ... (°︵°)
+            encryptcontent = encryptcontent + "; SameSite=Strict; Secure";
+            {% endif %}
+            return encryptcontent;
         };
         var getCookie = function(name) {
             var nameEQ = name + "=";
@@ -63,26 +73,60 @@
             }
             return null;
         };
+        var checkCookie = function(name, path) {
+            var results = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+            console.log(results)
+        };
         {% endif %}
         var init_decryptor = function() {
+
             var password_input = document.getElementById('mkdocs-content-password'),
                 encrypted_content = document.getElementById('mkdocs-encrypted-content'),
                 decrypted_content = document.getElementById('mkdocs-decrypted-content'),
                 decrypt_form = document.getElementById('mkdocs-decrypt-form');
-            password_input.addEventListener('keydown', function(event) {
-                {% if remember_password %}
-                if (event.ctrlKey && event.key === "Enter") {
-                    // set password on cookie
-                    document.cookie = setCookie("encryptcontent_cookie_password", password_input.value, 1)
+            // grab the ciphertext bundle
+            var parts = encrypted_content.innerHTML.split(';');
+
+            {% if remember_password %}
+            // If remember_password is set, try to use cookie to decrypt content when page is loaded
+            var password_cookie = getCookie('encryptcontent')
+            console.log(password_cookie);
+            if (password_cookie) {
+                console.log('Try decrypt content with cookie');
+                // decrypt it
+                var content = decrypt_content(
+                    password_cookie,
+                    parts[0],
+                    parts[1],
+                    parts[2]
+                );
+                if (content) {
+                    // success; display the decrypted content
+                    decrypted_content.innerHTML = content;
+                    encrypted_content.parentNode.removeChild(encrypted_content);
+                    // any post processing on the decrypted content should be done here
+                    {% if hljs %}
+                    document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+                    {% endif %}
                 }
-                {% endif %}
+            }
+            {% endif %}
+
+            password_input.addEventListener('keydown', function(event) {
                 if (event.key === "Enter") {
-                    // grab the ciphertext bundle
-                    var parts = encrypted_content.innerHTML.split(';');
                     {% if remember_password %}
-                    // if password.input is empty, use cookie password
-                    if (password_input.value == "") {
-                        password_input.value = getCookie("encryptcontent_cookie_password")
+                    if (event.ctrlKey) {
+                        // set password on cookie with default path=/ (Overwrite specific cookie)
+                        // this cookie can by use on all page of your site
+                        console.log('Set GLOBAL cookie');
+                        document.cookie = setCookie("encryptcontent", password_input.value, 1)
+                    } else {
+                        // set password on cookie with specific path=document.location.pathname
+                        // this cookie can only be use on this specific page of your site
+                        console.log('Set SPECIFIC cookie');
+                        document.cookie = setCookie("encryptcontent", password_input.value, 1, document.location.pathname)
                     }
                     {% endif %}
                     // decrypt it

@@ -1,6 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
+
 def read(fname):
     file_path = os.path.join(os.path.dirname(__file__), fname)
     with open(file_path) as file:
@@ -10,7 +11,7 @@ def read(fname):
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='0.0.3',
+    version='0.0.4',
     author='CoinK0in',
     author_email='12155947+CoinK0in@users.noreply.github.com',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',
@@ -46,5 +47,5 @@ setup(
         ]
     },
     package_data={'encryptcontent': ['*.tpl.html']},
-    include_package_data = True
+    include_package_data=True
 )
