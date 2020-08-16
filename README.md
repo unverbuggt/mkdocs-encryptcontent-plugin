@@ -4,7 +4,7 @@
 
 *The content is encrypted with AES-256 in Python using PyCryptodome, and decrypted in the browser with Crypto-JS.*
 
-*It has been tested in Python 2.7 and Python 3.5+*
+*It has been tested in Python Python 3.5+*
 
 An mkdocs version of the plugin [Encrypt content](https://github.com/mindcruzer/pelican-encrypt-content) for Pelican.
 
@@ -34,14 +34,13 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-0.0.5-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-0.0.6-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
 
 ```yaml
 plugins:
-    - search
     - encryptcontent: {}
 ```
 
@@ -56,7 +55,6 @@ Add `global_password: your_password` in plugin config variable, to protect by de
 
 ```yaml
 plugins:
-    - search
     - encryptcontent:
         global_password: 'your_password'
 ```
@@ -67,18 +65,24 @@ If a password is defined in an article, it will ALWAYS overwrite the global pass
 
 ### Extra vars customization
 
-Optionally you can add `title_prefix` and `summary` in plugin config variables to customize default messages.
+Optionally you can use some extra variables in plugin config to customize default messages.
 
 ```yaml
 plugins:
-    - search
     - encryptcontent:
-        global_password: 'your_password'
         title_prefix: '[LOCK]'
-        summary: 'another informational message than the default one'
+        summary: 'another informational message to encrypted content'
+        placeholder: 'another password placeholder'
+        decryption_failure_message: 'another informational message when decryption fail'
 ```
 
-Default prefix title is `[Protected]` and default summary message is `This content is protected with AES encryption. `  
+Default prefix title is `[Protected]`
+
+Default summary message is `This content is protected with AES encryption.`
+
+Default password palceholder is `Provide password and press ENTER`
+
+Default decryption failure message is `Invalid password.`
 
 > **NOTE** Adding a prefix to the title does not change the default navigation path !
 
@@ -110,7 +114,6 @@ When enable the title of your article, `{title}` is replaced by `<span class="{c
 The CSS class must be defined in your theme css file and your configuration should look like this when you enabled this feature :
 ```yaml
 plugins:
-    - search
     - encryptcontent:
         css_class: 'mkdocs-encrypted-class'
 ```
@@ -147,10 +150,24 @@ However *(optionally)*, its possible to remove these two security options by add
 Your configuration should look like this when you enabled this feature :
 ```yaml
 plugins:
-    - search
     - encryptcontent:
         remember_password: True
         disable_cookie_protection: True   # <-- Really a bad idea
+```
+
+### Add button
+
+Add `password_button: True` in plugin config variable, to add button to the right of the password field.
+
+When enable, it allows to decrypt the content without creating a cookie *(if remember password feature is activated)*
+
+Optionnally, you can add `password_button_text: 'custome_text_button'` to customize the button text.
+ 
+```yaml
+plugins:
+    - encryptcontent:
+        password_button: True
+        password_button_text: 'custome_text_button'
 ```
 
 ## Contributing

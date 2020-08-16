@@ -2,7 +2,8 @@
 <div id="mkdocs-decrypted-content">
     <form id="mkdocs-decrypt-form">
         <h1>{{ summary }}</h1>
-        <input type="password" id="mkdocs-content-password" placeholder="Provide password and press enter" />
+        <input type="password" id="mkdocs-content-password" placeholder="{{ placeholder }}" />
+        {% if password_button %}<button id="mkdocs-decrypt-button">{{ password_button_text }}</button>{% endif %}
         <p id="mkdocs-decrypt-msg"></p>
     </form>
 </div>
@@ -44,6 +45,7 @@
         };
         {% if remember_password %}
         var setCookie = function(name,value,days,path) {
+            /* Set local cookie to store password */
             var expires = "";
             var current_path = "; path=/"
             if (days) {
@@ -58,12 +60,13 @@
             encryptcontent = name + "=" + encodeURIComponent(value || "") + expires + current_path;
             {% else %}
             encryptcontent = name + "=" + encodeURIComponent(value || "") + expires + current_path;
-            // httpOnly cannot be add here ... (°︵°)
+            // add security flag on cookie
             encryptcontent = encryptcontent + "; SameSite=Strict; Secure";
             {% endif %}
             return encryptcontent;
         };
         var getCookie = function(name) {
+            /* Get password store in cookie */
             var nameEQ = name + "=";
             var ca = document.cookie.split(';');
             for(var i=0;i < ca.length;i++) {
@@ -73,29 +76,24 @@
             }
             return null;
         };
-        var checkCookie = function(name, path) {
-            var results = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-            console.log(results)
-        };
         {% endif %}
         var init_decryptor = function() {
-
             var password_input = document.getElementById('mkdocs-content-password'),
                 encrypted_content = document.getElementById('mkdocs-encrypted-content'),
                 decrypted_content = document.getElementById('mkdocs-decrypted-content'),
+                {% if password_button %}
+                decrypt_button = document.getElementById("mkdocs-decrypt-button"),
+                {% endif %}
                 decrypt_form = document.getElementById('mkdocs-decrypt-form');
-            // grab the ciphertext bundle
-            var parts = encrypted_content.innerHTML.split(';');
-
-            {% if remember_password %}
-            // If remember_password is set, try to use cookie to decrypt content when page is loaded
-            var password_cookie = getCookie('encryptcontent')
-            console.log(password_cookie);
-            if (password_cookie) {
-                console.log('Try decrypt content with cookie');
+            // Adjust password field width to placeholder length
+            let input = document.getElementById("mkdocs-content-password");
+            input.setAttribute('size', input.getAttribute('placeholder').length);
+            var decrypt_action = function() {
+                // grab the ciphertext bundle
+                var parts = encrypted_content.innerHTML.split(';');
                 // decrypt it
                 var content = decrypt_content(
-                    password_cookie,
+                    password_input.value,
                     parts[0],
                     parts[1],
                     parts[2]
@@ -110,53 +108,56 @@
                         hljs.highlightBlock(block);
                     });
                     {% endif %}
+                    //{% if save_password_in_local_storage %}
+                    //localStorage.setItem('password', password_input.value);
+                    //{% endif %}
+                } else {
+                    // create HTML element for the inform message
+                    var decrypt_msg = document.createElement('p');
+                    decrypt_msg.setAttribute('id', 'mkdocs-decrypt-msg')
+                    var node = document.createTextNode('{{ decryption_failure_message }}')
+                    decrypt_msg.appendChild(node)
+                    var mkdocs_decrypt_msg = document.getElementById('mkdocs-decrypt-msg');
+                    // clear all previous failure messages
+                    while (mkdocs_decrypt_msg.firstChild) {
+                        mkdocs_decrypt_msg.firstChild.remove();
+                    }
+                    mkdocs_decrypt_msg.appendChild(decrypt_msg);
+                    password_input.value = '';
+                    password_input.focus();
                 }
             }
+            {% if remember_password %}
+            /* If remember_password is set, try to use cookie to decrypt content when page is loaded */
+            var password_cookie = getCookie('encryptcontent')
+            if (password_cookie) {
+                password_input.value = password_cookie
+                decrypt_action();
+            }
             {% endif %}
-
+            {% if password_button %}
+            if (decrypt_button) {
+                decrypt_button.onclick = function(event) {
+                    event.preventDefault();
+                    decrypt_action();
+                };
+            }
+            {% endif %}
             password_input.addEventListener('keydown', function(event) {
                 if (event.key === "Enter") {
                     {% if remember_password %}
                     if (event.ctrlKey) {
                         // set password on cookie with default path=/ (Overwrite specific cookie)
                         // this cookie can by use on all page of your site
-                        console.log('Set GLOBAL cookie');
                         document.cookie = setCookie("encryptcontent", password_input.value, 1)
                     } else {
                         // set password on cookie with specific path=document.location.pathname
                         // this cookie can only be use on this specific page of your site
-                        console.log('Set SPECIFIC cookie');
                         document.cookie = setCookie("encryptcontent", password_input.value, 1, document.location.pathname)
                     }
                     {% endif %}
-                    // decrypt it
-                    var content = decrypt_content(
-                        password_input.value,
-                        parts[0],
-                        parts[1],
-                        parts[2]
-                    );
-                    if (content) {
-                        // success; display the decrypted content
-                        decrypted_content.innerHTML = content;
-                        encrypted_content.parentNode.removeChild(encrypted_content);
-                        // any post processing on the decrypted content should be done here
-                        {% if hljs %}
-                        document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
-                            hljs.highlightBlock(block);
-                        });
-                        {% endif %}
-                    } else {
-                        // Create HTML element for the inform message
-                        var decrypt_msg = document.createElement('p');
-                        decrypt_msg.setAttribute('id', 'mkdocs-decrypt-msg')
-                        var node = document.createTextNode('Content decryption failed !')
-                        decrypt_msg.appendChild(node)
-                        // Update the message before reload (~2s)
-                        var mkdocs_decrypt_msg = document.getElementById('mkdocs-decrypt-msg');
-                        mkdocs_decrypt_msg.appendChild(decrypt_msg);
-                        password_input.value = '';
-                    }
+                    event.preventDefault();
+                    decrypt_action()
                 }
             });
         };

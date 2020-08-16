@@ -11,7 +11,7 @@ def read(fname):
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='0.0.5',
+    version='0.0.6',
     author='CoinK0in',
     author_email='12155947+CoinK0in@users.noreply.github.com',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',
@@ -20,7 +20,7 @@ setup(
     keywords='mkdocs python markdown encrypt decrypt content',
     url='https://github.com/coink0in/mkdocs-encryptcontent-plugin/',
     license='MIT',
-    python_requires='>=2.7.9,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
+    python_requires='>=3.5',
     install_requires=[
         'mkdocs',
         'pyyaml',
@@ -32,10 +32,6 @@ setup(
         'Intended Audience :: Information Technology',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'
