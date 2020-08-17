@@ -74,6 +74,7 @@ plugins:
         summary: 'another informational message to encrypted content'
         placeholder: 'another password placeholder'
         decryption_failure_message: 'another informational message when decryption fail'
+        encryption_info_message: 'another information message when you dont have acess !'
 ```
 
 Default prefix title is `[Protected]`

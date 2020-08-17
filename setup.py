@@ -25,6 +25,7 @@ setup(
         'mkdocs',
         'pyyaml',
         'pycryptodome',
+        'bs4',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
