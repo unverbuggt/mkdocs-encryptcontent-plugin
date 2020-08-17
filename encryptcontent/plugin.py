@@ -202,17 +202,17 @@ class encryptContentPlugin(BasePlugin):
         :param site_navigation: global navigation object
         :return: HTML rendered from Markdown source as string encrypt with AES
         """
-        # Add prefix 'text' on title if define
-        if self.title_prefix:
-            page.title = str(self.title_prefix) + str(page.title)
-        # Add css class on title if define
-        if self.css_class:
-            page.title = '<span class="{locked_class}">{title}</span>'.format(
-                locked_class=str(self.css_class),
-                title=str(page.title)
-            )
         # Encrypt content with password
         if self.password is not None:
+            # Add prefix 'text' on title if page is encrypted
+            if self.title_prefix:
+                page.title = str(self.title_prefix) + str(page.title)
+            # Add css class on title if page is encrypted
+            if self.css_class:
+                page.title = '<span class="{locked_class}">{title}</span>'.format(
+                    locked_class=str(self.css_class),
+                    title=str(page.title)
+                )
             html = self.__encrypt_content__(html)
         return html
 
