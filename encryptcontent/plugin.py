@@ -1,17 +1,22 @@
 
 import os
+import re
 import mkdocs
 import base64
 import hashlib
+import logging
 from Crypto import Random
 from jinja2 import Template
 from Crypto.Cipher import AES
+from bs4 import BeautifulSoup
 from mkdocs.plugins import BasePlugin
 
 try:
     from mkdocs.utils import string_types
 except ImportError:
     string_types = str
+
+logger = logging.getLogger(__name__)
 
 JS_LIBRARIES = [
     '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.js',
@@ -33,7 +38,8 @@ settings = {
     'summary': 'This content is protected with AES encryption. ',
     'placeholder': 'Provide password and press ENTER',
     'password_button_text': 'Decrypt',
-    'decryption_failure_message': 'Invalid password.'
+    'decryption_failure_message': 'Invalid password.',
+    'encryption_info_message': 'Contact your administrator for access to this page.'
 }
 
 
@@ -45,6 +51,7 @@ class encryptContentPlugin(BasePlugin):
         ('summary', mkdocs.config.config_options.Type(string_types, default=str(settings['summary']))),
         ('placeholder', mkdocs.config.config_options.Type(string_types, default=str(settings['placeholder']))),
         ('decryption_failure_message', mkdocs.config.config_options.Type(string_types, default=str(settings['decryption_failure_message']))),
+        ('encryption_info_message', mkdocs.config.config_options.Type(string_types, default=str(settings['encryption_info_message']))),
         ('global_password', mkdocs.config.config_options.Type(string_types, default=None)),
         ('password', mkdocs.config.config_options.Type(string_types, default=None)),
         ('hljs', mkdocs.config.config_options.Type(bool, default=False)),
@@ -88,6 +95,7 @@ class encryptContentPlugin(BasePlugin):
             'password_button': self.password_button,
             'password_button_text': self.password_button_text,
             'decryption_failure_message': self.decryption_failure_message,
+            'encryption_info_message': self.encryption_info_message,
             # this benign decoding is necessary before writing to the template, 
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
@@ -115,7 +123,6 @@ class encryptContentPlugin(BasePlugin):
         if 'global_password' in config.keys():
             global_password = self.config.get('global_password')
             setattr(self, 'password', global_password)
-
         # Check if prefix title is set on plugin configuration to overwrite
         title_prefix = plugin_config.get('title_prefix')
         setattr(self, 'title_prefix', title_prefix)
@@ -128,20 +135,20 @@ class encryptContentPlugin(BasePlugin):
         # Check if decryption_failure_message description is set on plugin configuration to overwrite
         decryption_failure_message = plugin_config.get('decryption_failure_message')
         setattr(self, 'decryption_failure_message', decryption_failure_message)
-
+        # Check if encryption_info_message descruption is set on plugin configuration to overwrite
+        encryption_info_message = plugin_config.get('encryption_info_message')
+        setattr(self, 'encryption_info_message', encryption_info_message)
         # Check if hljs feature need to be enabled, based on theme configuration
         setattr(self, 'hljs', None)
         if 'highlightjs' in config['theme']._vars:
             highlightjs = config['theme']._vars['highlightjs']       
             if highlightjs:
                 setattr(self, 'hljs', highlightjs)
-
         # Check if css_class feature is enable: add a css class to the titles of encrypted pages
         setattr(self, 'css_class', None)
         if 'css_class' in plugin_config.keys():
             css_class = self.config.get('css_class')
             setattr(self, 'css_class', css_class)
-
         # Check if cookie_password feature is enable: create a cookie for automatic decryption
         setattr(self, 'remember_password', False)
         setattr(self, 'disable_cookie_protection', False)
@@ -153,7 +160,6 @@ class encryptContentPlugin(BasePlugin):
             if 'disable_cookie_protection' in plugin_config.keys():
                 disable_cookie_protection = self.config.get('disable_cookie_protection')
                 setattr(self, 'disable_cookie_protection', disable_cookie_protection)
-
         # Check if password_button feature is enable: Add button to trigger decryption process
         if 'password_button' in  plugin_config.keys():
             password_button = plugin_config.get('password_button')
@@ -207,12 +213,45 @@ class encryptContentPlugin(BasePlugin):
             # Add prefix 'text' on title if page is encrypted
             if self.title_prefix:
                 page.title = str(self.title_prefix) + str(page.title)
-            # Add css class on title if page is encrypted
             if self.css_class:
-                page.title = '<span class="{locked_class}">{title}</span>'.format(
-                    locked_class=str(self.css_class),
-                    title=str(page.title)
-                )
+                # Set attribute on page to identify encrypted page on post process . . .
+                setattr(page, 'encrypted', True)
             html = self.__encrypt_content__(html)
         return html
 
+    def on_post_page(self, output_content, page, config, **kwargs):
+        """
+        The post_page event is called after the template is rendered,
+        but before it is written to disc and can be used to alter the output of the page.
+        If an empty string is returned, the page is skipped and nothing is written to disc.
+
+        :param output_content: output of rendered template as string
+        :param page: mkdocs.nav.Page instance
+        :param config:  global configuration object
+        :return: output of rendered template as string
+        """
+        # limit this process only if extra_css_class feature is enable *(speedup)*
+        if self.css_class and hasattr(page, 'encrypted'):
+            delattr(page, 'encrypted')                                      # Remove identifier attribute "encrypted"
+            soup = BeautifulSoup(output_content, 'html.parser')
+            title_hard_regex = re.compile(re.escape(page.title))
+            ref_search = soup.findAll(text=title_hard_regex)
+            for element in ref_search:
+                if element is None:
+                    continue
+                parent_element = element.parent
+                if parent_element.has_attr('class'):
+                    if isinstance(parent_element['class'], list):
+                        parent_element['class'].append("{encryptcontent_extra_css_class}".format(
+                           encryptcontent_extra_css_class=str(self.css_class)
+                        ))
+                    else:
+                        parent_element['class'] = parent_element['class'] + "{encryptcontent_extra_css_class}".format(
+                            encryptcontent_extra_css_class=str(self.css_class)
+                        )
+                else:
+                    parent_element['class'] = "{encryptcontent_extra_css_class}".format(
+                        encryptcontent_extra_css_class=str(self.css_class)
+                    )
+            output_content = str(soup)
+        return output_content

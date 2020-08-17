@@ -2,6 +2,7 @@
 <div id="mkdocs-decrypted-content">
     <form id="mkdocs-decrypt-form">
         <h1>{{ summary }}</h1>
+        {% if encryption_info_message %}<p>{{ encryption_info_message }}</p>{% endif %}
         <input type="password" id="mkdocs-content-password" placeholder="{{ placeholder }}" />
         {% if password_button %}<button id="mkdocs-decrypt-button">{{ password_button_text }}</button>{% endif %}
         <p id="mkdocs-decrypt-msg"></p>

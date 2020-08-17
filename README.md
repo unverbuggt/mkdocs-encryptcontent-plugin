@@ -84,6 +84,8 @@ Default password palceholder is `Provide password and press ENTER`
 
 Default decryption failure message is `Invalid password.`
 
+Defaut encryption information message is `Contact your administrator for access to this page.`
+
 > **NOTE** Adding a prefix to the title does not change the default navigation path !
 
 
@@ -107,11 +109,15 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
 
 Related to [issue #7](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/7)
 
-Add `css_class: 'your_class_name'` in plugin config variable, to add some customization on title prefix.
+Add `css_class: 'your_class_name'` in plugin config variable, to add some customization on title.
 
-When enable the title of your article, `{title}` is replaced by `<span class="{css_class}">{title}</span>'` which allows you to create custome CSS Class for display locked content as you want.
+
+When enable, the `{css_class}` class is added **in each HTML** tag surrounding the title of your articles or pages.
+
+The CSS class is added after rendering the templates. Its necessary to parse the HTML which slows down the build process.
 
 The CSS class must be defined in your theme css file and your configuration should look like this when you enabled this feature :
+
 ```yaml
 plugins:
     - encryptcontent:
