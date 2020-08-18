@@ -4,7 +4,6 @@ import re
 import mkdocs
 import base64
 import hashlib
-import logging
 from Crypto import Random
 from jinja2 import Template
 from Crypto.Cipher import AES
@@ -15,8 +14,6 @@ try:
     from mkdocs.utils import string_types
 except ImportError:
     string_types = str
-
-logger = logging.getLogger(__name__)
 
 JS_LIBRARIES = [
     '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.js',

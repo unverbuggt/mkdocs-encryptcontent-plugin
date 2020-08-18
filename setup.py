@@ -11,7 +11,7 @@ def read(fname):
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='0.0.8',
+    version='0.0.9',
     author='CoinK0in',
     author_email='12155947+CoinK0in@users.noreply.github.com',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',
@@ -25,7 +25,7 @@ setup(
         'mkdocs',
         'pyyaml',
         'pycryptodome',
-        'bs4',
+        'beautifulsoup4',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
