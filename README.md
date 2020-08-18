@@ -34,7 +34,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-0.0.9-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-0.0.10-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -106,23 +106,34 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
 {% endif %}
 ```
 
-### Custome CSS class
+### Tag encrypted page
 
 Related to [issue #7](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/7)
 
-Add `css_class: 'your_class_name'` in plugin config variable, to add some customization on title.
+You can add `tag_encrypted_page: True` in plugin config variable, to enable tagging of encrypted pages.
 
-
-When enable, the `{css_class}` class is added **in each HTML** tag surrounding the title of your articles or pages.
-
-The CSS class is added after rendering the templates. Its necessary to parse the HTML which slows down the build process.
-
-The CSS class must be defined in your theme css file and your configuration should look like this when you enabled this feature :
+When this feature is enabled, an additional attribute `encrypted` with value `True,` is added to the mkdocs type `mkdocs.nav.page` object.
 
 ```yaml
 plugins:
     - encryptcontent:
-        css_class: 'mkdocs-encrypted-class'
+        tag_encrypted_page: True
+```
+
+It becomes possible to use this attribute in the jinja template of your theme, as a condition to perform custom modification.
+
+```jinja
+{%- for nav_item in nav %}
+    {% if nav_item.encrypted %}
+        <!-- Do something --> 
+    {% endif %}
+{%- endfor %}
+```
+
+For example, in your template, you can use conditional check to add custom class :
+
+```jinja
+<a {% if nav_item.encrypted %}class="mkdocs-encrypted-class"{% endif %}href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
 ```
 
 ### Rebember password
@@ -134,7 +145,7 @@ Related to [issue #6](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/i
 > Instead of using this feature, I recommend to use a password manager with its web plugins.
 > For example **KeepassXC** allows you, with a simple keyboard shortcut, to detect the password field `mkdocs-content-password` and to fill it automatically in a much more secure way.
 
-If you do not have password manager , you can set `remember_password: True` in your `mkdocs.yml` to enable password remember feature.
+If you do not have password manager, you can set `remember_password: True` in your `mkdocs.yml` to enable password remember feature.
 
 When enabled, each time you fill password form and press `Enter` a cookie is create with your password as value. 
 When you reload the page, if you already have an 'encryptcontent' cookie in your browser,

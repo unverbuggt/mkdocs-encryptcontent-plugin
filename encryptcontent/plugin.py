@@ -7,7 +7,6 @@ import hashlib
 from Crypto import Random
 from jinja2 import Template
 from Crypto.Cipher import AES
-from bs4 import BeautifulSoup
 from mkdocs.plugins import BasePlugin
 
 try:
@@ -54,7 +53,7 @@ class encryptContentPlugin(BasePlugin):
         ('hljs', mkdocs.config.config_options.Type(bool, default=False)),
         ('remember_password', mkdocs.config.config_options.Type(bool, default=False)),
         ('disable_cookie_protection', mkdocs.config.config_options.Type(bool, default=False)),
-        ('css_class', mkdocs.config.config_options.Type(string_types, default=None)),
+        ('tag_encrypted_page', mkdocs.config.config_options.Type(bool, default=False)),
         ('password_button', mkdocs.config.config_options.Type(bool, default=False)),
         ('password_button_text', mkdocs.config.config_options.Type(string_types, default=str(settings['password_button_text']))),
     )
@@ -141,11 +140,11 @@ class encryptContentPlugin(BasePlugin):
             highlightjs = config['theme']._vars['highlightjs']       
             if highlightjs:
                 setattr(self, 'hljs', highlightjs)
-        # Check if css_class feature is enable: add a css class to the titles of encrypted pages
-        setattr(self, 'css_class', None)
-        if 'css_class' in plugin_config.keys():
-            css_class = self.config.get('css_class')
-            setattr(self, 'css_class', css_class)
+        # Check if tag_encrypted_page feature is enable: add an extra attribute `encrypted` is add on page object
+        setattr(self, 'tag_encrypted_page', False)
+        if 'tag_encrypted_page' in plugin_config.keys():
+            tag_encrypted_page = self.config.get('tag_encrypted_page')
+            setattr(self, 'tag_encrypted_page', tag_encrypted_page)
         # Check if cookie_password feature is enable: create a cookie for automatic decryption
         setattr(self, 'remember_password', False)
         setattr(self, 'disable_cookie_protection', False)
@@ -210,45 +209,8 @@ class encryptContentPlugin(BasePlugin):
             # Add prefix 'text' on title if page is encrypted
             if self.title_prefix:
                 page.title = str(self.title_prefix) + str(page.title)
-            if self.css_class:
-                # Set attribute on page to identify encrypted page on post process . . .
+            if self.tag_encrypted_page:
+                # Set attribute on page to identify encrypted page on template rendering
                 setattr(page, 'encrypted', True)
             html = self.__encrypt_content__(html)
         return html
-
-    def on_post_page(self, output_content, page, config, **kwargs):
-        """
-        The post_page event is called after the template is rendered,
-        but before it is written to disc and can be used to alter the output of the page.
-        If an empty string is returned, the page is skipped and nothing is written to disc.
-
-        :param output_content: output of rendered template as string
-        :param page: mkdocs.nav.Page instance
-        :param config:  global configuration object
-        :return: output of rendered template as string
-        """
-        # limit this process only if extra_css_class feature is enable *(speedup)*
-        if self.css_class and hasattr(page, 'encrypted'):
-            delattr(page, 'encrypted')                                      # Remove identifier attribute "encrypted"
-            soup = BeautifulSoup(output_content, 'html.parser')
-            title_hard_regex = re.compile(re.escape(page.title))
-            ref_search = soup.findAll(text=title_hard_regex)
-            for element in ref_search:
-                if element is None:
-                    continue
-                parent_element = element.parent
-                if parent_element.has_attr('class'):
-                    if isinstance(parent_element['class'], list):
-                        parent_element['class'].append("{encryptcontent_extra_css_class}".format(
-                           encryptcontent_extra_css_class=str(self.css_class)
-                        ))
-                    else:
-                        parent_element['class'] = parent_element['class'] + "{encryptcontent_extra_css_class}".format(
-                            encryptcontent_extra_css_class=str(self.css_class)
-                        )
-                else:
-                    parent_element['class'] = "{encryptcontent_extra_css_class}".format(
-                        encryptcontent_extra_css_class=str(self.css_class)
-                    )
-            output_content = str(soup)
-        return output_content
