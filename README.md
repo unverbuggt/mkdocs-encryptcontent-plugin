@@ -34,7 +34,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-0.0.10-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-0.0.11-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -187,6 +187,47 @@ plugins:
         password_button: True
         password_button_text: 'custome_text_button'
 ```
+
+### Encrypt Table Of Content
+
+Related to [issue #9](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/9)
+
+You can add `encrypted_toc: True` in plugin config variable, to encrypt the table of contents.
+
+You **have to** enable [feature tag encrypt page](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#tag-encrypted-page) 
+for this feature to work properly, cause HTML generation of the Table Of Content is done after the rendering process.
+
+When this feature is enabled, we search for your table of content based on `id=mkdocs-encrypted-toc` and encrypt all HTML content.
+
+```yaml
+plugins:
+    - encryptcontent:
+        tag_encrypted_page: True  
+        encrypted_toc: True`
+```
+
+Adding `id=mkdocs-encrypted-toc` in the parent element of your table of content, so that the child html contained to be encrypted.
+It possible to use conditional tag `page.encrypted` to add or not the id. 
+
+```jinja
+{%- if page.toc|count > 0 %}
+<div class=".." {% if page.encrypted %}id="mkdocs-encrypted-toc"{% endif %}>
+    <ul class="..">
+    {%- for toc_item in page.toc %}
+        <li class=".."><a href="{{ toc_item.url }}">{{ toc_item.title }}</a></li>
+        {%- for toc_item in toc_item.children %}
+            <li><a href="{{ toc_item.url }}">{{ toc_item.title }}</a></li>
+        {%- endfor %}
+    {%- endfor %}
+    </ul>
+</div>
+{%- endif %}
+```
+
+When the feature is enabled and you use any methods *(password, button, cookie)* to decrypt the page, the table of contents will also be decrypted.
+
+By default the encrypted ToC have `style=display:none` to hide encrypted content. 
+
 
 ## Contributing
 
