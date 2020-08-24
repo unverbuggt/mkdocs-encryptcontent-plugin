@@ -86,30 +86,34 @@
                 decrypt_button = document.getElementById("mkdocs-decrypt-button"),
                 {% endif %}
                 {% if encrypted_toc %}
-                encrypted_toc = document.getElementById('mkdocs-encrypted-toc'),
+                //encrypted_toc = document.getElementById('mkdocs-encrypted-toc'),
+                // HTMLCollection, cause we can have multiples ToC items ...
+                encrypted_toc = document.getElementsByClassName('mkdocs-encrypted-toc'),
                 {% endif %}
                 decrypt_form = document.getElementById('mkdocs-decrypt-form');
             // Adjust password field width to placeholder length
             let input = document.getElementById("mkdocs-content-password");
             input.setAttribute('size', input.getAttribute('placeholder').length);
             {% if encrypted_toc %}
-            // Decrypt Table Of Content
+            // Decrypt all Table Of Content on the page
             var decrypt_toc = function() {
-                // grab the cipher ToC bundle
-                var parts = encrypted_toc.innerHTML.split(';');
-                // decrypt it
-                var content = decrypt_content(
-                    password_input.value,
-                    parts[0],
-                    parts[1],
-                    parts[2]
-                );
-                if (content) {
-                    // success; display the decrypted ToC
-                    encrypted_toc.innerHTML = content;
-                    encrypted_toc.style.display = null;
-                    // any post processing on the decrypted toc should be done here
-                 }
+                for (i = 0; i < encrypted_toc.length; i++) {
+                    // grab the cipher ToC bundle
+                    var parts = encrypted_toc[i].innerHTML.split(';');
+                    // decrypt it
+                    var content = decrypt_content(
+                        password_input.value,
+                        parts[0],
+                        parts[1],
+                        parts[2]
+                    );
+                    if (content) {
+                        // success; display the decrypted ToC
+                        encrypted_toc[i].innerHTML = content;
+                        encrypted_toc[i].style.display = null;
+                        // any post processing on the decrypted toc should be done here
+                    }
+                }
             }
             {% endif %}
             // Decrypt content
