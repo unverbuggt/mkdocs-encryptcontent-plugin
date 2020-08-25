@@ -85,33 +85,39 @@
                 {% if password_button %}
                 decrypt_button = document.getElementById("mkdocs-decrypt-button"),
                 {% endif %}
-                {% if encrypted_toc %}
-                //encrypted_toc = document.getElementById('mkdocs-encrypted-toc'),
-                // HTMLCollection, cause we can have multiples ToC items ...
-                encrypted_toc = document.getElementsByClassName('mkdocs-encrypted-toc'),
-                {% endif %}
                 decrypt_form = document.getElementById('mkdocs-decrypt-form');
             // Adjust password field width to placeholder length
             let input = document.getElementById("mkdocs-content-password");
             input.setAttribute('size', input.getAttribute('placeholder').length);
-            {% if encrypted_toc %}
-            // Decrypt all Table Of Content on the page
-            var decrypt_toc = function() {
-                for (i = 0; i < encrypted_toc.length; i++) {
-                    // grab the cipher ToC bundle
-                    var parts = encrypted_toc[i].innerHTML.split(';');
-                    // decrypt it
-                    var content = decrypt_content(
-                        password_input.value,
-                        parts[0],
-                        parts[1],
-                        parts[2]
-                    );
-                    if (content) {
-                        // success; display the decrypted ToC
-                        encrypted_toc[i].innerHTML = content;
-                        encrypted_toc[i].style.display = null;
-                        // any post processing on the decrypted toc should be done here
+            {% if encrypted_something %}
+            var encrypted_something = {{ encrypted_something }}
+            // Decrypt all others elements
+            var decrypt_somethings = function() {
+                var html_item = ''
+                for (const [name, tag] of Object.entries(encrypted_something)) {
+                    if (tag[1] == 'id') {
+                        html_item = [document.getElementById(name)];
+                    } else if (tag[1] == 'class') {
+                        html_item = document.getElementsByClassName(name);
+                    } else {
+                        console.log('Unknow tag html found ...');
+                    }
+                    for (i = 0; i < html_item.length; i++) {
+                        // grab the cipher ToC bundle
+                        var parts = html_item[i].innerHTML.split(';');
+                        // decrypt it
+                        var content = decrypt_content(
+                            password_input.value,
+                            parts[0],
+                            parts[1],
+                            parts[2]
+                        );
+                        if (content) {
+                            // success; display the decrypted ToC
+                            html_item[i].innerHTML = content;
+                            html_item[i].style.display = null;
+                            // any post processing on the decrypted toc should be done here
+                        }
                     }
                 }
             }
@@ -159,8 +165,8 @@
             if (password_cookie) {
                 password_input.value = password_cookie
                 decrypt_action();
-                {% if encrypted_toc %}
-                decrypt_toc();
+                {% if encrypted_something %}
+                decrypt_somethings();
                 {% endif %}
             }
             {% endif %}
@@ -169,8 +175,8 @@
                 decrypt_button.onclick = function(event) {
                     event.preventDefault();
                     decrypt_action();
-                    {% if encrypted_toc %}
-                    decrypt_toc();
+                    {% if encrypted_something %}
+                    decrypt_somethings();
                     {% endif %}
                 };
             }
@@ -190,8 +196,8 @@
                     {% endif %}
                     event.preventDefault();
                     decrypt_action();
-                    {% if encrypted_toc %}
-                    decrypt_toc();
+                    {% if encrypted_something %}
+                    decrypt_somethings();
                     {% endif %}
                 }
             });
