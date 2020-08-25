@@ -103,7 +103,7 @@
                         console.log('Unknow tag html found ...');
                     }
                     for (i = 0; i < html_item.length; i++) {
-                        // grab the cipher ToC bundle
+                        // grab the cipher bundle
                         var parts = html_item[i].innerHTML.split(';');
                         // decrypt it
                         var content = decrypt_content(
@@ -113,10 +113,10 @@
                             parts[2]
                         );
                         if (content) {
-                            // success; display the decrypted ToC
+                            // success; display the decrypted content
                             html_item[i].innerHTML = content;
                             html_item[i].style.display = null;
-                            // any post processing on the decrypted toc should be done here
+                            // any post processing on the decrypted content should be done here
                         }
                     }
                 }

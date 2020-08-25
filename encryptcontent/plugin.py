@@ -254,10 +254,10 @@ class encryptContentPlugin(BasePlugin):
                         else:
                             merge_item = item.contents[0]
                         # Encrypt childs items on target tags with page password
-                        ciphertoc_bundle = self.__encrypt_text_aes__(merge_item, page.password)
-                        encrypted_toc = b';'.join(ciphertoc_bundle).decode('ascii')
+                        cipher_bundle = self.__encrypt_text_aes__(merge_item, page.password)
+                        encrypted_content = b';'.join(cipher_bundle).decode('ascii')
                         # Replace initial content with encrypted one
-                        bs4_encrypted_content = BeautifulSoup(encrypted_toc, 'html.parser')
+                        bs4_encrypted_content = BeautifulSoup(encrypted_content, 'html.parser')
                         item.contents = [bs4_encrypted_content]
                         if item.has_attr('style'):
                             if isinstance(item['style'], list):
