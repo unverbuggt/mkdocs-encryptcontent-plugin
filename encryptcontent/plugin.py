@@ -251,8 +251,10 @@ class encryptContentPlugin(BasePlugin):
                         # Merge the content in case there are several elements
                         if len(item.contents) > 1:
                             merge_item = ''.join([str(s) for s in item.contents])
-                        else:
+                        elif len(item.contents) == 1:
                             merge_item = item.contents[0]
+                        else:
+                            merge_item = ""
                         # Encrypt childs items on target tags with page password
                         cipher_bundle = self.__encrypt_text_aes__(merge_item, page.password)
                         encrypted_content = b';'.join(cipher_bundle).decode('ascii')
