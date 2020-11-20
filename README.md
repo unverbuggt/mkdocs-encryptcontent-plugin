@@ -34,7 +34,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-0.0.12-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-0.0.13-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -188,7 +188,10 @@ plugins:
         password_button_text: 'custome_text_button'
 ```
 
-### [:wrench: BETA] Encrypt Something
+
+## [:wrench: BETA] Features
+
+### Encrypt Something
 
 Related to [issue #9](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/9)
 
@@ -269,6 +272,24 @@ Your configuration like this :
 ```
 
 :gear: This feature is still in beta, all feedback, improvement, fixes, are welcome.
+
+### Arithmatex support
+
+Related to [issue #12](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/12)
+
+If Arithmatex markdown extension is set in your markdown extensions to improve math equations rendering, reload rendering after decryption process.
+ 
+When enable the following part of the template is add to force math equations rendering on decrypted content.
+
+```jinja
+{% if arithmatex %}MathJax.typesetPromise(){% endif %}
+```
+
+> **NOTE** It has been tested in Arithmatex `generic` mode only. 
+
+:gear: This feature is still in beta, all feedback, improvement, fixes, are welcome.
+
+
 ## Contributing
 
 From reporting a bug to submitting a pull request: every contribution is appreciated and welcome.
