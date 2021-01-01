@@ -6,8 +6,6 @@
 
 *It has been tested in Python Python 3.5+*
 
-An mkdocs version of the plugin [Encrypt content](https://github.com/mindcruzer/pelican-encrypt-content) for Pelican.
-
 **Usecase**
 
 > I want to be able to protect my articles with password. And I would like this protection to be as granular as possible.
@@ -34,7 +32,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-0.0.13-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-1.0.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -105,6 +103,20 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
 });
 {% endif %}
 ```
+
+### Arithmatex support
+
+Related to [issue #12](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/12)
+
+If Arithmatex markdown extension is set in your markdown extensions to improve math equations rendering, reload rendering after decryption process.
+ 
+When enable the following part of the template is add to force math equations rendering on decrypted content.
+
+```jinja
+{% if arithmatex %}MathJax.typesetPromise(){% endif %}
+```
+
+> **NOTE** It has been tested in Arithmatex `generic` mode only. 
 
 ### Tag encrypted page
 
@@ -189,8 +201,6 @@ plugins:
 ```
 
 
-## [:wrench: BETA] Features
-
 ### Encrypt Something
 
 Related to [issue #9](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/9)
@@ -270,24 +280,6 @@ Your configuration like this :
           mkdocs-encrypted-footer: [div, id]
           mkdocs-encrypted-footer-meta: [div, id]
 ```
-
-:gear: This feature is still in beta, all feedback, improvement, fixes, are welcome.
-
-### Arithmatex support
-
-Related to [issue #12](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/12)
-
-If Arithmatex markdown extension is set in your markdown extensions to improve math equations rendering, reload rendering after decryption process.
- 
-When enable the following part of the template is add to force math equations rendering on decrypted content.
-
-```jinja
-{% if arithmatex %}MathJax.typesetPromise(){% endif %}
-```
-
-> **NOTE** It has been tested in Arithmatex `generic` mode only. 
-
-:gear: This feature is still in beta, all feedback, improvement, fixes, are welcome.
 
 
 ## Contributing
