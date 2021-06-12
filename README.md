@@ -32,7 +32,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-1.0.0-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-1.1.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -282,16 +282,39 @@ Your configuration like this :
 ```
 
 
+### Do not encrypt search index
+
+Related to [issue #13](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/13)
+
+> :warning: **This feature is NOT SECURE and CAUSE DATA LEAK**
+>
+> The unencrypted content of each page is accessible through the search index.
+> Not encrypting the search index means completely removing the protection provided by this plugin.
+> You have been warned 
+
+You can set `decrypt_search: True` in your `mkdocs.yml` to disable the search index encryption process.
+
+```yaml
+plugins:
+    - encryptcontent:
+        decrypt_search: True
+```
+
+It becomes possible again to make searches on all the pages, even if the content of the page is encrypted. 
+
+If you still want to protect some pages, even though the search index is not encrypted, you can use [mkdocs-exclude-search](https://github.com/chrieke/mkdocs-exclude-search) to exclude parts or complete articles from the search index.
+
+
 ## Contributing
 
 From reporting a bug to submitting a pull request: every contribution is appreciated and welcome.
+
 Report bugs, ask questions and request features using [Github issues][github-issues].
+
 If you want to contribute to the code of this project, please read the [Contribution Guidelines][contributing].
 
-[mkdocs-plugins]: http://www.mkdocs.org/user-guide/plugins/
+[mkdocs-plugins]: https://www.mkdocs.org/dev-guide/plugins/
 [github-issues]: https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues
 [contributing]: CONTRIBUTING.md
 
-### Contributors
-
-- [anthonyeden](https://github.com/anthonyeden)
+### [Contributors](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/graphs/contributors)

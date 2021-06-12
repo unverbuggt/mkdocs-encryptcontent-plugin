@@ -4,6 +4,7 @@ import re
 import mkdocs
 import base64
 import hashlib
+import logging
 from Crypto import Random
 from jinja2 import Template
 from Crypto.Cipher import AES
@@ -39,6 +40,7 @@ settings = {
     'encryption_info_message': 'Contact your administrator for access to this page.'
 }
 
+logger = logging.getLogger("mkdocs.plugins.encryptcontent")
 
 class encryptContentPlugin(BasePlugin):
     """ Plugin that encrypt markdown content with AES and inject decrypt form. """
@@ -59,6 +61,7 @@ class encryptContentPlugin(BasePlugin):
         ('password_button', mkdocs.config.config_options.Type(bool, default=False)),
         ('password_button_text', mkdocs.config.config_options.Type(string_types, default=str(settings['password_button_text']))),
         ('encrypted_something', mkdocs.config.config_options.Type(dict, default={})),
+        ('decrypt_search', mkdocs.config.config_options.Type(bool, default=False)),
     )
 
     def __hash_md5__(self, text):
@@ -178,6 +181,11 @@ class encryptContentPlugin(BasePlugin):
         if 'encrypted_something' in plugin_config.keys():
             encrypted_something = self.config.get('encrypted_something')
             setattr(self, 'encrypted_something', encrypted_something)
+        # Check if decrypt_search is enable: generate search_index.json on clear text (Data leak)
+        setattr(self, 'decrypt_search', False)
+        if 'decrypt_search' in plugin_config.keys():
+            decrypt_search = self.config.get('decrypt_search')
+            setattr(self, 'decrypt_search', decrypt_search)            
 
     def on_page_markdown(self, markdown, page, config, **kwargs):
         """
@@ -226,27 +234,50 @@ class encryptContentPlugin(BasePlugin):
             if self.tag_encrypted_page:
                 # Set attribute on page to identify encrypted page on template rendering
                 setattr(page, 'encrypted', True)
+            if self.decrypt_search:
+                # Keep encrypted html as temporary variable on page ... :(
+                setattr(page, 'html_encrypted', self.__encrypt_content__(html))
+            else:
+                # Overwrite html with encrypted html, cause search it's encrypted too
+                # Process encryption here, speed up mkdocs-search bultin plugin
+                html = self.__encrypt_content__(html)
             if self.encrypted_something:
                 # Set attributes on page to retrieve password on POST context
                 setattr(page, 'password', self.password)
-            html = self.__encrypt_content__(html)
         return html
+
+    def on_page_context(self, context, page, config, **kwargs):
+        """
+        The page_context event is called after the context for a page is created and 
+        can be used to alter the context for that specific page only.
+
+        :param context: dict of template context variables
+        :param page: mkdocs.nav.Page instance
+        :param config: global configuration object
+        :param nav: global navigation object
+        :return: dict of template context variables
+        """
+        if self.decrypt_search and page.content and hasattr(page, 'html_encrypted'):
+            page.content = page.html_encrypted
+            delattr(page, 'html_encrypted')
+        return context
 
     def on_post_page(self, output_content, page, config, **kwargs):
         """
         The post_page event is called after the template is rendered,
         but before it is written to disc and can be used to alter the output of the page.
         If an empty string is returned, the page is skipped and nothing is written to disc.
+
         :param output_content: output of rendered template as string
         :param page: mkdocs.nav.Page instance
-        :param config:  global configuration object
+        :param config: global configuration object
         :return: output of rendered template as string
         """
         # Limit this process only if encrypted_something feature is enable *(speedup)*
         if self.encrypted_something and hasattr(page, 'encrypted') and len(self.encrypted_something) > 0:
             soup = BeautifulSoup(output_content, 'html.parser')
             for name, tag in self.encrypted_something.items():
-                #print({'name': name, 'html tag': tag[0], 'type': tag[1]})
+                #logger.debug({'name': name, 'html tag': tag[0], 'type': tag[1]})
                 something_search = soup.findAll(tag[0], { tag[1]: name })
                 if something_search is not None and len(something_search) > 0:
                     # Loop for multi child tags on target element
@@ -275,3 +306,13 @@ class encryptContentPlugin(BasePlugin):
                             item['style'] = "display:none"
             output_content = str(soup)
         return output_content
+
+    def on_post_build(self, config):
+        """
+        The post_build event does not alter any variables. 
+        Use this event to call post-build scripts.
+
+        :param config: global configuration object
+        """
+
+

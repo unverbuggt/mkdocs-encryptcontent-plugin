@@ -138,7 +138,9 @@
                     decrypted_content.innerHTML = content;
                     encrypted_content.parentNode.removeChild(encrypted_content);
                     // any post processing on the decrypted content should be done here
-                    {% if arithmatex %}MathJax.typesetPromise(){% endif %}
+                    {% if arithmatex %}
+                    MathJax.typesetPromise()
+                    {% endif %}
                     {% if hljs %}
                     document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
                         hljs.highlightBlock(block);
