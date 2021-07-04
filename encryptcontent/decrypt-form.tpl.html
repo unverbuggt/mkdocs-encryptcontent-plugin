@@ -89,6 +89,33 @@
             // Adjust password field width to placeholder length
             let input = document.getElementById("mkdocs-content-password");
             input.setAttribute('size', input.getAttribute('placeholder').length);
+            {% if experimental %}
+            // Decrypt sessionStorage search index with password if exist
+            var decrypt_search = function(path_location) {
+                sessionIndex = sessionStorage.getItem('encryptcontent-index');
+                if (sessionIndex) {
+                    sessionIndex = JSON.parse(sessionIndex);
+                    for (var i=0; i < sessionIndex.docs.length; i++) {
+                        var doc = sessionIndex.docs[i];
+                        if (doc.location.indexOf(path_location) !== -1) {
+                            // grab the ciphertext bundle and try to decrypt it
+                            var parts = doc.text.split(';');
+                            if (parts[0], parts[1], parts[2]) {
+                                var content = decrypt_content(password_input.value, parts[0], parts[1], parts[2]);
+                            };
+                            if (content) {
+                                doc.text = content;
+                                // any post processing on the decrypted search index should be done here
+                            };
+                        };
+                    };
+                    // force search index reloading on Worker
+                    sessionIndex = JSON.stringify(sessionIndex)
+                    sessionStorage.setItem('encryptcontent-index', sessionIndex);
+                    searchWorker.postMessage({init: true, sessionIndex: sessionIndex});
+                }
+            }
+            {% endif %}
             {% if encrypted_something %}
             var encrypted_something = {{ encrypted_something }}
             // Decrypt all others elements
@@ -100,23 +127,24 @@
                     } else if (tag[1] == 'class') {
                         html_item = document.getElementsByClassName(name);
                     } else {
-                        console.log('Unknow tag html found ...');
+                        console.log('WARNING: Unknow tag html found, check "encrypted_something" configuration.');
                     }
-                    for (i = 0; i < html_item.length; i++) {
-                        // grab the cipher bundle
-                        var parts = html_item[i].innerHTML.split(';');
-                        // decrypt it
-                        var content = decrypt_content(
-                            password_input.value,
-                            parts[0],
-                            parts[1],
-                            parts[2]
-                        );
-                        if (content) {
-                            // success; display the decrypted content
-                            html_item[i].innerHTML = content;
-                            html_item[i].style.display = null;
-                            // any post processing on the decrypted content should be done here
+                    if (html_item) {
+                        for (i = 0; i < html_item.length; i++) {
+                            // grab the cipher bundle if something exist
+                            if (html_item[i]) {
+                                var parts = html_item[i].innerHTML.split(';');
+                                // decrypt it
+                                var content = decrypt_content(
+                                    password_input.value, parts[0], parts[1], parts[2]
+                                );
+                            }
+                            if (content) {
+                                // success; display the decrypted content
+                                html_item[i].innerHTML = content;
+                                html_item[i].style.display = null;
+                                // any post processing on the decrypted content should be done here
+                            }
                         }
                     }
                 }
@@ -128,10 +156,7 @@
                 var parts = encrypted_content.innerHTML.split(';');
                 // decrypt it
                 var content = decrypt_content(
-                    password_input.value,
-                    parts[0],
-                    parts[1],
-                    parts[2]
+                    password_input.value, parts[0], parts[1], parts[2]
                 );
                 if (content) {
                     // success; display the decrypted content
@@ -168,35 +193,53 @@
             if (password_cookie) {
                 password_input.value = password_cookie
                 decrypt_action();
+                {% if experimental %}
+                decrypt_search(window.location.pathname.substring(1));
+                {% endif %}
                 {% if encrypted_something %}
                 decrypt_somethings();
                 {% endif %}
             }
             {% endif %}
             {% if password_button %}
+            /* If password_button is set, try decrypt content when button is press */
             if (decrypt_button) {
                 decrypt_button.onclick = function(event) {
                     event.preventDefault();
                     decrypt_action();
+                    {% if experimental %}
+                    decrypt_search(window.location.pathname.substring(1));
+                    {% endif %}
                     {% if encrypted_something %}
                     decrypt_somethings();
                     {% endif %}
                 };
             }
             {% endif %}
+            /* Default, try decrypt content when password is send */
             password_input.addEventListener('keydown', function(event) {
                 if (event.key === "Enter") {
-                    {% if remember_password %}
                     if (event.ctrlKey) {
+                        {% if remember_password %}
                         // set password on cookie with default path=/ (Overwrite specific cookie)
                         // this cookie can by use on all page of your site
                         document.cookie = setCookie("encryptcontent", password_input.value, 1)
+                        {% endif %}
+                        {% if experimental %}
+                        // Decrypt all possible values on search index
+                        decrypt_search("/");
+                        {% endif %}
                     } else {
+                        {% if remember_password %}
                         // set password on cookie with specific path=document.location.pathname
                         // this cookie can only be use on this specific page of your site
                         document.cookie = setCookie("encryptcontent", password_input.value, 1, document.location.pathname)
+                        {% endif %}
+                        {% if experimental %}
+                        // Only decrypt current page on search index
+                        decrypt_search(window.location.pathname.substring(1));
+                        {% endif %}
                     }
-                    {% endif %}
                     event.preventDefault();
                     decrypt_action();
                     {% if encrypted_something %}

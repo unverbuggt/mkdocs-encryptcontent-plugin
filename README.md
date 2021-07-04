@@ -19,7 +19,24 @@
 > If a password is defined as an empty character string, the page is not encrypted.
 
 
-## Installation
+# Table of Contents
+
+  * [Installation](#installation)
+  * [Usage](#usage)
+    * [Global password protection](#global-password-protection)
+    * [Customization](#extra-vars-customization)
+  * [Features](#features)
+    * [HighlightJS support](#highlightjs-support)
+    * [Arithmatex support](#arithmatex-support)
+    * [Tag encrypted page](#tag-encrypted-page)
+    * [Rebember password](#rebember-password)
+    * [Add button](#add-button)
+    * [Encrypt something](#encrypt-something)
+    * [Search index encryption](#search-index-encryption)
+  * [Contributing](#contributing)
+
+
+# Installation
 
 Install the package with pip:
 
@@ -32,24 +49,25 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-1.1.0-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-1.1.0.1-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
 
 ```yaml
 plugins:
+    - search:
     - encryptcontent: {}
 ```
+> **Note:** If you have no `plugins` entry in your configuration file yet, you'll likely also want to add the `search` plugin. MkDocs enables it by default if there is no `plugins` entry set, but now you have to enable it explicitly.
 
-You are then able to use the meta tag `password: secret_password` in your markdown files to protect them.
+# Usage
 
-> **Note:** If you have no `plugins` entry in your config file yet, you'll likely also want to add the `search` plugin. MkDocs enables it by default if there is no `plugins` entry set, but now you have to enable it explicitly.
+Add an meta tag `password: secret_password` in your markdown files to protect them.
 
+### Global password protection
 
-### Using global password protection
-
-Add `global_password: your_password` in plugin config variable, to protect by default your articles with this password
+Add `global_password: your_password` in plugin configuration variable, to protect by default your articles with this password
 
 ```yaml
 plugins:
@@ -63,7 +81,7 @@ If a password is defined in an article, it will ALWAYS overwrite the global pass
 
 ### Extra vars customization
 
-Optionally you can use some extra variables in plugin config to customize default messages.
+Optionally you can use some extra variables in plugin configuration to customize default messages.
 
 ```yaml
 plugins:
@@ -88,12 +106,14 @@ Defaut encryption information message is `Contact your administrator for access 
 > **NOTE** Adding a prefix to the title does not change the default navigation path !
 
 
-## Features
+# Features
 
 ### HighlightJS support
 
-If your theme use HighlightJS module to improve color, set `highlightjs: true` in your `mkdocs.yml`, to enable color reloading after decryption process.
- 
+> **Enable by default**
+
+If HighlightJS module is detected in your theme to improve code color rendering, reload renderer after decryption process. If HighlightJS module is not correctly detected, you can force it by adding `hljs: True` on the plugin configuration or set False to disable detection.
+
 When enable the following part of the template is add to force reloading decrypted content.
 
 ```jinja
@@ -106,11 +126,13 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
 
 ### Arithmatex support
 
+> **Enable by default**
+
 Related to [issue #12](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/12)
 
-If Arithmatex markdown extension is set in your markdown extensions to improve math equations rendering, reload rendering after decryption process.
+If Arithmatex markdown extension is detected in your markdown extensions to improve math equations rendering, reload renderer after decryption process. If the Arithmatex markdown extension is not correctly detected, you can force it by adding `arithmatex: True` on the plugin configuration or set False to disable detection.
  
-When enable the following part of the template is add to force math equations rendering on decrypted content.
+When enable, the following part of the template is add to force math equations rendering on decrypted content.
 
 ```jinja
 {% if arithmatex %}MathJax.typesetPromise(){% endif %}
@@ -120,16 +142,18 @@ When enable the following part of the template is add to force math equations re
 
 ### Tag encrypted page
 
+> **Enable by default**
+
 Related to [issue #7](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/7)
 
-You can add `tag_encrypted_page: True` in plugin config variable, to enable tagging of encrypted pages.
+You can add `tag_encrypted_page: False` in plugin configuration, to disable tagging of encrypted pages. This feature is neccessary for others feature working correctly. If you disable this feature, do no use [Encrypt Somethings](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#encrypt-something), 
 
-When this feature is enabled, an additional attribute `encrypted` with value `True,` is added to the mkdocs type `mkdocs.nav.page` object.
+This feature add an additional attribute `encrypted` with value `True` to the mkdocs type `mkdocs.nav.page` object.
 
 ```yaml
 plugins:
     - encryptcontent:
-        tag_encrypted_page: True
+        tag_encrypted_page: False
 ```
 
 It becomes possible to use this attribute in the jinja template of your theme, as a condition to perform custom modification.
@@ -173,9 +197,9 @@ The cookie that will be created with a `path=/` making it accessible, by default
 The form of decryption remains visible as long as the content has not been successfully decrypted,
  which allows in case of error to modify the created cookie.
 
-All cookies created with this feature have the default security options `Secure` and` SameSite=Strict`, just cause ...
+All cookies created with this feature have the default security options `Secure` and `SameSite=Strict`, just cause ...
 
-However *(optionally)*, its possible to remove these two security options by adding `disable_cookie_protection: True` in your` mkdocs.yml`.
+However *(optionally)*, its possible to remove these two security options by adding `disable_cookie_protection: True` in your `mkdocs.yml`.
 
 Your configuration should look like this when you enabled this feature :
 ```yaml
@@ -187,7 +211,7 @@ plugins:
 
 ### Add button
 
-Add `password_button: True` in plugin config variable, to add button to the right of the password field.
+Add `password_button: True` in plugin configuration variable, to add button to the right of the password field.
 
 When enable, it allows to decrypt the content without creating a cookie *(if remember password feature is activated)*
 
@@ -200,12 +224,11 @@ plugins:
         password_button_text: 'custome_text_button'
 ```
 
-
-### Encrypt Something
+### Encrypt something
 
 Related to [issue #9](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/9)
 
-You **have to** enable [feature tag encrypt page](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#tag-encrypted-page) for this feature to work properly.
+The [tag encrypted page feature](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#tag-encrypted-page) **MUST** be enabled (it's default) for this feature to work properly.
 
 Add `encrypted_something: {}` in the plugin configuration variable, to encrypt something else.
 
@@ -230,7 +253,7 @@ When the feature is enabled, you can use any methods *(password, button, cookie)
 
 By default **every child items** are encrypted and the encrypted elements have `style=display:none` to hide their content.
 
-#### How to use it :exploding_head:  ?! Examples
+#### How to use it :exploding_head: ?! Examples
 
 Use the `page.encrypted` conditions to add attributes of type id or class in the HTML templates of your theme. 
 Each attribute is identified with a unique name and is contained in an html element. 
@@ -282,30 +305,40 @@ Your configuration like this :
 ```
 
 
-### Do not encrypt search index
+### Search index encryption
+
+> **ALPHA VERSION**, use at your own risks. ONLY work with themes using default mkdocs search.
 
 Related to [issue #13](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/13)
 
-> :warning: **This feature is NOT SECURE and CAUSE DATA LEAK**
+> :warning: **The configuration mode "clear" of this functionality can cause DATA LEAK**
 >
 > The unencrypted content of each page is accessible through the search index.
 > Not encrypting the search index means completely removing the protection provided by this plugin.
 > You have been warned 
 
-You can set `decrypt_search: True` in your `mkdocs.yml` to disable the search index encryption process.
+This feature allows you to control the behavior of the encryption plugin with the search index. 
+Three configuration modes are possible:
+
+ * **clear** : Search index is not encrypted. Search is possible even on protected pages.
+ * **dynamically** : Search index is encrypted on build. Search is possible once the pages have been decrypted ones.
+ * **encrypted** : Search index is encrypted on build. Search is not possible on all encrypted pages.
+
+You can set `search_index: '<mode_name>'` in your `mkdocs.yml` to change the search index encryption mode. Possible values are `clear`, `dynamically`, `encrypted`. The default mode is "**encrypted**".
 
 ```yaml
 plugins:
+    - search:
     - encryptcontent:
-        decrypt_search: True
+        search_index: 'dynamically'
 ```
 
-It becomes possible again to make searches on all the pages, even if the content of the page is encrypted. 
+This functionality overwrite the index creation function of the “search” plug-in provided by mkdocs. The modifications carried out make it possible to encrypt the content of the search index *after* the default plugin has carried out these treatments *(search configuration)*. It is therefore dependent on the default search plugin.
 
-If you still want to protect some pages, even though the search index is not encrypted, you can use [mkdocs-exclude-search](https://github.com/chrieke/mkdocs-exclude-search) to exclude parts or complete articles from the search index.
+When the configuration mode is set to "**dynamically**", the javascripts contrib files of the default search plugin are also overloaded to include a process for decrypting and keeping the search index.
 
 
-## Contributing
+# Contributing
 
 From reporting a bug to submitting a pull request: every contribution is appreciated and welcome.
 
@@ -316,5 +349,3 @@ If you want to contribute to the code of this project, please read the [Contribu
 [mkdocs-plugins]: https://www.mkdocs.org/dev-guide/plugins/
 [github-issues]: https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues
 [contributing]: CONTRIBUTING.md
-
-### [Contributors](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/graphs/contributors)

@@ -11,7 +11,7 @@ def read(fname):
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='1.1.0',
+    version='1.1.0.1',
     author='CoinK0in',
     author_email='12155947+CoinK0in@users.noreply.github.com',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',
@@ -28,14 +28,16 @@ setup(
         'beautifulsoup4',
     ],
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Intended Audience :: Information Technology',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7'
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9'
     ],
     packages=find_packages(exclude=['*.tests']),
     entry_points={
@@ -43,6 +45,6 @@ setup(
             'encryptcontent = encryptcontent.plugin:encryptContentPlugin'
         ]
     },
-    package_data={'encryptcontent': ['*.tpl.html']},
+    package_data={'encryptcontent': ['*.tpl.html', 'contrib/templates/search/*.js']},
     include_package_data=True
 )
