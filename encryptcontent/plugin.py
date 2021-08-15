@@ -17,12 +17,12 @@ except ImportError:
     string_types = str
 
 JS_LIBRARIES = [
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/enc-base64.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/cipher-core.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/pad-nopadding.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/md5.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/aes.js'
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/cipher-core.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/pad-nopadding.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/md5.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.js'
 ]
 
 PLUGIN_DIR = os.path.dirname(os.path.realpath(__file__))
