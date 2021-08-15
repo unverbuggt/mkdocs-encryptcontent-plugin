@@ -33,6 +33,7 @@
     * [Add button](#add-button)
     * [Encrypt something](#encrypt-something)
     * [Search index encryption](#search-index-encryption)
+    * [Reload scripts](#reload-scripts)
   * [Contributing](#contributing)
 
 
@@ -49,7 +50,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-1.1.0.1-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-1.2.0.1-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
