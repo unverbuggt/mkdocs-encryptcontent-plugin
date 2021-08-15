@@ -17,12 +17,12 @@ except ImportError:
     string_types = str
 
 JS_LIBRARIES = [
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/enc-base64.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/cipher-core.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/pad-nopadding.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/md5.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/aes.js'
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/cipher-core.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/pad-nopadding.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/md5.js',
+    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.js'
 ]
 
 PLUGIN_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -64,6 +64,7 @@ class encryptContentPlugin(BasePlugin):
         ('password_button', config_options.Type(bool, default=False)),
         ('encrypted_something', config_options.Type(dict, default={})),
         ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
+        ('reload_scripts', config_options.Type(list, default=[])),
         ('experimental', config_options.Type(bool, default=False)),
     )
 
@@ -111,6 +112,7 @@ class encryptContentPlugin(BasePlugin):
             'remember_password': self.config['remember_password'],
             'disable_cookie_protection': self.config['disable_cookie_protection'],
             'encrypted_something': self.config['encrypted_something'],
+            'reload_scripts': self.config['reload_scripts'],
             'experimental': self.config['experimental'],
         })
         return decrypt_form

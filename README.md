@@ -237,8 +237,10 @@ Child elements of `encrypted_something` are build with a key `<unique name>` in 
 The list have to be contructed with the name of an HTML element `<html tag>` as first item and `id` or `class` as the second item.
 
 ```yaml
-encrypted_something:
-    <uniq name>: [<html tag>, <'class' or 'id'>]
+plugins:
+    - encryptcontent:
+        encrypted_something:
+            <uniq name>: [<html tag>, <'class' or 'id'>]
 ```
 
 The `<unique name>` key identifies the name of a specific element of the page that will be searched by beautifulSoup.
@@ -273,8 +275,10 @@ Then add these elements in the format of a yaml dictionary under the variable `e
 Set your configuration like this : 
 
 ```yaml
-      encrypted_something:
-          mkdocs-encrypted-toc: [div, id]
+plugins:
+    - encryptcontent:
+        encrypted_something:
+            mkdocs-encrypted-toc: [div, id]
 ```
 
 2. Other example, with multiples target. In you Material Theme, you want to encrypt ToC content and Footer.
@@ -298,16 +302,18 @@ After modification, your template looks like this :
 
 Your configuration like this :
 ```yaml
-      encrypted_something:
-          mkdocs-encrypted-toc: [nav, class]
-          mkdocs-encrypted-footer: [div, id]
-          mkdocs-encrypted-footer-meta: [div, id]
+plugins:
+    - encryptcontent:
+        encrypted_something:
+            mkdocs-encrypted-toc: [nav, class]
+            mkdocs-encrypted-footer: [div, id]
+            mkdocs-encrypted-footer-meta: [div, id]
 ```
 
 
 ### Search index encryption
 
-> **ALPHA VERSION**, use at your own risks. ONLY work with themes using default mkdocs search.
+> **ALPHA VERSION**, use at your own risks. **ONLY** work with themes using default mkdocs search.
 
 Related to [issue #13](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/13)
 
@@ -336,6 +342,28 @@ plugins:
 This functionality overwrite the index creation function of the “search” plug-in provided by mkdocs. The modifications carried out make it possible to encrypt the content of the search index *after* the default plugin has carried out these treatments *(search configuration)*. It is therefore dependent on the default search plugin.
 
 When the configuration mode is set to "**dynamically**", the javascripts contrib files of the default search plugin are also overloaded to include a process for decrypting and keeping the search index.
+
+
+### Reload scripts
+
+Related to [issue #14](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/14)
+
+You can set `reload_scripts:` in your `mkdocs.yml` with list of script source, to reload and execute some js lib after decryption process.
+
+```yaml
+plugins:
+    reload_scripts:
+        - "./js/example.js"
+```
+
+This feature use the following JQuery function to remove, add and reload javascripts. 
+
+```javascript
+var reload_js = function(src) {
+    $('script[src="' + src + '"]').remove();
+    $('<script>').attr('src', src).appendTo('head');
+};
+```
 
 
 # Contributing
