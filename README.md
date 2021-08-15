@@ -319,8 +319,9 @@ You can set `reload_scripts:` in your `mkdocs.yml` with list of script source, t
 
 ```yaml
 plugins:
-    reload_scripts:
-        - "./js/example.js"
+    - encryptcontent:
+        reload_scripts:
+            - "./js/example.js"
 ```
 
 This feature use the following JQuery function to remove, add and reload javascripts. 
