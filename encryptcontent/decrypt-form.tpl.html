@@ -44,7 +44,7 @@
                 return false;
             }
         };
-        {% if remember_password %}
+        {% if remember_password -%}
         var setCookie = function(name,value,days,path) {
             /* Set local cookie to store password */
             var expires = "";
@@ -57,13 +57,13 @@
             if (path) {
                 current_path = "; path=" + path
             }
-            {% if disable_cookie_protection %}
+            {% if disable_cookie_protection -%}
             encryptcontent = name + "=" + encodeURIComponent(value || "") + expires + current_path;
-            {% else %}
+            {%- else -%}
             encryptcontent = name + "=" + encodeURIComponent(value || "") + expires + current_path;
             // add security flag on cookie
             encryptcontent = encryptcontent + "; SameSite=Strict; Secure";
-            {% endif %}
+            {%- endif %}
             return encryptcontent;
         };
         var getCookie = function(name) {
@@ -77,19 +77,24 @@
             }
             return null;
         };
-        {% endif %}
+        {%- endif %}
+        // Reload scripts src after decryption process
+        var reload_js = function(src) {
+            $('script[src="' + src + '"]').remove();
+            $('<script>').attr('src', src).appendTo('head');
+        };
         var init_decryptor = function() {
             var password_input = document.getElementById('mkdocs-content-password'),
                 encrypted_content = document.getElementById('mkdocs-encrypted-content'),
                 decrypted_content = document.getElementById('mkdocs-decrypted-content'),
-                {% if password_button %}
+                {% if password_button -%}
                 decrypt_button = document.getElementById("mkdocs-decrypt-button"),
-                {% endif %}
+                {%- endif -%}
                 decrypt_form = document.getElementById('mkdocs-decrypt-form');
             // Adjust password field width to placeholder length
             let input = document.getElementById("mkdocs-content-password");
             input.setAttribute('size', input.getAttribute('placeholder').length);
-            {% if encrypted_something %}
+            {% if encrypted_something -%}
             var encrypted_something = {{ encrypted_something }}
             // Decrypt all others elements
             var decrypt_somethings = function() {
@@ -121,7 +126,7 @@
                     }
                 }
             }
-            {% endif %}
+            {%- endif %}
             // Decrypt content
             var decrypt_action = function() {
                 // grab the ciphertext bundle
@@ -138,14 +143,18 @@
                     decrypted_content.innerHTML = content;
                     encrypted_content.parentNode.removeChild(encrypted_content);
                     // any post processing on the decrypted content should be done here
-                    {% if arithmatex %}
+                    {% if arithmatex -%}
                     MathJax.typesetPromise()
-                    {% endif %}
-                    {% if hljs %}
+                    {%- endif %}
+                    {% if hljs -%}
                     document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
                         hljs.highlightBlock(block);
                     });
-                    {% endif %}
+                    {%- endif %}
+                    {% if reload_scripts | length > 0 -%}
+                    let reload_scripts = {{ reload_scripts }}
+                    for (i = 0; i < reload_scripts.length; i++) { reload_js(reload_scripts[i]); };
+                    {%- endif %}
                 } else {
                     // create HTML element for the inform message
                     var decrypt_msg = document.createElement('p');
@@ -162,7 +171,7 @@
                     password_input.focus();
                 }
             }
-            {% if remember_password %}
+            {% if remember_password -%}
             /* If remember_password is set, try to use cookie to decrypt content when page is loaded */
             var password_cookie = getCookie('encryptcontent')
             if (password_cookie) {
@@ -172,8 +181,8 @@
                 decrypt_somethings();
                 {% endif %}
             }
-            {% endif %}
-            {% if password_button %}
+            {%- endif %}
+            {% if password_button -%}
             if (decrypt_button) {
                 decrypt_button.onclick = function(event) {
                     event.preventDefault();
@@ -183,10 +192,10 @@
                     {% endif %}
                 };
             }
-            {% endif %}
+            {%- endif %}
             password_input.addEventListener('keydown', function(event) {
                 if (event.key === "Enter") {
-                    {% if remember_password %}
+                    {% if remember_password -%}
                     if (event.ctrlKey) {
                         // set password on cookie with default path=/ (Overwrite specific cookie)
                         // this cookie can by use on all page of your site
@@ -196,12 +205,12 @@
                         // this cookie can only be use on this specific page of your site
                         document.cookie = setCookie("encryptcontent", password_input.value, 1, document.location.pathname)
                     }
-                    {% endif %}
+                    {%- endif %}
                     event.preventDefault();
                     decrypt_action();
-                    {% if encrypted_something %}
+                    {% if encrypted_something -%}
                     decrypt_somethings();
-                    {% endif %}
+                    {%- endif %}
                 }
             });
         };

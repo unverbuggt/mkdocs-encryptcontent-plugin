@@ -32,7 +32,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-1.1.0-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-1.2.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -214,8 +214,10 @@ Child elements of `encrypted_something` are build with a key `<unique name>` in 
 The list have to be contructed with the name of an HTML element `<html tag>` as first item and `id` or `class` as the second item.
 
 ```yaml
-encrypted_something:
-    <uniq name>: [<html tag>, <'class' or 'id'>]
+plugins:
+    - encryptcontent:
+        encrypted_something:
+            <uniq name>: [<html tag>, <'class' or 'id'>]
 ```
 
 The `<unique name>` key identifies the name of a specific element of the page that will be searched by beautifulSoup.
@@ -250,8 +252,10 @@ Then add these elements in the format of a yaml dictionary under the variable `e
 Set your configuration like this : 
 
 ```yaml
-      encrypted_something:
-          mkdocs-encrypted-toc: [div, id]
+plugins:
+    - encryptcontent:
+        encrypted_something:
+            mkdocs-encrypted-toc: [div, id]
 ```
 
 2. Other example, with multiples target. In you Material Theme, you want to encrypt ToC content and Footer.
@@ -275,10 +279,12 @@ After modification, your template looks like this :
 
 Your configuration like this :
 ```yaml
-      encrypted_something:
-          mkdocs-encrypted-toc: [nav, class]
-          mkdocs-encrypted-footer: [div, id]
-          mkdocs-encrypted-footer-meta: [div, id]
+plugins:
+    - encryptcontent:
+        encrypted_something:
+            mkdocs-encrypted-toc: [nav, class]
+            mkdocs-encrypted-footer: [div, id]
+            mkdocs-encrypted-footer-meta: [div, id]
 ```
 
 
@@ -303,6 +309,28 @@ plugins:
 It becomes possible again to make searches on all the pages, even if the content of the page is encrypted. 
 
 If you still want to protect some pages, even though the search index is not encrypted, you can use [mkdocs-exclude-search](https://github.com/chrieke/mkdocs-exclude-search) to exclude parts or complete articles from the search index.
+
+
+### Reload scripts
+
+Related to [issue #14](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/14)
+
+You can set `reload_scripts:` in your `mkdocs.yml` with list of script source, to reload and execute some js lib after decryption process.
+
+```yaml
+plugins:
+    reload_scripts:
+        - "./js/example.js"
+```
+
+This feature use the following JQuery function to remove, add and reload javascripts. 
+
+```javascript
+var reload_js = function(src) {
+    $('script[src="' + src + '"]').remove();
+    $('<script>').attr('src', src).appendTo('head');
+};
+```
 
 
 ## Contributing

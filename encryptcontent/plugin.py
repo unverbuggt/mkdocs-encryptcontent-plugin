@@ -62,6 +62,7 @@ class encryptContentPlugin(BasePlugin):
         ('password_button_text', mkdocs.config.config_options.Type(string_types, default=str(settings['password_button_text']))),
         ('encrypted_something', mkdocs.config.config_options.Type(dict, default={})),
         ('decrypt_search', mkdocs.config.config_options.Type(bool, default=False)),
+        ('reload_scripts', mkdocs.config.config_options.Type(list, default=[])),
     )
 
     def __hash_md5__(self, text):
@@ -108,6 +109,7 @@ class encryptContentPlugin(BasePlugin):
             'remember_password': self.remember_password,
             'disable_cookie_protection': self.disable_cookie_protection,
             'encrypted_something': self.encrypted_something,
+            'reload_scripts': self.reload_scripts,
         })
         return decrypt_form
 
@@ -185,7 +187,12 @@ class encryptContentPlugin(BasePlugin):
         setattr(self, 'decrypt_search', False)
         if 'decrypt_search' in plugin_config.keys():
             decrypt_search = self.config.get('decrypt_search')
-            setattr(self, 'decrypt_search', decrypt_search)            
+            setattr(self, 'decrypt_search', decrypt_search)
+        # Check if some script need to be reloaded after decryption process
+        setattr(self, 'reload_scripts', [])
+        if 'reload_scripts' in plugin_config.keys():
+            reload_scripts = self.config.get('reload_scripts')
+            setattr(self, 'reload_scripts', reload_scripts)
 
     def on_page_markdown(self, markdown, page, config, **kwargs):
         """
