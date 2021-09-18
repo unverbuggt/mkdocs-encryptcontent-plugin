@@ -1,25 +1,43 @@
 # mkdocs-encryptcontent-plugin
 
-*This plugin allows you to have password protected articles and pages in MKdocs.* 
+This plugin allows you to have password protected articles and pages in MKdocs.
 
-*The content is encrypted with AES-256 in Python using PyCryptodome, and decrypted in the browser with Crypto-JS.*
+The content is encrypted with AES-256 in Python using PyCryptodome, and decrypted in the browser with Crypto-JS.
 
 *It has been tested in Python Python 3.5+*
 
 **Usecase**
 
-> I want to be able to protect my articles with password. And I would like this protection to be as granular as possible.
+> I want to be able to protect the content of the page with a password.
 >
-> It is possible to define a password to protect each article independently or a global password to encrypt all of them.
+> Define a password to protect each page independently or a global password to protect them all.
 >
-> If a global password exists, all articles and pages are encrypted with this password.
+> If a global password exists, all articles and pages are protected with this password.
 >
-> If a password is defined in an article or a page, it is always used even if a global password exists.
+> If a password is defined in an article or a page, it is always used even if there is a global password.
 >
-> If a password is defined as an empty character string, the page is not encrypted.
+> If a password is defined as an empty character string, the content is not protected.
 
 
-## Installation
+# Table of Contents
+
+  * [Installation](#installation)
+  * [Usage](#usage)
+    * [Global password protection](#global-password-protection)
+    * [Customization](#extra-vars-customization)
+  * [Features](#features)
+    * [HighlightJS support](#highlightjs-support) *(default)*
+    * [Arithmatex support](#arithmatex-support) *(default)*
+    * [Tag encrypted page](#tag-encrypted-page) *(default)*
+    * [Add button](#add-button)
+    * [Rebember password](#rebember-password)
+    * [Encrypt something](#encrypt-something)
+    * [Do not encrypt search index](#do-not-encrypt-search-index)
+    * [Reload scripts](#reload-scripts)
+  * [Contributing](#contributing)
+
+
+# Installation
 
 Install the package with pip:
 
@@ -32,22 +50,26 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-1.2.0-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-1.2.1-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
 
 ```yaml
 plugins:
+    - search:
     - encryptcontent: {}
 ```
 
-You are then able to use the meta tag `password: secret_password` in your markdown files to protect them.
+> **Note:** If you have no `plugins` entry in your config file yet, you'll likely also want to add the `search` plugin. 
+> MkDocs enables it by default if there is no `plugins` entry set, but now you have to enable it explicitly.
 
-> **Note:** If you have no `plugins` entry in your config file yet, you'll likely also want to add the `search` plugin. MkDocs enables it by default if there is no `plugins` entry set, but now you have to enable it explicitly.
 
+# Usage
 
-### Using global password protection
+Add an meta tag `password: secret_password` in your markdown files to protect the
+
+### Global password protection
 
 Add `global_password: your_password` in plugin config variable, to protect by default your articles with this password
 
@@ -57,7 +79,7 @@ plugins:
         global_password: 'your_password'
 ```
 
-If a password is defined in an article, it will ALWAYS overwrite the global password. 
+If a password is defined in an article, it will **ALWAYS** overwrite the global password. 
 
 > **NOTE** Keep in mind that if the `password:` tag exists without value in an article, it will not be protected !
 
@@ -75,25 +97,28 @@ plugins:
         encryption_info_message: 'another information message when you dont have acess !'
 ```
 
-Default prefix title is `[Protected]`
+Default prefix title is `[Protected]`.
 
-Default summary message is `This content is protected with AES encryption.`
+Default summary message is `This content is protected with AES encryption.`.
 
-Default password palceholder is `Provide password and press ENTER`
+Default password palceholder is `Provide password and press ENTER`.
 
-Default decryption failure message is `Invalid password.`
+Default decryption failure message is `Invalid password.`.
 
-Defaut encryption information message is `Contact your administrator for access to this page.`
+Defaut encryption information message is `Contact your administrator for access to this page.`.
 
 > **NOTE** Adding a prefix to the title does not change the default navigation path !
 
 
-## Features
+# Features
 
 ### HighlightJS support
 
-If your theme use HighlightJS module to improve color, set `highlightjs: true` in your `mkdocs.yml`, to enable color reloading after decryption process.
- 
+> **Enable by default**
+
+If HighlightJS module is detected in your theme, reload colors renderer after decryption process. 
+If HighlightJS module is not correctly detected, you can force it by adding `hljs: True` on the plugin configuration or set `hljs: False` to disable this feature.
+
 When enable the following part of the template is add to force reloading decrypted content.
 
 ```jinja
@@ -106,33 +131,37 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
 
 ### Arithmatex support
 
+> **Enable by default**
+
 Related to [issue #12](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/12)
 
-If Arithmatex markdown extension is set in your markdown extensions to improve math equations rendering, reload rendering after decryption process.
- 
+If Arithmatex markdown extension is detected in your markdown extensions, reload math equation rendering after decryption process.
+If Arithmatex markdown extension is not correctly detected, you can force it by adding `arithmatex: True` on the plugin configuration or set `arithmatex: False` to disable this feature.
+
 When enable the following part of the template is add to force math equations rendering on decrypted content.
 
 ```jinja
-{% if arithmatex %}MathJax.typesetPromise(){% endif %}
+{% if arithmatex %}
+MathJax.typesetPromise()
+{% endif %}
 ```
 
 > **NOTE** It has been tested in Arithmatex `generic` mode only. 
 
 ### Tag encrypted page
 
+> **Enable by default**
+
 Related to [issue #7](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/7)
 
-You can add `tag_encrypted_page: True` in plugin config variable, to enable tagging of encrypted pages.
+This feature add an additional attribute `encrypted` with value `True` to the mkdocs type `mkdocs.nav.page` object.
 
-When this feature is enabled, an additional attribute `encrypted` with value `True,` is added to the mkdocs type `mkdocs.nav.page` object.
+You can add `tag_encrypted_page: False` in plugin configuration, to disable tagging of encrypted pages. 
+This feature is neccessary for others feature working correctly. 
 
-```yaml
-plugins:
-    - encryptcontent:
-        tag_encrypted_page: True
-```
+If you disable this feature, **do no use** [Encrypt Somethings](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#encrypt-something), 
 
-It becomes possible to use this attribute in the jinja template of your theme, as a condition to perform custom modification.
+When enable, it becomes possible to use `encrypted` attribute in the jinja template of your theme, as a condition to perform custom modification.
 
 ```jinja
 {%- for nav_item in nav %}
@@ -142,10 +171,23 @@ It becomes possible to use this attribute in the jinja template of your theme, a
 {%- endfor %}
 ```
 
-For example, in your template, you can use conditional check to add custom class :
+For example, in your theme template, you can use conditional check to add custom class :
 
 ```jinja
 <a {% if nav_item.encrypted %}class="mkdocs-encrypted-class"{% endif %}href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
+```
+
+### Add button
+
+Add `password_button: True` in plugin config variable, to add button to the right of the password field decrypt the content.
+
+Optionnally, you can add `password_button_text: 'custome_text_button'` to customize the button text.
+ 
+```yaml
+plugins:
+    - encryptcontent:
+        password_button: True
+        password_button_text: 'custome_text_button'
 ```
 
 ### Rebember password
@@ -182,30 +224,14 @@ Your configuration should look like this when you enabled this feature :
 plugins:
     - encryptcontent:
         remember_password: True
-        disable_cookie_protection: True   # <-- Really a bad idea
+        disable_cookie_protection: True   # <-- Really a bad idea (Dev mode)
 ```
-
-### Add button
-
-Add `password_button: True` in plugin config variable, to add button to the right of the password field.
-
-When enable, it allows to decrypt the content without creating a cookie *(if remember password feature is activated)*
-
-Optionnally, you can add `password_button_text: 'custome_text_button'` to customize the button text.
- 
-```yaml
-plugins:
-    - encryptcontent:
-        password_button: True
-        password_button_text: 'custome_text_button'
-```
-
 
 ### Encrypt Something
 
 Related to [issue #9](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/9)
 
-You **have to** enable [feature tag encrypt page](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#tag-encrypted-page) for this feature to work properly.
+The [tag encrypted page feature](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#tag-encrypted-page) **MUST** be enabled *(it's default)* for this feature to work properly.
 
 Add `encrypted_something: {}` in the plugin configuration variable, to encrypt something else.
 
@@ -232,7 +258,7 @@ When the feature is enabled, you can use any methods *(password, button, cookie)
 
 By default **every child items** are encrypted and the encrypted elements have `style=display:none` to hide their content.
 
-#### How to use it :exploding_head:  ?! Examples
+#### How to use it :exploding_head: ?! Examples
 
 Use the `page.encrypted` conditions to add attributes of type id or class in the HTML templates of your theme. 
 Each attribute is identified with a unique name and is contained in an html element. 
@@ -334,7 +360,7 @@ var reload_js = function(src) {
 ```
 
 
-## Contributing
+# Contributing
 
 From reporting a bug to submitting a pull request: every contribution is appreciated and welcome.
 
@@ -345,5 +371,3 @@ If you want to contribute to the code of this project, please read the [Contribu
 [mkdocs-plugins]: https://www.mkdocs.org/dev-guide/plugins/
 [github-issues]: https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues
 [contributing]: CONTRIBUTING.md
-
-### [Contributors](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/graphs/contributors)

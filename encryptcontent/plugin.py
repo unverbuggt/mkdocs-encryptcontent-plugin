@@ -1,7 +1,5 @@
 
 import os
-import re
-import mkdocs
 import base64
 import hashlib
 import logging
@@ -10,6 +8,7 @@ from jinja2 import Template
 from Crypto.Cipher import AES
 from bs4 import BeautifulSoup
 from mkdocs.plugins import BasePlugin
+from mkdocs.config import config_options
 
 try:
     from mkdocs.utils import string_types
@@ -46,23 +45,23 @@ class encryptContentPlugin(BasePlugin):
     """ Plugin that encrypt markdown content with AES and inject decrypt form. """
 
     config_scheme = (
-        ('title_prefix', mkdocs.config.config_options.Type(string_types, default=str(settings['title_prefix']))),
-        ('summary', mkdocs.config.config_options.Type(string_types, default=str(settings['summary']))),
-        ('placeholder', mkdocs.config.config_options.Type(string_types, default=str(settings['placeholder']))),
-        ('decryption_failure_message', mkdocs.config.config_options.Type(string_types, default=str(settings['decryption_failure_message']))),
-        ('encryption_info_message', mkdocs.config.config_options.Type(string_types, default=str(settings['encryption_info_message']))),
-        ('global_password', mkdocs.config.config_options.Type(string_types, default=None)),
-        ('password', mkdocs.config.config_options.Type(string_types, default=None)),
-        ('arithmatex', mkdocs.config.config_options.Type(bool, default=False)),
-        ('hljs', mkdocs.config.config_options.Type(bool, default=False)),
-        ('remember_password', mkdocs.config.config_options.Type(bool, default=False)),
-        ('disable_cookie_protection', mkdocs.config.config_options.Type(bool, default=False)),
-        ('tag_encrypted_page', mkdocs.config.config_options.Type(bool, default=False)),
-        ('password_button', mkdocs.config.config_options.Type(bool, default=False)),
-        ('password_button_text', mkdocs.config.config_options.Type(string_types, default=str(settings['password_button_text']))),
-        ('encrypted_something', mkdocs.config.config_options.Type(dict, default={})),
-        ('decrypt_search', mkdocs.config.config_options.Type(bool, default=False)),
-        ('reload_scripts', mkdocs.config.config_options.Type(list, default=[])),
+        ('title_prefix', config_options.Type(string_types, default=str(settings['title_prefix']))),
+        ('summary', config_options.Type(string_types, default=str(settings['summary']))),
+        ('placeholder', config_options.Type(string_types, default=str(settings['placeholder']))),
+        ('decryption_failure_message', config_options.Type(string_types, default=str(settings['decryption_failure_message']))),
+        ('encryption_info_message', config_options.Type(string_types, default=str(settings['encryption_info_message']))),
+        ('password_button_text', config_options.Type(string_types, default=str(settings['password_button_text']))),
+        ('global_password', config_options.Type(string_types, default=None)),
+        ('password', config_options.Type(string_types, default=None)),
+        ('arithmatex', config_options.Type(bool, default=False)),
+        ('hljs', config_options.Type(bool, default=False)),
+        ('remember_password', config_options.Type(bool, default=False)),
+        ('disable_cookie_protection', config_options.Type(bool, default=False)),
+        ('tag_encrypted_page', config_options.Type(bool, default=True)),
+        ('password_button', config_options.Type(bool, default=False)),
+        ('encrypted_something', config_options.Type(dict, default={})),
+        ('decrypt_search', config_options.Type(bool, default=False)),
+        ('reload_scripts', config_options.Type(list, default=[])),
     )
 
     def __hash_md5__(self, text):
@@ -90,116 +89,57 @@ class encryptContentPlugin(BasePlugin):
 
     def __encrypt_content__(self, content):
         """ Replaces page or article content with decrypt form. """
-        ciphertext_bundle = self.__encrypt_text_aes__(content, self.password)
+        ciphertext_bundle = self.__encrypt_text_aes__(content, self.config['password'])
         decrypt_form = Template(DECRYPT_FORM_TPL).render({
             # custom message and template rendering
-            'summary': self.summary,
-            'placeholder': self.placeholder,
-            'password_button': self.password_button,
-            'password_button_text': self.password_button_text,
-            'decryption_failure_message': self.decryption_failure_message,
-            'encryption_info_message': self.encryption_info_message,
-            # this benign decoding is necessary before writing to the template, 
+            'summary': self.config['summary'],
+            'placeholder': self.config['placeholder'],
+            'password_button': self.config['password_button'],
+            'password_button_text': self.config['password_button_text'],
+            'decryption_failure_message': self.config['decryption_failure_message'],
+            'encryption_info_message': self.config['encryption_info_message'],
+            # this benign decoding is necessary before writing to the template,
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
             'js_libraries': JS_LIBRARIES,
             # enable / disable features
-            'arithmatex': self.arithmatex,
-            'hljs': self.hljs,
-            'remember_password': self.remember_password,
-            'disable_cookie_protection': self.disable_cookie_protection,
-            'encrypted_something': self.encrypted_something,
-            'reload_scripts': self.reload_scripts,
+            'arithmatex': self.config['arithmatex'],
+            'hljs': self.config['hljs'],
+            'remember_password': self.config['remember_password'],
+            'disable_cookie_protection': self.config['disable_cookie_protection'],
+            'encrypted_something': self.config['encrypted_something'],
+            'reload_scripts': self.config['reload_scripts'],
         })
         return decrypt_form
 
     # MKDOCS Events builds
 
-    def on_pre_build(self, config):
+    def on_config(self, config, **kwargs):
         """
-        The pre_build event does not alter any variables. Use this event to call pre-build scripts.
-        Here, we load global_password from mkdocs.yml config plugins if global password is define.
-        Add some extra vars to customize template
-        And check if hljs is needed by theme.
+        The config event is the first event called on build and is run immediately after
+        the user configuration is loaded and validated. Any alterations to the config should be made here.
+        Configure plugin self.config from configuration file (mkdocs.yml)
 
         :param config: global configuration object (mkdocs.yml)
+        :return: global configuration object modified to include templates files
         """
-        plugin_config = config['plugins']['encryptcontent'].config
         # Check if global password is set on plugin configuration
-        if 'global_password' in config.keys():
-            global_password = self.config.get('global_password')
-            setattr(self, 'password', global_password)
-        # Check if prefix title is set on plugin configuration to overwrite
-        title_prefix = plugin_config.get('title_prefix')
-        setattr(self, 'title_prefix', title_prefix)
-        # Check if summary description is set on plugin configuration to overwrite
-        summary = plugin_config.get('summary')
-        setattr(self, 'summary', summary)
-        # Check if placeholder description is set on plugin configuration to overwrite
-        placeholder = plugin_config.get('placeholder')
-        setattr(self, 'placeholder', placeholder)
-        # Check if decryption_failure_message description is set on plugin configuration to overwrite
-        decryption_failure_message = plugin_config.get('decryption_failure_message')
-        setattr(self, 'decryption_failure_message', decryption_failure_message)
-        # Check if encryption_info_message description is set on plugin configuration to overwrite
-        encryption_info_message = plugin_config.get('encryption_info_message')
-        setattr(self, 'encryption_info_message', encryption_info_message)
+        self.config['password'] = self.config['global_password']
         # Check if hljs feature need to be enabled, based on theme configuration
-        setattr(self, 'hljs', None)
-        if 'highlightjs' in config['theme']._vars:
-            highlightjs = config['theme']._vars['highlightjs']       
-            if highlightjs:
-                setattr(self, 'hljs', highlightjs)
+        if 'highlightjs' in config['theme']._vars and config['theme']._vars['highlightjs']:
+            logger.debug('"highlightjs" value detected on theme config, enable rendering after decryption.')
+            self.config['hljs'] = config['theme']._vars['highlightjs']
         # Check if pymdownx.arithmatex feature need to be enabled, based on markdown_extensions configuration
-        setattr(self, 'arithmatex', None)
         if 'pymdownx.arithmatex' in config['markdown_extensions']:
-            setattr(self, 'arithmatex', True)
-        # Check if tag_encrypted_page feature is enable: add an extra attribute `encrypted` is add on page object
-        setattr(self, 'tag_encrypted_page', False)
-        if 'tag_encrypted_page' in plugin_config.keys():
-            tag_encrypted_page = self.config.get('tag_encrypted_page')
-            setattr(self, 'tag_encrypted_page', tag_encrypted_page)
-        # Check if cookie_password feature is enable: create a cookie for automatic decryption
-        setattr(self, 'remember_password', False)
-        setattr(self, 'disable_cookie_protection', False)
-        if 'remember_password' in plugin_config.keys():
-            remember_password = self.config.get('remember_password')
-            setattr(self, 'remember_password', remember_password)
-            # Check if cookie protection is disable *not good idea*: remove cookie flag 'Secure' & 'sameStie'
-            setattr(self, 'disable_cookie_protection', False)
-            if 'disable_cookie_protection' in plugin_config.keys():
-                disable_cookie_protection = self.config.get('disable_cookie_protection')
-                setattr(self, 'disable_cookie_protection', disable_cookie_protection)
-        # Check if password_button feature is enable: Add button to trigger decryption process
-        if 'password_button' in  plugin_config.keys():
-            password_button = plugin_config.get('password_button')
-            setattr(self, 'password_button', password_button)
-            # Check if password_button_text description is set on plugin configuration to overwrite
-            if 'password_button_text' in plugin_config.keys():
-                password_button_text = plugin_config.get('password_button_text')
-                setattr(self, 'password_button_text', password_button_text)
-        # Check if encrypted_something feature is enable: encrypt each other html tags targets
-        setattr(self, 'encrypted_something', {})
-        if 'encrypted_something' in plugin_config.keys():
-            encrypted_something = self.config.get('encrypted_something')
-            setattr(self, 'encrypted_something', encrypted_something)
-        # Check if decrypt_search is enable: generate search_index.json on clear text (Data leak)
-        setattr(self, 'decrypt_search', False)
-        if 'decrypt_search' in plugin_config.keys():
-            decrypt_search = self.config.get('decrypt_search')
-            setattr(self, 'decrypt_search', decrypt_search)
-        # Check if some script need to be reloaded after decryption process
-        setattr(self, 'reload_scripts', [])
-        if 'reload_scripts' in plugin_config.keys():
-            reload_scripts = self.config.get('reload_scripts')
-            setattr(self, 'reload_scripts', reload_scripts)
+            logger.debug('"arithmatex" value detected on extensions config, enable rendering after decryption.')
+            self.config['arithmatex'] = True
 
     def on_page_markdown(self, markdown, page, config, **kwargs):
         """
-        The page_markdown event is called after the page's markdown is loaded from file and 
-        can be used to alter the Markdown source text. The meta- data has been stripped off 
+        The page_markdown event is called after the page's markdown is loaded from file and
+        can be used to alter the Markdown source text. The meta- data has been stripped off
         and is available as page.meta at this point.
-        Here, we load password from meta header *.md pages and override global_password if define.
+        Load password from meta header *.md pages and override global_password if define.
 
         :param markdown: Markdown source text of page as string
         :param page: mkdocs.nav.Page instance
@@ -207,25 +147,21 @@ class encryptContentPlugin(BasePlugin):
         :param site_navigation: global navigation object
         :return: Markdown source text of page as string
         """
+        self.config['password'] = self.config['global_password']
         if 'password' in page.meta.keys():
-            page_password = page.meta.get('password')
             # If global_password is set, but you don't want to encrypt content
-            if page_password == '':
-                setattr(self, 'password', None)
-            else:
-                setattr(self, 'password', page_password)
+            page_password = page.meta.get('password')
+            self.config['password'] = None if page_password == '' else page_password
             # Delete meta password information before rendering to avoid leak :]
             del page.meta['password']
-        else:
-            page_password = self.config.get('global_password')
-            setattr(self, 'password', page_password)
         return markdown
 
     def on_page_content(self, html, page, config, **kwargs):
         """
         The page_content event is called after the Markdown text is rendered to HTML 
         (but before being passed to a template) and can be used to alter the HTML body of the page.
-        Here, we encrypt content with AES and add form to decrypt this content with JS.
+        Generate encrypt content with AES and add form to decrypt this content with JS.
+        Keep the generated value in a temporary attribute for the search work on clear version of content.
 
         :param html: HTML rendered from Markdown source as string
         :param page: mkdocs.nav.Page instance
@@ -233,29 +169,27 @@ class encryptContentPlugin(BasePlugin):
         :param site_navigation: global navigation object
         :return: HTML rendered from Markdown source as string encrypt with AES
         """
-        # Encrypt content with password
-        if self.password is not None:
-            # Add prefix 'text' on title if page is encrypted
-            if self.title_prefix:
-                page.title = str(self.title_prefix) + str(page.title)
-            if self.tag_encrypted_page:
+        if self.config['password'] is not None:
+            if self.config['title_prefix']:
+                page.title = str(self.config['title_prefix']) + str(page.title)
+            if self.config['tag_encrypted_page']: 
                 # Set attribute on page to identify encrypted page on template rendering
                 setattr(page, 'encrypted', True)
-            if self.decrypt_search:
+            # Set password attributes on page for other mkdocs events
+            setattr(page, 'password', self.config['password'])
+            # Keep encrypted html as temporary variable on page cause we need clear html for search plugin
+            if self.config['decrypt_search']:
                 # Keep encrypted html as temporary variable on page ... :(
                 setattr(page, 'html_encrypted', self.__encrypt_content__(html))
             else:
                 # Overwrite html with encrypted html, cause search it's encrypted too
                 # Process encryption here, speed up mkdocs-search bultin plugin
                 html = self.__encrypt_content__(html)
-            if self.encrypted_something:
-                # Set attributes on page to retrieve password on POST context
-                setattr(page, 'password', self.password)
         return html
 
     def on_page_context(self, context, page, config, **kwargs):
         """
-        The page_context event is called after the context for a page is created and 
+        The page_context event is called after the context for a page is created and
         can be used to alter the context for that specific page only.
 
         :param context: dict of template context variables
@@ -264,7 +198,7 @@ class encryptContentPlugin(BasePlugin):
         :param nav: global navigation object
         :return: dict of template context variables
         """
-        if self.decrypt_search and page.content and hasattr(page, 'html_encrypted'):
+        if self.config['decrypt_search'] and page.content and hasattr(page, 'html_encrypted'):
             page.content = page.html_encrypted
             delattr(page, 'html_encrypted')
         return context
@@ -274,6 +208,8 @@ class encryptContentPlugin(BasePlugin):
         The post_page event is called after the template is rendered,
         but before it is written to disc and can be used to alter the output of the page.
         If an empty string is returned, the page is skipped and nothing is written to disc.
+        Finds other parts of HTML that need to be encrypted and 
+        replaces the content with a protected version 
 
         :param output_content: output of rendered template as string
         :param page: mkdocs.nav.Page instance
@@ -281,9 +217,10 @@ class encryptContentPlugin(BasePlugin):
         :return: output of rendered template as string
         """
         # Limit this process only if encrypted_something feature is enable *(speedup)*
-        if self.encrypted_something and hasattr(page, 'encrypted') and len(self.encrypted_something) > 0:
+        if self.config['encrypted_something'] and hasattr(page, 'encrypted') \
+            and len(self.config['encrypted_something']) > 0:
             soup = BeautifulSoup(output_content, 'html.parser')
-            for name, tag in self.encrypted_something.items():
+            for name, tag in self.config['encrypted_something'].items():
                 #logger.debug({'name': name, 'html tag': tag[0], 'type': tag[1]})
                 something_search = soup.findAll(tag[0], { tag[1]: name })
                 if something_search is not None and len(something_search) > 0:
@@ -316,10 +253,10 @@ class encryptContentPlugin(BasePlugin):
 
     def on_post_build(self, config):
         """
-        The post_build event does not alter any variables. 
+        The post_build event does not alter any variables.
         Use this event to call post-build scripts.
 
-        :param config: global configuration object
+      :param config: global configuration object
         """
 
 

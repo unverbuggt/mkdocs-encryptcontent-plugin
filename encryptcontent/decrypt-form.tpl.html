@@ -45,17 +45,17 @@
             }
         };
         {% if remember_password -%}
-        var setCookie = function(name,value,days,path) {
+        var setCookie = function(name, value, days, path) {
             /* Set local cookie to store password */
             var expires = "";
-            var current_path = "; path=/"
+            var current_path = "; path=/";
             if (days) {
                 var date = new Date();
-                date.setTime(date.getTime() + (days*24*60*60*1000));
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
                 expires = "; expires=" + date.toUTCString();
             }
             if (path) {
-                current_path = "; path=" + path
+                current_path = "; path=" + path;
             }
             {% if disable_cookie_protection -%}
             encryptcontent = name + "=" + encodeURIComponent(value || "") + expires + current_path;
@@ -70,10 +70,12 @@
             /* Get password store in cookie */
             var nameEQ = name + "=";
             var ca = document.cookie.split(';');
-            for(var i=0;i < ca.length;i++) {
+            for (var i = 0; i < ca.length; i++) {
                 var c = ca[i];
-                while (c.charAt(0)==' ') c = c.substring(1,c.length);
-                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) {
+                    return decodeURIComponent(c.substring(nameEQ.length, c.length));
+                }
             }
             return null;
         };
@@ -95,10 +97,10 @@
             let input = document.getElementById("mkdocs-content-password");
             input.setAttribute('size', input.getAttribute('placeholder').length);
             {% if encrypted_something -%}
-            var encrypted_something = {{ encrypted_something }}
+            var encrypted_something = {{ encrypted_something }};
             // Decrypt all others elements
             var decrypt_somethings = function() {
-                var html_item = ''
+                var html_item = '';
                 for (const [name, tag] of Object.entries(encrypted_something)) {
                     if (tag[1] == 'id') {
                         html_item = [document.getElementById(name)];
@@ -125,7 +127,7 @@
                         }
                     }
                 }
-            }
+            };
             {%- endif %}
             // Decrypt content
             var decrypt_action = function() {
@@ -144,7 +146,7 @@
                     encrypted_content.parentNode.removeChild(encrypted_content);
                     // any post processing on the decrypted content should be done here
                     {% if arithmatex -%}
-                    MathJax.typesetPromise()
+                    MathJax.typesetPromise();
                     {%- endif %}
                     {% if hljs -%}
                     document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
@@ -152,15 +154,17 @@
                     });
                     {%- endif %}
                     {% if reload_scripts | length > 0 -%}
-                    let reload_scripts = {{ reload_scripts }}
-                    for (i = 0; i < reload_scripts.length; i++) { reload_js(reload_scripts[i]); };
+                    let reload_scripts = {{ reload_scripts }};
+                    for (i = 0; i < reload_scripts.length; i++) {
+                        reload_js(reload_scripts[i]);
+                    }
                     {%- endif %}
                 } else {
                     // create HTML element for the inform message
                     var decrypt_msg = document.createElement('p');
-                    decrypt_msg.setAttribute('id', 'mkdocs-decrypt-msg')
-                    var node = document.createTextNode('{{ decryption_failure_message }}')
-                    decrypt_msg.appendChild(node)
+                    decrypt_msg.setAttribute('id', 'mkdocs-decrypt-msg');
+                    var node = document.createTextNode('{{ decryption_failure_message }}');
+                    decrypt_msg.appendChild(node);
                     var mkdocs_decrypt_msg = document.getElementById('mkdocs-decrypt-msg');
                     // clear all previous failure messages
                     while (mkdocs_decrypt_msg.firstChild) {
@@ -170,12 +174,12 @@
                     password_input.value = '';
                     password_input.focus();
                 }
-            }
+            };
             {% if remember_password -%}
             /* If remember_password is set, try to use cookie to decrypt content when page is loaded */
-            var password_cookie = getCookie('encryptcontent')
+            var password_cookie = getCookie('encryptcontent');
             if (password_cookie) {
-                password_input.value = password_cookie
+                password_input.value = password_cookie;
                 decrypt_action();
                 {% if encrypted_something %}
                 decrypt_somethings();
@@ -185,6 +189,9 @@
             {% if password_button -%}
             if (decrypt_button) {
                 decrypt_button.onclick = function(event) {
+                    {% if remember_password -%}
+                    document.cookie = setCookie("encryptcontent", password_input.value, 1, document.location.pathname);
+                    {%- endif %}
                     event.preventDefault();
                     decrypt_action();
                     {% if encrypted_something %}
@@ -199,11 +206,11 @@
                     if (event.ctrlKey) {
                         // set password on cookie with default path=/ (Overwrite specific cookie)
                         // this cookie can by use on all page of your site
-                        document.cookie = setCookie("encryptcontent", password_input.value, 1)
+                        document.cookie = setCookie("encryptcontent", password_input.value, 1);
                     } else {
                         // set password on cookie with specific path=document.location.pathname
                         // this cookie can only be use on this specific page of your site
-                        document.cookie = setCookie("encryptcontent", password_input.value, 1, document.location.pathname)
+                        document.cookie = setCookie("encryptcontent", password_input.value, 1, document.location.pathname);
                     }
                     {%- endif %}
                     event.preventDefault();
