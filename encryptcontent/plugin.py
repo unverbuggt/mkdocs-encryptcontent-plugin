@@ -89,7 +89,7 @@ class encryptContentPlugin(BasePlugin):
 
     def __encrypt_content__(self, content):
         """ Replaces page or article content with decrypt form. """
-        ciphertext_bundle = self.__encrypt_text_aes__(content, self.config['password'])
+        ciphertext_bundle = self.__encrypt_text_aes__(content, str(self.config['password']))
         decrypt_form = Template(DECRYPT_FORM_TPL).render({
             # custom message and template rendering
             'summary': self.config['summary'],
@@ -236,7 +236,7 @@ class encryptContentPlugin(BasePlugin):
                         else:
                             merge_item = ""
                         # Encrypt child items on target tags with page password
-                        cipher_bundle = self.__encrypt_text_aes__(merge_item, page.password)
+                        cipher_bundle = self.__encrypt_text_aes__(merge_item, str(page.password))
                         encrypted_content = b';'.join(cipher_bundle).decode('ascii')
                         # Replace initial content with encrypted one
                         bs4_encrypted_content = BeautifulSoup(encrypted_content, 'html.parser')
