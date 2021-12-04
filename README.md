@@ -8,15 +8,16 @@
 
 **Usecase**
 
-> I want to be able to protect my articles with password. And I would like this protection to be as granular as possible.
+> I want to be able to protect the content of the page with a password.
 >
-> It is possible to define a password to protect each article independently or a global password to encrypt all of them.
+> Define a password to protect each page independently or a global password to protect them all.
 >
-> If a global password exists, all articles and pages are encrypted with this password.
+> If a global password exists, all articles and pages are protected with this password.
 >
-> If a password is defined in an article or a page, it is always used even if a global password exists.
+> If a password is defined in an article or a page, it is always used even if there is a global password.
 >
-> If a password is defined as an empty character string, the page is not encrypted.
+> If a password is defined as an empty character string, the content is not protected.
+
 
 
 # Table of Contents
@@ -26,13 +27,13 @@
     * [Global password protection](#global-password-protection)
     * [Customization](#extra-vars-customization)
   * [Features](#features)
-    * [HighlightJS support](#highlightjs-support)
-    * [Arithmatex support](#arithmatex-support)
-    * [Tag encrypted page](#tag-encrypted-page)
+    * [HighlightJS support](#highlightjs-support) *(default)*
+    * [Arithmatex support](#arithmatex-support) *(default)*
+    * [Tag encrypted page](#tag-encrypted-page) *(default)*
     * [Rebember password](#rebember-password)
-    * [Add button](#add-button)
     * [Encrypt something](#encrypt-something)
     * [Search index encryption](#search-index-encryption)
+    * [Add button](#add-button)
     * [Reload scripts](#reload-scripts)
   * [Contributing](#contributing)
 
@@ -50,17 +51,17 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-1.2.0.1-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-2.0.0.1-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
 
 ```yaml
 plugins:
-    - search:
+    - search: {}
     - encryptcontent: {}
 ```
-> **Note:** If you have no `plugins` entry in your configuration file yet, you'll likely also want to add the `search` plugin. MkDocs enables it by default if there is no `plugins` entry set, but now you have to enable it explicitly.
+> **NOTE:** If you have no `plugins` entry in your configuration file yet, you'll likely also want to add the `search` plugin. MkDocs enables it by default if there is no `plugins` entry set, but now you have to enable it explicitly.
 
 # Usage
 
@@ -76,9 +77,9 @@ plugins:
         global_password: 'your_password'
 ```
 
-If a password is defined in an article, it will ALWAYS overwrite the global password. 
+If a password is defined in an article, it will **ALWAYS** overwrite the global password. 
 
-> **NOTE** Keep in mind that if the `password:` tag exists without value in an article, it will not be protected !
+> **NOTE** Keep in mind that if the `password:` tag exists without value in an article, it will **not be protected** !
 
 ### Extra vars customization
 
@@ -113,7 +114,7 @@ Defaut encryption information message is `Contact your administrator for access 
 
 > **Enable by default**
 
-If HighlightJS module is detected in your theme to improve code color rendering, reload renderer after decryption process. If HighlightJS module is not correctly detected, you can force it by adding `hljs: True` on the plugin configuration or set False to disable detection.
+If HighlightJS module is detected in your theme to improve code color rendering, reload renderer after decryption process. If HighlightJS module is not correctly detected, you can force the detection by adding `hljs: True` on the plugin configuration or set `hljs: False` to disable this feature.
 
 When enable the following part of the template is add to force reloading decrypted content.
 
@@ -131,7 +132,7 @@ document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code')
 
 Related to [issue #12](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/12)
 
-If Arithmatex markdown extension is detected in your markdown extensions to improve math equations rendering, reload renderer after decryption process. If the Arithmatex markdown extension is not correctly detected, you can force it by adding `arithmatex: True` on the plugin configuration or set False to disable detection.
+If Arithmatex markdown extension is detected in your markdown extensions to improve math equations rendering, reload renderer after decryption process. If the Arithmatex markdown extension is not correctly detected, you can force the detection by adding `arithmatex: True` on the plugin configuration or set `arithmatex: False` to disable this feature.
  
 When enable, the following part of the template is add to force math equations rendering on decrypted content.
 
@@ -147,17 +148,11 @@ When enable, the following part of the template is add to force math equations r
 
 Related to [issue #7](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/7)
 
-You can add `tag_encrypted_page: False` in plugin configuration, to disable tagging of encrypted pages. This feature is neccessary for others feature working correctly. If you disable this feature, do no use [Encrypt Somethings](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#encrypt-something), 
-
 This feature add an additional attribute `encrypted` with value `True` to the mkdocs type `mkdocs.nav.page` object.
 
-```yaml
-plugins:
-    - encryptcontent:
-        tag_encrypted_page: False
-```
+You can add `tag_encrypted_page: False` in plugin configuration, to disable tagging of encrypted pages. **BUT** This feature is neccessary for others feature working correctly. If you disable this feature, do no use [Encrypt Somethings](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#encrypt-something), 
 
-It becomes possible to use this attribute in the jinja template of your theme, as a condition to perform custom modification.
+When enable, it becomes possible to use `encrypted` attribute in the jinja template of your theme, as a condition to perform custom modification.
 
 ```jinja
 {%- for nav_item in nav %}
@@ -177,53 +172,35 @@ For example, in your template, you can use conditional check to add custom class
 
 Related to [issue #6](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/6)
 
-> :warning: **This feature is not really secure !** Password are store in clear text inside local cookie without httpOnly flag.
+> :warning: **This feature is not really secure !** Password are store in clear text inside local storage.
 >
 > Instead of using this feature, I recommend to use a password manager with its web plugins.
 > For example **KeepassXC** allows you, with a simple keyboard shortcut, to detect the password field `mkdocs-content-password` and to fill it automatically in a much more secure way.
 
 If you do not have password manager, you can set `remember_password: True` in your `mkdocs.yml` to enable password remember feature.
 
-When enabled, each time you fill password form and press `Enter` a cookie is create with your password as value. 
-When you reload the page, if you already have an 'encryptcontent' cookie in your browser,
-the page will be automatically decrypted using the value of the cookie.
+When enabled, each time you fill password form and press `Enter` a key on local storage is create with your password
+as value. When you reload the page, if you already have an 'encryptcontent' key in the local storage of your browser,
+the page will be automatically decrypted using the value previously created.
 
-By default, the cookie is created with a `path=` relative to the page on which it was generated.
-This 'specific' cookie will always be used as first attempt to decrypt the current page when loading.
+By default, the key is created with a name relative to the page on which it was generated.
+This 'relative' key will always be used as first attempt to decrypt the current page when loading.
 
-If your password is a global password, you can fill in the `mkdocs-content-password` field,
-then use the keyboard shortcut `CTRL + ENTER` instead of the classic `ENTER`. 
-The cookie that will be created with a `path=/` making it accessible, by default, on all the pages of your site.
+If your password is a [global password](#global-password-protection), you can fill in the form field  `mkdocs-content-password`, then use the keyboard shortcut `CTRL + ENTER` instead of the classic `ENTER`. 
+The key that will be created with a generic name to making it accessible, by default, on all the pages of your site.
 
-The form of decryption remains visible as long as the content has not been successfully decrypted,
- which allows in case of error to modify the created cookie.
+The form of decryption remains visible as long as the content has not been successfully decrypted, which allows in case of error to retry. 
+All keys created with this feature on localstorage have an default expire time daly set to 24 hours, just cause ...
 
-All cookies created with this feature have the default security options `Secure` and `SameSite=Strict`, just cause ...
-
-However *(optionally)*, its possible to remove these two security options by adding `disable_cookie_protection: True` in your `mkdocs.yml`.
-
-Your configuration should look like this when you enabled this feature :
+However *(optionally)*, its possible to change the default expire time by setting options `default_expire_dalay: <number>` in your `mkdocs.yml`. Your configuration should look like this when you enabled this feature :
 ```yaml
 plugins:
     - encryptcontent:
         remember_password: True
-        disable_cookie_protection: True   # <-- Really a bad idea
+        default_expire_dalay: 24   # <-- Default expire delay in hours (optional)
 ```
 
-### Add button
-
-Add `password_button: True` in plugin configuration variable, to add button to the right of the password field.
-
-When enable, it allows to decrypt the content without creating a cookie *(if remember password feature is activated)*
-
-Optionnally, you can add `password_button_text: 'custome_text_button'` to customize the button text.
- 
-```yaml
-plugins:
-    - encryptcontent:
-        password_button: True
-        password_button_text: 'custome_text_button'
-```
+> **NOTE** The expired elements of the localStorage are only deleted by the execution of the decrypt-content.js scripts and therefore by the navigation on the site. Secret items can therefore remain visible in local storage after their expiration dates. 
 
 ### Encrypt something
 
@@ -252,7 +229,7 @@ Prefer to use an `'id'`, however depending on the template of your theme, it is 
 So we can use the class attribute to define your unique name inside html tag. 
 BeautifulSoup will encrypt all HTML elements discovered with the class.
 
-When the feature is enabled, you can use any methods *(password, button, cookie)* to decrypt every elements encrypted on the page.
+When the feature is enabled, you can use any methods *(password, button, remember)* to decrypt every elements encrypted on the page.
 
 By default **every child items** are encrypted and the encrypted elements have `style=display:none` to hide their content.
 
@@ -311,10 +288,9 @@ plugins:
             mkdocs-encrypted-footer-meta: [div, id]
 ```
 
-
 ### Search index encryption
 
-> **ALPHA VERSION**, use at your own risks. **ONLY** work with themes using default mkdocs search.
+> **Default value is "encrypted"**
 
 Related to [issue #13](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/13)
 
@@ -335,15 +311,30 @@ You can set `search_index: '<mode_name>'` in your `mkdocs.yml` to change the sea
 
 ```yaml
 plugins:
-    - search:
     - encryptcontent:
         search_index: 'dynamically'
 ```
 
-This functionality overwrite the index creation function of the “search” plug-in provided by mkdocs. The modifications carried out make it possible to encrypt the content of the search index *after* the default plugin has carried out these treatments *(search configuration)*. It is therefore dependent on the default search plugin.
+This functionality overwrite the index creation function of the “search” plug-in provided by mkdocs. The modifications carried out make it possible to encrypt the content of the search index *after* the default plugin has carried out these treatments *(search configuration)*. It is therefore dependent on the default search plugin. 
 
-When the configuration mode is set to "**dynamically**", the javascripts contrib files of the default search plugin are also overloaded to include a process for decrypting and keeping the search index.
+When the configuration mode is set to "**dynamically**", the [javascripts contribution files](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/tree/experimental/encryptcontent/contrib/templates/search) are used to override the default search plugin files provided by MKdocs. They include a process of decrypting and keeping the search index in a SessionStorage.
 
+> **NOTE** The mode 'dynamically' is currently **not compatible with Material Theme** !
+
+### Add button
+
+Add `password_button: True` in plugin configuration variable, to add button to the right of the password field.
+
+When enable, it allows to decrypt the content just like the classic keypress ENTER. If remember password feature is activated, use button to decrypt generate a 'relative' key on your local storage. You cannot use password button to create global password value.
+
+Optionnally, you can add `password_button_text: 'custom_text_button'` to customize the button text.
+ 
+```yaml
+plugins:
+    - encryptcontent:
+        password_button: True
+        password_button_text: 'custom_text_button'
+```
 
 ### Reload scripts
 

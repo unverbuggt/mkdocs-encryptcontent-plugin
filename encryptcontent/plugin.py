@@ -4,6 +4,7 @@ import re
 import base64
 import hashlib
 import logging
+from pathlib import Path
 from Crypto import Random
 from jinja2 import Template
 from Crypto.Cipher import AES
@@ -27,9 +28,13 @@ JS_LIBRARIES = [
 
 PLUGIN_DIR = os.path.dirname(os.path.realpath(__file__))
 DECRYPT_FORM_TPL_PATH = os.path.join(PLUGIN_DIR, 'decrypt-form.tpl.html')
+DECRYPT_JS_TPL_PATH = os.path.join(PLUGIN_DIR, 'decrypt-contents.tpl.js')
 
-with open(DECRYPT_FORM_TPL_PATH, 'r') as template:
-    DECRYPT_FORM_TPL = template.read()
+with open(DECRYPT_FORM_TPL_PATH, 'r') as template_html:
+    DECRYPT_FORM_TPL = template_html.read()
+
+with open(DECRYPT_JS_TPL_PATH, 'r') as template_js:
+    DECRYPT_JS_TPL = template_js.read()
 
 SETTINGS = {
     'title_prefix': '[Protected] ',
@@ -56,10 +61,10 @@ class encryptContentPlugin(BasePlugin):
         ('password_button_text', config_options.Type(string_types, default=str(SETTINGS['password_button_text']))),
         ('global_password', config_options.Type(string_types, default=None)),
         ('password', config_options.Type(string_types, default=None)),
-        ('arithmatex', config_options.Type(bool, default=False)),
-        ('hljs', config_options.Type(bool, default=False)),
+        ('arithmatex', config_options.Type(bool, default=True)),
+        ('hljs', config_options.Type(bool, default=True)),
         ('remember_password', config_options.Type(bool, default=False)),
-        ('disable_cookie_protection', config_options.Type(bool, default=False)),
+        ('default_expire_dalay', config_options.Type(int, default=int(24))),
         ('tag_encrypted_page', config_options.Type(bool, default=True)),
         ('password_button', config_options.Type(bool, default=False)),
         ('encrypted_something', config_options.Type(dict, default={})),
@@ -93,29 +98,38 @@ class encryptContentPlugin(BasePlugin):
 
     def __encrypt_content__(self, content):
         """ Replaces page or article content with decrypt form. """
-        ciphertext_bundle = self.__encrypt_text_aes__(content, self.config['password'])
+        ciphertext_bundle = self.__encrypt_text_aes__(content, str(self.config['password']))
         decrypt_form = Template(DECRYPT_FORM_TPL).render({
             # custom message and template rendering
             'summary': self.config['summary'],
             'placeholder': self.config['placeholder'],
             'password_button': self.config['password_button'],
             'password_button_text': self.config['password_button_text'],
-            'decryption_failure_message': self.config['decryption_failure_message'],
             'encryption_info_message': self.config['encryption_info_message'],
             # this benign decoding is necessary before writing to the template, 
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
             'js_libraries': JS_LIBRARIES,
+        })
+        return decrypt_form
+
+    def __generate_decrypt_js__(self):
+        """ Generate JS file with enable feature. """
+        decrypt_js = Template(DECRYPT_JS_TPL).render({
+            # custom message and template rendering
+            'password_button': self.config['password_button'],
+            'password_button_text': self.config['password_button_text'],
+            'decryption_failure_message': self.config['decryption_failure_message'],
             # enable / disable features
             'arithmatex': self.config['arithmatex'],
             'hljs': self.config['hljs'],
             'remember_password': self.config['remember_password'],
-            'disable_cookie_protection': self.config['disable_cookie_protection'],
+            'default_expire_dalay': int(self.config['default_expire_dalay']),
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
             'experimental': self.config['experimental'],
         })
-        return decrypt_form
+        return decrypt_js
 
     # MKDOCS Events builds
 
@@ -128,19 +142,30 @@ class encryptContentPlugin(BasePlugin):
         :param config: global configuration object (mkdocs.yml)
         :return: global configuration object modified to include templates files
         """
-        # Check if global password is set on plugin configuration
+        # Set global password as default password for each page
         self.config['password'] = self.config['global_password']
         # Check if hljs feature need to be enabled, based on theme configuration
-        if 'highlightjs' in config['theme']._vars and config['theme']._vars['highlightjs']:
+        if 'highlightjs' in config['theme']._vars and config['theme']._vars['highlightjs'] and self.config['hljs'] is not False:
             logger.debug('"highlightjs" value detected on theme config, enable rendering after decryption.')
             self.config['hljs'] = config['theme']._vars['highlightjs']
+        else:
+            logger.info('"highlightjs" feature is disabled in your plugin configuration.')
+            self.config['hljs'] = False
         # Check if pymdownx.arithmatex feature need to be enabled, based on markdown_extensions configuration
-        if 'pymdownx.arithmatex' in config['markdown_extensions']:
+        if 'pymdownx.arithmatex' in config['markdown_extensions'] and self.config['arithmatex'] is not False:
             logger.debug('"arithmatex" value detected on extensions config, enable rendering after decryption.')
             self.config['arithmatex'] = True
+        else:
+            logger.info('"arithmatex" feature is disabled in your plugin configuration.')
+            self.config['arithmatex'] = False
+        # Re order plugins to be sure search-index are not encrypted
+        if self.config['search_index'] == 'clear':
+            logger.debug('Reordering plugins loading and put search and encryptcontent at the end of the event pipe.')
+            config['plugins'].move_to_end('search')
+            config['plugins'].move_to_end('encryptcontent')
         # Enable experimental code .. :popcorn:
         if self.config['search_index'] == 'dynamically':
-            logger.debug('EXPERIMENTAL MODE ENABLE.')
+            logger.info('EXPERIMENTAL MODE ENABLE. Only work with default SearchPlugin, not Material.')
             self.config['experimental'] = True
 
     def on_pre_build(self, config, **kwargs):
@@ -162,7 +187,7 @@ class encryptContentPlugin(BasePlugin):
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
                         text = ' '.join(section.text)
                     if password != None:
-                        text = b';'.join(config['plugins']['encryptcontent'].__encrypt_text_aes__(text, password)).decode('ascii')
+                        text = b';'.join(config['plugins']['encryptcontent'].__encrypt_text_aes__(text, str(password))).decode('ascii')
                     if toc_item is not None: self._add_entry(title=toc_item.title, text=text, loc=abs_url + toc_item.url)
                 SearchIndex.create_entry_for_section = _create_entry_for_section
                 def _add_entry_from_context(self, page):
@@ -172,7 +197,7 @@ class encryptContentPlugin(BasePlugin):
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
                         text = parser.stripped_html.rstrip('\n')
                     if hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password != None:
-                        text = b';'.join(config['plugins']['encryptcontent'].__encrypt_text_aes__(text, page.password)).decode('ascii')
+                        text = b';'.join(config['plugins']['encryptcontent'].__encrypt_text_aes__(text, str(page.password))).decode('ascii')
                     self._add_entry(title=page.title, text=text, loc=url)
                     if self.config.get('indexing') and self.config['indexing'] in ['full', 'sections']:
                         for section in parser.data:
@@ -182,6 +207,9 @@ class encryptContentPlugin(BasePlugin):
                                 self.create_entry_for_section(section, page.toc, url)
                 SearchIndex.add_entry_from_context = _add_entry_from_context
             if self.config['experimental'] is True:
+                if config['theme'].name == 'material':
+                    logger.error("UNSUPPORTED Material theme with experimantal feature search_index=dynamically !")
+                    exit("UNSUPPORTED Material theme: use search_index: [clear|encrypted] instead.")
                 # Overwrite search/*.js files from templates/search with encryptcontent contrib search assets
                 config['theme'].dirs = [e for e in config['theme'].dirs if not re.compile(r".*/contrib/search/templates$").match(e)]
                 path = os.path.join(base_path, 'contrib/templates')
@@ -207,7 +235,7 @@ class encryptContentPlugin(BasePlugin):
         self.config['password'] = self.config['global_password']
         if 'password' in page.meta.keys():
             # If global_password is set, but you don't want to encrypt content
-            page_password = page.meta.get('password')
+            page_password = str(page.meta.get('password'))
             self.config['password'] = None if page_password == '' else page_password
             # Delete meta password information before rendering to avoid leak :]
             del page.meta['password']
@@ -233,7 +261,7 @@ class encryptContentPlugin(BasePlugin):
                 # Set attribute on page to identify encrypted page on template rendering
                 setattr(page, 'encrypted', True)
             # Set password attributes on page for other mkdocs events
-            setattr(page, 'password', self.config['password'])
+            setattr(page, 'password', str(self.config['password']))
             # Keep encrypted html as temporary variable on page cause we need clear html for search plugin
             setattr(page, 'html_encrypted', self.__encrypt_content__(html))
         return html
@@ -289,7 +317,7 @@ class encryptContentPlugin(BasePlugin):
                         else:
                             merge_item = ""
                         # Encrypt child items on target tags with page password
-                        cipher_bundle = self.__encrypt_text_aes__(merge_item, page.password)
+                        cipher_bundle = self.__encrypt_text_aes__(merge_item, str(page.password))
                         encrypted_content = b';'.join(cipher_bundle).decode('ascii')
                         # Replace initial content with encrypted one
                         bs4_encrypted_content = BeautifulSoup(encrypted_content, 'html.parser')
@@ -310,4 +338,11 @@ class encryptContentPlugin(BasePlugin):
 
         :param config: global configuration object
         """
-
+        Path(config.data["site_dir"] + '/assets/javascripts/').mkdir(
+            parents=True,
+            exist_ok=True
+        )
+        decrypt_js_path = Path(config.data["site_dir"] + '/assets/javascripts/decrypt-contents.js')
+        with open(decrypt_js_path, "w") as f:
+            f.write(self.__generate_decrypt_js__())
+        config['extra_javascript'].append("/assets/javascripts/decrypt-contents.js")

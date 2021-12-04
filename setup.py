@@ -11,7 +11,7 @@ def read(fname):
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='1.2.0.1',
+    version='2.0.0.1',
     author='CoinK0in',
     author_email='12155947+CoinK0in@users.noreply.github.com',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',
@@ -45,6 +45,10 @@ setup(
             'encryptcontent = encryptcontent.plugin:encryptContentPlugin'
         ]
     },
-    package_data={'encryptcontent': ['*.tpl.html', 'contrib/templates/search/*.js']},
+    package_data={'encryptcontent': [
+        '*.tpl.js',
+        '*.tpl.html',
+        'contrib/templates/search/*.js'
+        ]},
     include_package_data=True
 )

@@ -1,3 +1,5 @@
+/* encryptcontent/contrib/templates/search/main.js */
+
 function getSearchTermFromLocation() {
   var sPageURL = window.location.search.substring(1);
   var sURLVariables = sPageURL.split('&');
@@ -85,14 +87,11 @@ function onWorkerMessage (e) {
   }
 }
 
-// reload index from session Storage if exist
-sessionIndex = sessionStorage.getItem('encryptcontent-index')
-
 if (!window.Worker) {
-  console.log('Web Worker API not supported');
   // load index in main thread
   $.getScript(joinUrl(base_url, "search/worker.js")).done(function () {
-    console.log('Loaded worker');
+    // reload index from session Storage if exist
+    var sessionIndex = sessionStorage.getItem('encryptcontent-index')
     init(sessionIndex);
     window.postMessage = function (msg) {
       onWorkerMessage({data: msg});
@@ -101,8 +100,11 @@ if (!window.Worker) {
     console.error('Could not load worker.js');
   });
 } else {
+  console.log('Web Worker API supported');
   // Wrap search in a web worker
   var searchWorker = new Worker(joinUrl(base_url, "search/worker.js"));
-  searchWorker.postMessage({init: true, sessionIndex: sessionIndex});
+  // reload index from session Storage if exist
+  var sessionIndex = sessionStorage.getItem('encryptcontent-index')
   searchWorker.onmessage = onWorkerMessage;
+  searchWorker.postMessage({init: true, sessionIndex: sessionIndex});
 }

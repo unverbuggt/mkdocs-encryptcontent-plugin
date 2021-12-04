@@ -1,3 +1,5 @@
+/* encryptcontent/contrib/templates/search/worker.js */
+
 var base_path = 'function' === typeof importScripts ? '.' : '/search/';
 var allowSearch = false;
 var index;
@@ -7,7 +9,6 @@ var lang = ['en'];
 var session = false;
 
 function getScript(script, callback) {
-  console.log('Loading script: ' + script);
   $.getScript(base_path + script).done(function () {
     callback();
   }).fail(function (jqxhr, settings, exception) {
