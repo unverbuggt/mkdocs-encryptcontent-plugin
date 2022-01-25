@@ -73,8 +73,7 @@ class encryptContentPlugin(BasePlugin):
         ('experimental', config_options.Type(bool, default=False)),
         # legacy features, doesn't exist anymore
         ('disable_cookie_protection', config_options.Type(bool, default=False)),
-        ('decrypt_search', config_options.Type(bool, default=False)),
-
+        ('decrypt_search', config_options.Type(bool, default=False))
     )
 
     def __hash_md5__(self, text):
@@ -100,7 +99,7 @@ class encryptContentPlugin(BasePlugin):
             PADDING_CHAR
         )
 
-    def __encrypt_content__(self, content):
+    def __encrypt_content__(self, content, base_path):
         """ Replaces page or article content with decrypt form. """
         ciphertext_bundle = self.__encrypt_text_aes__(content, str(self.config['password']))
         decrypt_form = Template(DECRYPT_FORM_TPL).render({
@@ -114,6 +113,7 @@ class encryptContentPlugin(BasePlugin):
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
             'js_libraries': JS_LIBRARIES,
+            'base_path': base_path
         })
         return decrypt_form
 
@@ -130,7 +130,7 @@ class encryptContentPlugin(BasePlugin):
             'default_expire_dalay': int(self.config['default_expire_dalay']),
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
-            'experimental': self.config['experimental'],
+            'experimental': self.config['experimental']
         })
         return decrypt_js
 
@@ -233,7 +233,7 @@ class encryptContentPlugin(BasePlugin):
                     config['extra_javascript'].append('search/main.js')
         except Exception as exp:
             logger.exception(exp)
-
+            
     def on_page_markdown(self, markdown, page, config, **kwargs):
         """
         The page_markdown event is called after the page's markdown is loaded from file and
@@ -275,10 +275,12 @@ class encryptContentPlugin(BasePlugin):
             if self.config['tag_encrypted_page']: 
                 # Set attribute on page to identify encrypted page on template rendering
                 setattr(page, 'encrypted', True)
+            # Create relative path in case of subdir in site_url
+            base_path = page.abs_url.replace(page.url,'')
             # Set password attributes on page for other mkdocs events
             setattr(page, 'password', str(self.config['password']))
             # Keep encrypted html as temporary variable on page cause we need clear html for search plugin
-            setattr(page, 'html_encrypted', self.__encrypt_content__(html))
+            setattr(page, 'html_encrypted', self.__encrypt_content__(html, base_path))
         return html
 
     def on_page_context(self, context, page, config, **kwargs):
@@ -360,4 +362,4 @@ class encryptContentPlugin(BasePlugin):
         decrypt_js_path = Path(config.data["site_dir"] + '/assets/javascripts/decrypt-contents.js')
         with open(decrypt_js_path, "w") as f:
             f.write(self.__generate_decrypt_js__())
-        config['extra_javascript'].append("/assets/javascripts/decrypt-contents.js")
+
