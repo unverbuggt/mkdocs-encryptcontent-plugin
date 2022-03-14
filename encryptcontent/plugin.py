@@ -276,7 +276,7 @@ class encryptContentPlugin(BasePlugin):
                 # Set attribute on page to identify encrypted page on template rendering
                 setattr(page, 'encrypted', True)
             # Create relative path in case of subdir in site_url
-            base_path = page.abs_url.replace(page.url,'')
+            base_path = page.abs_url.replace(page.url,'') if page.abs_url is not None else '/'
             # Set password attributes on page for other mkdocs events
             setattr(page, 'password', str(self.config['password']))
             # Keep encrypted html as temporary variable on page cause we need clear html for search plugin
