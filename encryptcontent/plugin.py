@@ -63,6 +63,7 @@ class encryptContentPlugin(BasePlugin):
         ('password', config_options.Type(string_types, default=None)),
         ('arithmatex', config_options.Type(bool, default=True)),
         ('hljs', config_options.Type(bool, default=True)),
+        ('mermaid2', config_options.Type(bool, default=True)),
         ('remember_password', config_options.Type(bool, default=False)),
         ('default_expire_dalay', config_options.Type(int, default=int(24))),
         ('tag_encrypted_page', config_options.Type(bool, default=True)),
@@ -126,6 +127,7 @@ class encryptContentPlugin(BasePlugin):
             # enable / disable features
             'arithmatex': self.config['arithmatex'],
             'hljs': self.config['hljs'],
+            'mermaid2': self.config['mermaid2'],
             'remember_password': self.config['remember_password'],
             'default_expire_dalay': int(self.config['default_expire_dalay']),
             'encrypted_something': self.config['encrypted_something'],
@@ -161,6 +163,13 @@ class encryptContentPlugin(BasePlugin):
         else:
             logger.info('"arithmatex" feature is disabled in your plugin configuration.')
             self.config['arithmatex'] = False
+        # Check if mermaid feature need to be enabled, based on plugin configuration
+        if config['plugins'].get('mermaid2') and self.config['mermaid2'] is not False:
+            logger.debug('"mermaid2" value detected on extensions config, enable rendering after decryption.')
+            self.config['mermaid2'] = True
+        else:
+            logger.info('"mermaid2" feature is disabled in your plugin configuration.')
+            self.config['mermaid2'] = False
         # Warn about deprecated features on Vervion 2.0.0
         deprecated_options_detected = False
         if self.config.get('disable_cookie_protection'):

@@ -152,6 +152,9 @@ function decrypt_action(password_input, encrypted_content, decrypted_content) {
         {% if arithmatex -%}
         if (typeof MathJax === 'object') { MathJax.typesetPromise(); };
         {%- endif %}
+        {% if mermaid2 -%}
+        if (typeof mermaid === 'object') { mermaid.contentLoaded(); };
+        {%- endif %}
         {% if hljs -%}
         document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
             hljs.highlightBlock(block);

@@ -28,6 +28,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
   * [Features](#features)
     * [HighlightJS support](#highlightjs-support) *(default)*
     * [Arithmatex support](#arithmatex-support) *(default)*
+    * [Mermaid2 support](#mermaid-support) *(default)*
     * [Tag encrypted page](#tag-encrypted-page) *(default)*
     * [Rebember password](#rebember-password)
     * [Encrypt something](#encrypt-something)
@@ -50,7 +51,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-2.0.2-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-2.1.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -61,6 +62,7 @@ plugins:
     - encryptcontent: {}
 ```
 > **NOTE:** If you have no `plugins` entry in your configuration file yet, you'll likely also want to add the `search` plugin. MkDocs enables it by default if there is no `plugins` entry set, but now you have to enable it explicitly.
+
 
 # Usage
 
@@ -142,6 +144,24 @@ MathJax.typesetPromise()
 ```
 
 > **NOTE** It has been tested in Arithmatex `generic` mode only. 
+
+### Mermaid2 support
+
+> **Enable by default**
+
+Related to [issue #22](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/22)
+
+If mermaid2 plugin is detected in your configuration to generate graph from text, reload renderer after decryption process. If the Mermaid2 plugin is not correctly detected, you can force the detection by adding `mermaid2: True` on the plugin configuration or set `mermaid2: False` to disable this feature.
+ 
+When enable, the following part of the template is add to force graph rendering on decrypted content.
+
+```jinja
+{% if mermaid2 %}
+mermaid.contentLoaded();
+{% endif %}
+```
+
+> **NOTE** It has been tested with Mermaid2 mkdocs plugin only.
 
 ### Tag encrypted page
 
