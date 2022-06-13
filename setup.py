@@ -49,6 +49,6 @@ setup(
         '*.tpl.js',
         '*.tpl.html',
         'contrib/templates/search/*.js'
-        ]},
+    ]},
     include_package_data=True
 )

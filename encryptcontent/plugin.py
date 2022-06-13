@@ -56,9 +56,12 @@ class encryptContentPlugin(BasePlugin):
         ('title_prefix', config_options.Type(string_types, default=str(SETTINGS['title_prefix']))),
         ('summary', config_options.Type(string_types, default=str(SETTINGS['summary']))),
         ('placeholder', config_options.Type(string_types, default=str(SETTINGS['placeholder']))),
-        ('decryption_failure_message', config_options.Type(string_types, default=str(SETTINGS['decryption_failure_message']))),
-        ('encryption_info_message', config_options.Type(string_types, default=str(SETTINGS['encryption_info_message']))),
-        ('password_button_text', config_options.Type(string_types, default=str(SETTINGS['password_button_text']))),
+        ('decryption_failure_message',
+         config_options.Type(string_types, default=str(SETTINGS['decryption_failure_message']))),
+        ('encryption_info_message',
+         config_options.Type(string_types, default=str(SETTINGS['encryption_info_message']))),
+        ('password_button_text',
+         config_options.Type(string_types, default=str(SETTINGS['password_button_text']))),
         ('global_password', config_options.Type(string_types, default=None)),
         ('password', config_options.Type(string_types, default=None)),
         ('arithmatex', config_options.Type(bool, default=True)),
@@ -69,7 +72,8 @@ class encryptContentPlugin(BasePlugin):
         ('tag_encrypted_page', config_options.Type(bool, default=True)),
         ('password_button', config_options.Type(bool, default=False)),
         ('encrypted_something', config_options.Type(dict, default={})),
-        ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
+        ('search_index',
+         config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
         ('reload_scripts', config_options.Type(list, default=[])),
         ('experimental', config_options.Type(bool, default=False)),
         # legacy features, doesn't exist anymore
@@ -110,7 +114,7 @@ class encryptContentPlugin(BasePlugin):
             'password_button': self.config['password_button'],
             'password_button_text': self.config['password_button_text'],
             'encryption_info_message': self.config['encryption_info_message'],
-            # this benign decoding is necessary before writing to the template, 
+            # this benign decoding is necessary before writing to the template,
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
             'js_libraries': JS_LIBRARIES,
@@ -140,8 +144,8 @@ class encryptContentPlugin(BasePlugin):
 
     def on_config(self, config, **kwargs):
         """
-        The config event is the first event called on build and is run immediately after 
-        the user configuration is loaded and validated. Any alterations to the config should be made here.
+        The config event is the first event called on build and is run immediately after the user
+        configuration is loaded and validated. Any alterations to the config should be made here.
         Configure plugin self.config from configuration file (mkdocs.yml)
 
         :param config: global configuration object (mkdocs.yml)
@@ -150,22 +154,29 @@ class encryptContentPlugin(BasePlugin):
         # Set global password as default password for each page
         self.config['password'] = self.config['global_password']
         # Check if hljs feature need to be enabled, based on theme configuration
-        if 'highlightjs' in config['theme']._vars and config['theme']._vars['highlightjs'] and self.config['hljs'] is not False:
-            logger.debug('"highlightjs" value detected on theme config, enable rendering after decryption.')
+        if ('highlightjs' in config['theme']._vars
+                and config['theme']._vars['highlightjs']    # noqa: W503
+                    and self.config['hljs'] is not False):  # noqa: W503, E127
+            logger.debug(('"highlightjs" value detected on theme config,'),
+                         ('enable rendering after decryption.'))
             self.config['hljs'] = config['theme']._vars['highlightjs']
         else:
             logger.info('"highlightjs" feature is disabled in your plugin configuration.')
             self.config['hljs'] = False
-        # Check if pymdownx.arithmatex feature need to be enabled, based on markdown_extensions configuration
-        if 'pymdownx.arithmatex' in config['markdown_extensions'] and self.config['arithmatex'] is not False:
-            logger.debug('"arithmatex" value detected on extensions config, enable rendering after decryption.')
+        # Check if pymdownx.arithmatex feature need to be enabled, based on markdown_extensions
+        # configuration
+        if ('pymdownx.arithmatex' in config['markdown_extensions']
+                and self.config['arithmatex'] is not False):  # noqa: W503
+            logger.debug(('"arithmatex" value detected on extensions config,'),
+                         ('enable rendering after decryption.'))
             self.config['arithmatex'] = True
         else:
             logger.info('"arithmatex" feature is disabled in your plugin configuration.')
             self.config['arithmatex'] = False
         # Check if mermaid feature need to be enabled, based on plugin configuration
         if config['plugins'].get('mermaid2') and self.config['mermaid2'] is not False:
-            logger.debug('"mermaid2" value detected on extensions config, enable rendering after decryption.')
+            logger.debug(('"mermaid2" value detected on extensions config,'),
+                         ('enable rendering after decryption.'))
             self.config['mermaid2'] = True
         else:
             logger.info('"mermaid2" feature is disabled in your plugin configuration.')
@@ -173,76 +184,98 @@ class encryptContentPlugin(BasePlugin):
         # Warn about deprecated features on Vervion 2.0.0
         deprecated_options_detected = False
         if self.config.get('disable_cookie_protection'):
-            logger.warning('DEPRECATED: Feature "disable_cookie_protection" is no longer supported. Can by remove.')
+            logger.warning(('DEPRECATED: Feature "disable_cookie_protection" is no longer '),
+                           ('supported. Can by remove.'))
             deprecated_options_detected = True
         if self.config.get('decrypt_search'):
-            logger.warning('DEPRECATED: Feature "decrypt_search" is no longer supported. Use search_index on "clear" mode instead.')
+            logger.warning(('DEPRECATED: Feature "decrypt_search" is no longer supported.'),
+                           ('Use search_index on "clear" mode instead.'))
             deprecated_options_detected = True
             logger.info('Fallback "decrypt_search" configuraiton to "search_index" mode clear.')
             self.config['search_index'] = 'clear'
         if deprecated_options_detected:
-            logger.warning('DEPRECATED: Features marked as deprecated will be remove in next minor version !')
+            logger.warning(('DEPRECATED: '),
+                           ('Features marked as deprecated will be remove in next minor version !'))
         # Re order plugins to be sure search-index are not encrypted
         if self.config['search_index'] == 'clear':
-            logger.debug('Reordering plugins loading and put search and encryptcontent at the end of the event pipe.')
+            logger.debug(('Reordering plugins loading and put search and encryptcontent'),
+                         ('at the end of the event pipe.'))
             config['plugins'].move_to_end('search')
             config['plugins'].move_to_end('encryptcontent')
         # Enable experimental code .. :popcorn:
         if self.config['search_index'] == 'dynamically':
-            logger.info('EXPERIMENTAL MODE ENABLE. Only work with default SearchPlugin, not Material.')
+            logger.info(('EXPERIMENTAL MODE ENABLE. '),
+                        ('Only work with default SearchPlugin, not Material.'))
             self.config['experimental'] = True
 
     def on_pre_build(self, config, **kwargs):
         """
         The pre_build event does not alter any variables. Use this event to call pre-build scripts.
-        Overwrite default mkdocs-search contrib plugin with experimental one for work with encrypted search index.
+        Overwrite default mkdocs-search contrib plugin with experimental one for work with
+        encrypted search index.
 
         :param config: global configuration object (mkdocs.yml)
         """
-        # Overwrite SearchPlugin function to encrypt search_index if not disable
-        # on_pre_build hook envent is used by search plugin to initialize an index
-        # this modified function is used to encrypt 'text' fields of search_index
+        # Overwrite SearchPlugin function to encrypt search_index if not disable on_pre_build hook
+        # event is used by search plugin to initialize an index this modified function is used to
+        # encrypt 'text' fields of search_index.
         # ref: https://github.com/mkdocs/mkdocs/tree/master/mkdocs/contrib/search
         try:
             if self.config['search_index'] in ['encrypted', 'dynamically']:
                 from mkdocs.contrib.search.search_index import SearchIndex, ContentParser
+
                 def _create_entry_for_section(self, section, toc, abs_url, password=None):
                     toc_item, text = self._find_toc_by_id(toc, section.id), ''
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
                         text = ' '.join(section.text)
-                    if password != None:
-                        text = b';'.join(config['plugins']['encryptcontent'].__encrypt_text_aes__(text, str(password))).decode('ascii')
-                    if toc_item is not None: self._add_entry(title=toc_item.title, text=text, loc=abs_url + toc_item.url)
+                    if password is not None:
+                        plugin = config['plugins']['encryptcontent']
+                        code = plugin.__encrypt_text_aes__(text, str(password))
+                        text = b';'.join(code).decode('ascii')
+                    if toc_item is not None:
+                        self._add_entry(title=toc_item.title, text=text, loc=abs_url + toc_item.url)
                 SearchIndex.create_entry_for_section = _create_entry_for_section
+
                 def _add_entry_from_context(self, page):
                     parser, url, text = ContentParser(), page.url, ''
                     parser.feed(page.content)
                     parser.close()
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
                         text = parser.stripped_html.rstrip('\n')
-                    if hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password != None:
-                        text = b';'.join(config['plugins']['encryptcontent'].__encrypt_text_aes__(text, str(page.password))).decode('ascii')
+                    if (hasattr(page, 'encrypted') and hasattr(page, 'password')
+                            and page.password is not None):  # noqa: W503
+                        plugin = config['plugins']['encryptcontent']
+                        code = plugin.__encrypt_text_aes__(text, str(page.password))
+                        text = b';'.join(code).decode('ascii')
                     self._add_entry(title=page.title, text=text, loc=url)
-                    if self.config.get('indexing') and self.config['indexing'] in ['full', 'sections']:
+                    if (self.config.get('indexing')
+                            and self.config['indexing'] in ['full', 'sections']):  # noqa: W503
                         for section in parser.data:
-                            if hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password != None: 
+                            if (hasattr(page, 'encrypted')
+                                    and hasattr(page, 'password')         # noqa: W503
+                                        and page.password is not None):   # noqa: W503, E127
                                 self.create_entry_for_section(section, page.toc, url, page.password)
                             else:
                                 self.create_entry_for_section(section, page.toc, url)
                 SearchIndex.add_entry_from_context = _add_entry_from_context
             if self.config['experimental'] is True:
                 if config['theme'].name == 'material':
-                    logger.error("UNSUPPORTED Material theme with experimantal feature search_index=dynamically !")
+                    logger.error(("UNSUPPORTED Material theme "),
+                                 ("with experimantal feature search_index=dynamically !"))
                     exit("UNSUPPORTED Material theme: use search_index: [clear|encrypted] instead.")
-                # Overwrite search/*.js files from templates/search with encryptcontent contrib search assets
-                config['theme'].dirs = [e for e in config['theme'].dirs if not re.compile(r".*/contrib/search/templates$").match(e)]
+                # Overwrite search/*.js files from templates/search with encryptcontent contrib
+                # search assets
+                config['theme'].dirs = [
+                    e for e in config['theme'].dirs
+                    if not re.compile(r".*/contrib/search/templates$").match(e)
+                ]
                 path = os.path.join(base_path, 'contrib/templates')
                 config['theme'].dirs.append(path)
                 if 'search/main.js' not in config['extra_javascript']:
                     config['extra_javascript'].append('search/main.js')
         except Exception as exp:
             logger.exception(exp)
-            
+
     def on_page_markdown(self, markdown, page, config, **kwargs):
         """
         The page_markdown event is called after the page's markdown is loaded from file and
@@ -267,10 +300,10 @@ class encryptContentPlugin(BasePlugin):
 
     def on_page_content(self, html, page, config, **kwargs):
         """
-        The page_content event is called after the Markdown text is rendered to HTML 
-        (but before being passed to a template) and can be used to alter the HTML body of the page.
-        Generate encrypt content with AES and add form to decrypt this content with JS.
-        Keep the generated value in a temporary attribute for the search work on clear version of content.
+        The page_content event is called after the Markdown text is rendered to HTML (but before
+        being passed to a template) and can be used to alter the HTML body of the page. Generate
+        encrypt content with AES and add form to decrypt this content with JS. Keep the generated
+        value in a temporary attribute for the search work on clear version of content.
 
         :param html: HTML rendered from Markdown source as string
         :param page: mkdocs.nav.Page instance
@@ -281,14 +314,15 @@ class encryptContentPlugin(BasePlugin):
         if self.config['password'] is not None:
             if self.config['title_prefix']:
                 page.title = str(self.config['title_prefix']) + str(page.title)
-            if self.config['tag_encrypted_page']: 
+            if self.config['tag_encrypted_page']:
                 # Set attribute on page to identify encrypted page on template rendering
                 setattr(page, 'encrypted', True)
             # Create relative path in case of subdir in site_url
-            base_path = page.abs_url.replace(page.url,'') if page.abs_url is not None else '/'
+            base_path = page.abs_url.replace(page.url, '') if page.abs_url is not None else '/'
             # Set password attributes on page for other mkdocs events
             setattr(page, 'password', str(self.config['password']))
-            # Keep encrypted html as temporary variable on page cause we need clear html for search plugin
+            # Keep encrypted html as temporary variable on page cause we need clear html for search
+            # plugin
             setattr(page, 'html_encrypted', self.__encrypt_content__(html, base_path))
         return html
 
@@ -312,11 +346,10 @@ class encryptContentPlugin(BasePlugin):
 
     def on_post_page(self, output_content, page, config, **kwargs):
         """
-        The post_page event is called after the template is rendered,
-        but before it is written to disc and can be used to alter the output of the page.
-        If an empty string is returned, the page is skipped and nothing is written to disc.
-        Finds other parts of HTML that need to be encrypted and 
-        replaces the content with a protected version 
+        The post_page event is called after the template is rendered, but before it is written to
+        disc and can be used to alter the output of the page. If an empty string is returned, the
+        page is skipped and nothing is written to disc. Finds other parts of HTML that need to be
+        encrypted and replaces the content with a protected version.
 
         :param output_content: output of rendered template as string
         :param page: mkdocs.nav.Page instance
@@ -324,17 +357,19 @@ class encryptContentPlugin(BasePlugin):
         :return: output of rendered template as string
         """
         # Limit this process only if encrypted_something feature is enable *(speedup)*
-        if self.config['encrypted_something'] and hasattr(page, 'encrypted') \
-            and len(self.config['encrypted_something']) > 0:
+        if (self.config['encrypted_something'] and hasattr(page, 'encrypted')
+                and len(self.config['encrypted_something']) > 0):  # noqa: W503
             soup = BeautifulSoup(output_content, 'html.parser')
             for name, tag in self.config['encrypted_something'].items():
-                #logger.debug({'name': name, 'html tag': tag[0], 'type': tag[1]})
-                something_search = soup.findAll(tag[0], { tag[1]: name })
+                # logger.debug({'name': name, 'html tag': tag[0], 'type': tag[1]})
+                something_search = soup.findAll(tag[0], {tag[1]: name})
                 if something_search is not None and len(something_search) > 0:
                     # Loop for multi child tags on target element
                     for item in something_search:
                         # Remove '\n', ' ' useless content generated by bs4 parsing...
-                        item.contents = [content for content in item.contents if not content in ['\n', ' ']]
+                        item.contents = [
+                            content for content in item.contents if content not in ['\n', ' ']
+                        ]
                         # Merge the content in case there are several elements
                         if len(item.contents) > 1:
                             merge_item = ''.join([str(s) for s in item.contents])
@@ -360,15 +395,12 @@ class encryptContentPlugin(BasePlugin):
 
     def on_post_build(self, config, **kwargs):
         """
-        The post_build event does not alter any variables. Use this event to call post-build scripts.
+        The post_build event does not alter any variables.
+        Use this event to call post-build scripts.
 
         :param config: global configuration object
         """
-        Path(config.data["site_dir"] + '/assets/javascripts/').mkdir(
-            parents=True,
-            exist_ok=True
-        )
+        Path(config.data["site_dir"] + '/assets/javascripts/').mkdir(parents=True, exist_ok=True)
         decrypt_js_path = Path(config.data["site_dir"] + '/assets/javascripts/decrypt-contents.js')
-        with open(decrypt_js_path, "w") as f:
-            f.write(self.__generate_decrypt_js__())
-
+        with open(decrypt_js_path, "w") as file:
+            file.write(self.__generate_decrypt_js__())
