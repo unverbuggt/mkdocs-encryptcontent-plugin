@@ -24,6 +24,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
   * [Installation](#installation)
   * [Usage](#usage)
     * [Global password protection](#global-password-protection)
+    * [Github secret](#github-secret)
     * [Customization](#extra-vars-customization)
   * [Features](#features)
     * [HighlightJS support](#highlightjs-support) *(default)*
@@ -68,6 +69,7 @@ plugins:
 
 Add an meta tag `password: secret_password` in your markdown files to protect them.
 
+
 ### Global password protection
 
 Add `global_password: your_password` in plugin configuration variable, to protect by default your articles with this password
@@ -81,6 +83,53 @@ plugins:
 If a password is defined in an article, it will **ALWAYS** overwrite the global password. 
 
 > **NOTE** Keep in mind that if the `password:` tag exists without value in an article, it will **not be protected** !
+
+
+### Github secret
+
+Instead of specifying a password in the mkdocs.yml file, you can use a Github secret alongswide with a Github worflow action.
+This requires a requirements.txt in order to install everything required to build the docs.
+
+1. Go to the repo containing the doc you want to protect. Then go to Settings > Secrets > Actions > New repository secret.
+2. Name the secret PASSWORD and specify the the secret value you want to use.
+3. Go to Actions > New worklow > set up a workflow yourself and write the following in the yaml file (name it as you like and take care
+of the requirements.txt path):
+
+```yaml
+name: ci 
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PASSWORD: "${{ secrets.PASSWORD }}"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v3.0.2
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - name: Deploy
+        run: |
+          pip install -r ./docs/requirements.txt 
+          mkdocs gh-deploy --force
+```
+
+4. Finally, in the mkdocs.yml file, instead of specifying a global password, simply put the `use_secret` field to true:
+
+```yaml
+plugins:
+    - encryptcontent:
+        use_secret: true
+```
+
 
 ### Extra vars customization
 
