@@ -55,6 +55,7 @@ class encryptContentPlugin(BasePlugin):
     config_scheme = (
         # dev: use github secret
         ('use_secret', config_options.Type(bool, default=False)),
+        # _________________________________________________________ #
         ('title_prefix', config_options.Type(string_types, default=str(SETTINGS['title_prefix']))),
         ('summary', config_options.Type(string_types, default=str(SETTINGS['summary']))),
         ('placeholder', config_options.Type(string_types, default=str(SETTINGS['placeholder']))),
@@ -153,8 +154,8 @@ class encryptContentPlugin(BasePlugin):
         :param config: global configuration object (mkdocs.yml)
         :return: global configuration object modified to include templates files
         """
+        # Optionnaly use Github secret 
         if self.config['use_secret']:
-            logger.debug('Using Github secret')
             self.config['global_password'] = os.environ.get('PASSWORD')
         # Set global password as default password for each page
         self.config['password'] = self.config['global_password']
