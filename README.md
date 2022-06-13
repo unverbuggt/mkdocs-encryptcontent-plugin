@@ -87,12 +87,12 @@ If a password is defined in an article, it will **ALWAYS** overwrite the global 
 
 ### Github secret
 
-Instead of specifying a password in the mkdocs.yml file, you can use a Github secret alongswide with a Github worflow action.
+Instead of specifying a password in the mkdocs.yml file, you can use a Github secret coupled to a Github worflow action.
 This requires a requirements.txt in order to install everything required to build the docs.
 
-1. Go to the repo containing the doc you want to protect. Then go to Settings > Secrets > Actions > New repository secret.
-2. Name the secret PASSWORD and specify the the secret value you want to use.
-3. Go to Actions > New worklow > set up a workflow yourself and write the following in the yaml file (name it as you like and take care
+1. Go to the repo containing the doc you want to protect. Then go to `Settings > Secrets > Actions > New repository secret`.
+2. Name the secret `PASSWORD` and specify the the secret value you want to use.
+3. Go to `Actions > New workflow > set up a workflow yourself` and write the following in the yaml file (name it as you like and take care
 of the requirements.txt path):
 
 ```yaml
