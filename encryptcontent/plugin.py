@@ -53,9 +53,7 @@ class encryptContentPlugin(BasePlugin):
     """ Plugin that encrypt markdown content with AES and inject decrypt form. """
 
     config_scheme = (
-        # dev: use github secret
-        ('use_secret', config_options.Type(bool, default=False)),
-        # _________________________________________________________ #
+        ('use_secret', config_options.Type(string_types, default=None)),
         ('title_prefix', config_options.Type(string_types, default=str(SETTINGS['title_prefix']))),
         ('summary', config_options.Type(string_types, default=str(SETTINGS['summary']))),
         ('placeholder', config_options.Type(string_types, default=str(SETTINGS['placeholder']))),
@@ -154,9 +152,14 @@ class encryptContentPlugin(BasePlugin):
         :param config: global configuration object (mkdocs.yml)
         :return: global configuration object modified to include templates files
         """
-        # Optionnaly use Github secret 
-        if self.config['use_secret']:
-            self.config['global_password'] = os.environ.get('PASSWORD')
+        # Optionnaly use Github secret
+        if self.config.get('use_secret'):
+            if os.environ.get(str(self.config['use_secret'])):
+                self.config['global_password'] = os.environ.get(str(self.config['use_secret']))
+            else:
+                logger.error(('Cannot get global password from environment variable: '),
+                             (f"{str(self.config['use_secret'])}. Abort !"))
+                os.exit()
         # Set global password as default password for each page
         self.config['password'] = self.config['global_password']
         # Check if hljs feature need to be enabled, based on theme configuration
