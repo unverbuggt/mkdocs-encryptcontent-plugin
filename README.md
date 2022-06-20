@@ -87,47 +87,17 @@ If a password is defined in an article, it will **ALWAYS** overwrite the global 
 
 ### Github secret
 
-Instead of specifying a password in the mkdocs.yml file, you can use a Github secret coupled to a Github worflow action.
-This requires a requirements.txt in order to install everything required to build the docs.
+Instead of specifying a password in the mkdocs.yml file, you can use a Github secret coupled to a CI/CD pipeline. This process is in two steps:
 
-1. Go to the repo containing the doc you want to protect. Then go to `Settings > Secrets > Actions > New repository secret`.
-2. Name the secret `PASSWORD` and specify the the secret value you want to use.
-3. Go to `Actions > New workflow > set up a workflow yourself` and write the following in the yaml file (name it as you like and take care
-of the requirements.txt path):
+1. First, you need to make an environment variable containing your password accessible at runtime (through any CI/CD pipeline). 
 
-```yaml
-name: ci 
 
-on:
-  push:
-    branches:
-      - main
-
-env:
-  PASSWORD: "${{ secrets.PASSWORD }}"
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v3.0.2
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-      - name: Deploy
-        run: |
-          pip install -r ./docs/requirements.txt 
-          mkdocs gh-deploy --force
-```
-
-4. Finally, in the mkdocs.yml file, instead of specifying a global password, simply put the `use_secret` field to true:
+4. Finally, in the mkdocs.yml file, instead of specifying a global password, simply set the `use_secret` field to the name of your environment variable, e.g. in the case where my secret is stored in the $PASSWORD` variable:
 
 ```yaml
 plugins:
     - encryptcontent:
-        use_secret: true
+        use_secret: 'PASSWORD'
 ```
 
 
