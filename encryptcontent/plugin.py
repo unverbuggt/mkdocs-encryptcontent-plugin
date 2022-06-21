@@ -159,7 +159,7 @@ class encryptContentPlugin(BasePlugin):
             else:
                 logger.error(('Cannot get global password from environment variable: '),
                              (f"{str(self.config['use_secret'])}. Abort !"))
-                os.exit()
+                os._exit()
         # Set global password as default password for each page
         self.config['password'] = self.config['global_password']
         # Check if hljs feature need to be enabled, based on theme configuration
