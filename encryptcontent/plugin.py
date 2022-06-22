@@ -57,12 +57,9 @@ class encryptContentPlugin(BasePlugin):
         ('title_prefix', config_options.Type(string_types, default=str(SETTINGS['title_prefix']))),
         ('summary', config_options.Type(string_types, default=str(SETTINGS['summary']))),
         ('placeholder', config_options.Type(string_types, default=str(SETTINGS['placeholder']))),
-        ('decryption_failure_message',
-         config_options.Type(string_types, default=str(SETTINGS['decryption_failure_message']))),
-        ('encryption_info_message',
-         config_options.Type(string_types, default=str(SETTINGS['encryption_info_message']))),
-        ('password_button_text',
-         config_options.Type(string_types, default=str(SETTINGS['password_button_text']))),
+        ('decryption_failure_message', config_options.Type(string_types, default=str(SETTINGS['decryption_failure_message']))),
+        ('encryption_info_message', config_options.Type(string_types, default=str(SETTINGS['encryption_info_message']))),
+        ('password_button_text', config_options.Type(string_types, default=str(SETTINGS['password_button_text']))),
         ('global_password', config_options.Type(string_types, default=None)),
         ('password', config_options.Type(string_types, default=None)),
         ('arithmatex', config_options.Type(bool, default=True)),
@@ -73,8 +70,7 @@ class encryptContentPlugin(BasePlugin):
         ('tag_encrypted_page', config_options.Type(bool, default=True)),
         ('password_button', config_options.Type(bool, default=False)),
         ('encrypted_something', config_options.Type(dict, default={})),
-        ('search_index',
-         config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
+        ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
         ('reload_scripts', config_options.Type(list, default=[])),
         ('experimental', config_options.Type(bool, default=False)),
         # legacy features, doesn't exist anymore
@@ -157,8 +153,9 @@ class encryptContentPlugin(BasePlugin):
             if os.environ.get(str(self.config['use_secret'])):
                 self.config['global_password'] = os.environ.get(str(self.config['use_secret']))
             else:
-                logger.error(('Cannot get global password from environment variable: '),
-                             (f"{str(self.config['use_secret'])}. Abort !"))
+                logger.error('Cannot get global password from environment variable: {var}. Abort !'.format(
+                    var=str(self.config['use_secret']))
+                )
                 os._exit(1)
         # Set global password as default password for each page
         self.config['password'] = self.config['global_password']
@@ -166,26 +163,22 @@ class encryptContentPlugin(BasePlugin):
         if ('highlightjs' in config['theme']._vars
                 and config['theme']._vars['highlightjs']    # noqa: W503
                     and self.config['hljs'] is not False):  # noqa: W503, E127
-            logger.debug(('"highlightjs" value detected on theme config,'),
-                         ('enable rendering after decryption.'))
+            logger.debug('"highlightjs" value detected on theme config, enable rendering after decryption.')
             self.config['hljs'] = config['theme']._vars['highlightjs']
         else:
             logger.info('"highlightjs" feature is disabled in your plugin configuration.')
             self.config['hljs'] = False
-        # Check if pymdownx.arithmatex feature need to be enabled, based on markdown_extensions
-        # configuration
+        # Check if pymdownx.arithmatex feature need to be enabled, based on markdown_extensions configuration
         if ('pymdownx.arithmatex' in config['markdown_extensions']
                 and self.config['arithmatex'] is not False):  # noqa: W503
-            logger.debug(('"arithmatex" value detected on extensions config,'),
-                         ('enable rendering after decryption.'))
+            logger.debug('"arithmatex" value detected on extensions config, enable rendering after decryption.')
             self.config['arithmatex'] = True
         else:
             logger.info('"arithmatex" feature is disabled in your plugin configuration.')
             self.config['arithmatex'] = False
         # Check if mermaid feature need to be enabled, based on plugin configuration
         if config['plugins'].get('mermaid2') and self.config['mermaid2'] is not False:
-            logger.debug(('"mermaid2" value detected on extensions config,'),
-                         ('enable rendering after decryption.'))
+            logger.debug('"mermaid2" value detected on extensions config, enable rendering after decryption.')
             self.config['mermaid2'] = True
         else:
             logger.info('"mermaid2" feature is disabled in your plugin configuration.')
@@ -193,28 +186,23 @@ class encryptContentPlugin(BasePlugin):
         # Warn about deprecated features on Vervion 2.0.0
         deprecated_options_detected = False
         if self.config.get('disable_cookie_protection'):
-            logger.warning(('DEPRECATED: Feature "disable_cookie_protection" is no longer '),
-                           ('supported. Can by remove.'))
+            logger.warning('DEPRECATED: Feature "disable_cookie_protection" is no longer supported. Can by remove.')
             deprecated_options_detected = True
         if self.config.get('decrypt_search'):
-            logger.warning(('DEPRECATED: Feature "decrypt_search" is no longer supported.'),
-                           ('Use search_index on "clear" mode instead.'))
+            logger.warning('DEPRECATED: Feature "decrypt_search" is no longer supported. Use search_index on "clear" mode instead.')
             deprecated_options_detected = True
             logger.info('Fallback "decrypt_search" configuraiton to "search_index" mode clear.')
             self.config['search_index'] = 'clear'
         if deprecated_options_detected:
-            logger.warning(('DEPRECATED: '),
-                           ('Features marked as deprecated will be remove in next minor version !'))
+            logger.warning('DEPRECATED: Features marked as deprecated will be remove in next minor version !')
         # Re order plugins to be sure search-index are not encrypted
         if self.config['search_index'] == 'clear':
-            logger.debug(('Reordering plugins loading and put search and encryptcontent'),
-                         ('at the end of the event pipe.'))
+            logger.debug('Reordering plugins loading and put search and encryptcontent at the end of the event pipe.')
             config['plugins'].move_to_end('search')
             config['plugins'].move_to_end('encryptcontent')
         # Enable experimental code .. :popcorn:
         if self.config['search_index'] == 'dynamically':
-            logger.info(('EXPERIMENTAL MODE ENABLE. '),
-                        ('Only work with default SearchPlugin, not Material.'))
+            logger.info('EXPERIMENTAL MODE ENABLE. Only work with default SearchPlugin, not Material.')
             self.config['experimental'] = True
 
     def on_pre_build(self, config, **kwargs):
@@ -252,28 +240,26 @@ class encryptContentPlugin(BasePlugin):
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
                         text = parser.stripped_html.rstrip('\n')
                     if (hasattr(page, 'encrypted') and hasattr(page, 'password')
-                            and page.password is not None):  # noqa: W503
+                            and page.password is not None):                             # noqa: W503
                         plugin = config['plugins']['encryptcontent']
                         code = plugin.__encrypt_text_aes__(text, str(page.password))
                         text = b';'.join(code).decode('ascii')
                     self._add_entry(title=page.title, text=text, loc=url)
                     if (self.config.get('indexing')
-                            and self.config['indexing'] in ['full', 'sections']):  # noqa: W503
+                            and self.config['indexing'] in ['full', 'sections']):       # noqa: W503
                         for section in parser.data:
                             if (hasattr(page, 'encrypted')
-                                    and hasattr(page, 'password')         # noqa: W503
-                                        and page.password is not None):   # noqa: W503, E127
+                                    and hasattr(page, 'password')                       # noqa: W503
+                                        and page.password is not None):                 # noqa: W503, E127
                                 self.create_entry_for_section(section, page.toc, url, page.password)
                             else:
                                 self.create_entry_for_section(section, page.toc, url)
                 SearchIndex.add_entry_from_context = _add_entry_from_context
             if self.config['experimental'] is True:
                 if config['theme'].name == 'material':
-                    logger.error(("UNSUPPORTED Material theme "),
-                                 ("with experimantal feature search_index=dynamically !"))
+                    logger.error("UNSUPPORTED Material theme with experimantal feature search_index=dynamically !")
                     exit("UNSUPPORTED Material theme: use search_index: [clear|encrypted] instead.")
-                # Overwrite search/*.js files from templates/search with encryptcontent contrib
-                # search assets
+                # Overwrite search/*.js files from templates/search with encryptcontent contrib search assets
                 config['theme'].dirs = [
                     e for e in config['theme'].dirs
                     if not re.compile(r".*/contrib/search/templates$").match(e)
@@ -330,8 +316,7 @@ class encryptContentPlugin(BasePlugin):
             base_path = page.abs_url.replace(page.url, '') if page.abs_url is not None else '/'
             # Set password attributes on page for other mkdocs events
             setattr(page, 'password', str(self.config['password']))
-            # Keep encrypted html as temporary variable on page cause we need clear html for search
-            # plugin
+            # Keep encrypted html as temporary variable on page cause we need clear html for search plugin
             setattr(page, 'html_encrypted', self.__encrypt_content__(html, base_path))
         return html
 

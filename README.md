@@ -24,7 +24,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
   * [Installation](#installation)
   * [Usage](#usage)
     * [Global password protection](#global-password-protection)
-    * [Github secret](#github-secret)
+    * [Secret from environment](#secret-from-environment)
     * [Customization](#extra-vars-customization)
   * [Features](#features)
     * [HighlightJS support](#highlightjs-support) *(default)*
@@ -52,7 +52,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-2.1.0-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-2.2.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -85,20 +85,24 @@ If a password is defined in an article, it will **ALWAYS** overwrite the global 
 > **NOTE** Keep in mind that if the `password:` tag exists without value in an article, it will **not be protected** !
 
 
-### Github secret
+### Secret from environment
 
-Instead of specifying a password in the mkdocs.yml file, you can use a Github secret coupled to a CI/CD pipeline. This process is in two steps:
+Instead of specifying a password in the mkdocs.yml file, you can use an environment variable to load your secret. 
 
-1. First, you need to make an environment variable containing your password accessible at runtime (through any CI/CD pipeline). 
+This process is in two steps:
+
+1. First, you need to make an environment variable with your global password accessible at runtime (via any CI/CD pipeline or by setting it yourself in your environment).
 
 
-4. Finally, in the mkdocs.yml file, instead of specifying a global password, simply set the `use_secret` field to the name of your environment variable, e.g. in the case where my secret is stored in the $PASSWORD` variable:
+2. Then in the mkdocs.yml file, instead of specifying a global password, just set the `use_secret` field with your environment variable name, e.g. in case my secret is stored in the `ENCRYPTCONTENT_PASSWORD` variable:
 
-```yaml
+``` yaml
 plugins:
     - encryptcontent:
-        use_secret: 'PASSWORD'
+        use_secret: 'ENCRYPTCONTENT_PASSWORD'
 ```
+
+> **NOTE** Keep in mind that if the `use_secret:` configuration is set, it will always be used even if you have also set a global password with the `global_password` variable.
 
 
 ### Extra vars customization
