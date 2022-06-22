@@ -24,6 +24,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
   * [Installation](#installation)
   * [Usage](#usage)
     * [Global password protection](#global-password-protection)
+    * [Github secret](#github-secret)
     * [Customization](#extra-vars-customization)
   * [Features](#features)
     * [HighlightJS support](#highlightjs-support) *(default)*
@@ -68,6 +69,7 @@ plugins:
 
 Add an meta tag `password: secret_password` in your markdown files to protect them.
 
+
 ### Global password protection
 
 Add `global_password: your_password` in plugin configuration variable, to protect by default your articles with this password
@@ -81,6 +83,23 @@ plugins:
 If a password is defined in an article, it will **ALWAYS** overwrite the global password. 
 
 > **NOTE** Keep in mind that if the `password:` tag exists without value in an article, it will **not be protected** !
+
+
+### Github secret
+
+Instead of specifying a password in the mkdocs.yml file, you can use a Github secret coupled to a CI/CD pipeline. This process is in two steps:
+
+1. First, you need to make an environment variable containing your password accessible at runtime (through any CI/CD pipeline). 
+
+
+4. Finally, in the mkdocs.yml file, instead of specifying a global password, simply set the `use_secret` field to the name of your environment variable, e.g. in the case where my secret is stored in the $PASSWORD` variable:
+
+```yaml
+plugins:
+    - encryptcontent:
+        use_secret: 'PASSWORD'
+```
+
 
 ### Extra vars customization
 
