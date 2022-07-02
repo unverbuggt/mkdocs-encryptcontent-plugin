@@ -220,7 +220,6 @@ class encryptContentPlugin(BasePlugin):
         try:
             if self.config['search_index'] in ['encrypted', 'dynamically']:
                 from mkdocs.contrib.search.search_index import SearchIndex, ContentParser
-
                 def _create_entry_for_section(self, section, toc, abs_url, password=None):
                     toc_item, text = self._find_toc_by_id(toc, section.id), ''
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
@@ -232,25 +231,20 @@ class encryptContentPlugin(BasePlugin):
                     if toc_item is not None:
                         self._add_entry(title=toc_item.title, text=text, loc=abs_url + toc_item.url)
                 SearchIndex.create_entry_for_section = _create_entry_for_section
-
                 def _add_entry_from_context(self, page):
                     parser, url, text = ContentParser(), page.url, ''
                     parser.feed(page.content)
                     parser.close()
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
                         text = parser.stripped_html.rstrip('\n')
-                    if (hasattr(page, 'encrypted') and hasattr(page, 'password')
-                            and page.password is not None):                             # noqa: W503
+                    if (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None):
                         plugin = config['plugins']['encryptcontent']
                         code = plugin.__encrypt_text_aes__(text, str(page.password))
                         text = b';'.join(code).decode('ascii')
                     self._add_entry(title=page.title, text=text, loc=url)
-                    if (self.config.get('indexing')
-                            and self.config['indexing'] in ['full', 'sections']):       # noqa: W503
+                    if (self.config.get('indexing') and self.config['indexing'] in ['full', 'sections']):
                         for section in parser.data:
-                            if (hasattr(page, 'encrypted')
-                                    and hasattr(page, 'password')                       # noqa: W503
-                                        and page.password is not None):                 # noqa: W503, E127
+                            if (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None):
                                 self.create_entry_for_section(section, page.toc, url, page.password)
                             else:
                                 self.create_entry_for_section(section, page.toc, url)

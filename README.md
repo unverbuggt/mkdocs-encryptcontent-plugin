@@ -1,5 +1,9 @@
 # mkdocs-encryptcontent-plugin
 
+[![PyPI Version][pypi-v-image]][pypi-v-link]
+[![PyPI downloads](https://img.shields.io/pypi/dm/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+
 This plugin allows you to have password protected articles and pages in MKdocs.
 
 The content is encrypted with AES-256 in Python using PyCryptodome, and decrypted in the browser with Crypto-JS.
@@ -17,6 +21,8 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 > If a password is defined in an article or a page, it is always used even if there is a global password.
 >
 > If a password is defined as an empty character string, the content is not protected.
+
+![encryptcontent_demo](https://user-images.githubusercontent.com/12155947/177001700-f0920d4b-0c41-4d11-8164-9f63d29d8a6a.gif)
 
 
 # Table of Contents
@@ -52,7 +58,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-2.2.0-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-2.2.1-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -210,19 +216,6 @@ For example, in your theme template, you can use conditional check to add custom
 
 ```jinja
 <a {% if nav_item.encrypted %}class="mkdocs-encrypted-class"{% endif %}href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
-```
-
-### Add button
-
-Add `password_button: True` in plugin config variable, to add button to the right of the password field decrypt the content.
-
-Optionnally, you can add `password_button_text: 'custome_text_button'` to customize the button text.
- 
-```yaml
-plugins:
-    - encryptcontent:
-        password_button: True
-        password_button_text: 'custome_text_button'
 ```
 
 ### Rebember password
@@ -425,3 +418,7 @@ If you want to contribute to the code of this project, please read the [Contribu
 [mkdocs-plugins]: https://www.mkdocs.org/dev-guide/plugins/
 [github-issues]: https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues
 [contributing]: CONTRIBUTING.md
+
+<!-- Badges -->
+[pypi-v-image]: https://img.shields.io/pypi/v/mkdocs-encryptcontent-plugin.svg
+[pypi-v-link]: https://pypi.org/project/mkdocs-encryptcontent-plugin/
