@@ -52,7 +52,7 @@ function getItemExpiry(key) {
     var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent(key));
     if (!remember_password) {
         // fallback to search default password defined by path
-        var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("/"));
+        var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("{{ fallback_path }}"));
         if (!remember_password) {
             return null
         }

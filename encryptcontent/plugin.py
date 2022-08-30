@@ -66,6 +66,7 @@ class encryptContentPlugin(BasePlugin):
         ('hljs', config_options.Type(bool, default=True)),
         ('mermaid2', config_options.Type(bool, default=True)),
         ('remember_password', config_options.Type(bool, default=False)),
+        ('fallback_path', config_options.Type(string_types, default='/')),
         ('default_expire_dalay', config_options.Type(int, default=int(24))),
         ('tag_encrypted_page', config_options.Type(bool, default=True)),
         ('password_button', config_options.Type(bool, default=False)),
@@ -130,6 +131,7 @@ class encryptContentPlugin(BasePlugin):
             'hljs': self.config['hljs'],
             'mermaid2': self.config['mermaid2'],
             'remember_password': self.config['remember_password'],
+            'fallback_path': self.config['fallback_path'],
             'default_expire_dalay': int(self.config['default_expire_dalay']),
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
@@ -262,6 +264,8 @@ class encryptContentPlugin(BasePlugin):
                 config['theme'].dirs.append(path)
                 if 'search/main.js' not in config['extra_javascript']:
                     config['extra_javascript'].append('search/main.js')
+            if self.config['fallback_path'] == '/' and config['site_url'] != '':
+                self.config['fallback_path'] = '/' + config['site_url'].split('/',3)[3]
         except Exception as exp:
             logger.exception(exp)
 
