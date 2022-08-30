@@ -252,19 +252,6 @@ plugins:
 
 > **NOTE** The expired elements of the localStorage are only deleted by the execution of the decrypt-content.js scripts and therefore by the navigation on the site. Secret items can therefore remain visible in local storage after their expiration dates. 
 
-#### Same or global password in deviant site_url to /
-
-If you define a `global_password` for the whole site it is pleasant if you only had to enter the password once.
-Or maybe you defined a members area in a different subfolder or category where the pages share the same password.
-In this case you need to define a place where the fallback password from the local storage is taken from (the default is '/').
-
-```yaml
-plugins:
-    - encryptcontent:
-        global_path: '/members/'
-```
-
-
 ### Encrypt something
 
 Related to [issue #9](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/9)
