@@ -32,7 +32,6 @@ function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {
 };
 
 {% if remember_password -%}
-
 /* Set key:value with expire time in localStorage */
 function setItemExpiry(key, value, ttl) {
     const now = new Date()
@@ -52,8 +51,8 @@ function delItemName(key) {
 function getItemExpiry(key) {
     var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent(key));
     if (!remember_password) {
-        // fallback to search default password defined by global_path
-        var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("{{ global_path }}"));
+        // fallback to search default password defined by path
+        var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("/"));
         if (!remember_password) {
             return null
         }
