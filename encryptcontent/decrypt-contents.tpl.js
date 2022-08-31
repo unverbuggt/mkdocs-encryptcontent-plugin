@@ -182,6 +182,12 @@ function decrypt_action(password_input, encrypted_content, decrypted_content) {
             reload_js(reload_scripts[i]);
         }
         {%- endif %}
+        {% if eval_script_id != '' -%}
+        let eval_script = document.getElementById("{{ eval_script_id }}");
+        if (eval_script) {
+            eval(eval_script.innerHTML);
+        }
+        {%- endif %}
         return true
     } else {
         // create HTML element for the inform message

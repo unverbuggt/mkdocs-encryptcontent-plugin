@@ -74,6 +74,7 @@ class encryptContentPlugin(BasePlugin):
         ('encrypted_something', config_options.Type(dict, default={})),
         ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
         ('reload_scripts', config_options.Type(list, default=[])),
+        ('eval_script_id', config_options.Type(string_types, default='')),
         ('experimental', config_options.Type(bool, default=False)),
         # legacy features, doesn't exist anymore
         ('disable_cookie_protection', config_options.Type(bool, default=False)),
@@ -137,6 +138,7 @@ class encryptContentPlugin(BasePlugin):
             'default_expire_dalay': int(self.config['default_expire_dalay']),
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
+            'eval_script_id': self.config['eval_script_id'],
             'experimental': self.config['experimental']
         })
         return decrypt_js
