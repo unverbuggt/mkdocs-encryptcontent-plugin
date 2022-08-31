@@ -39,20 +39,36 @@ function setItemExpiry(key, value, ttl) {
         value: encodeURIComponent(value),
         expiry: now.getTime() + ttl,
     }
+  {% if session_storage -%}
+    sessionStorage.setItem('encryptcontent_' + encodeURIComponent(key), JSON.stringify(item))
+  {%- else %}
     localStorage.setItem('encryptcontent_' + encodeURIComponent(key), JSON.stringify(item))
+  {%- endif %}
 };
 
 /* Delete key with specific name in localStorage */
 function delItemName(key) {
+  {% if session_storage -%}
+    sessionStorage.removeItem('encryptcontent_' + encodeURIComponent(key));
+  {%- else %}
     localStorage.removeItem('encryptcontent_' + encodeURIComponent(key));
+  {%- endif %}
 };
 
 /* Get key:value from localStorage */
 function getItemExpiry(key) {
+  {% if session_storage -%}
+    var remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent(key));
+  {%- else %}
     var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent(key));
+  {%- endif %}
     if (!remember_password) {
         // fallback to search default password defined by path
+      {% if session_storage -%}
+        var remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent("{{ fallback_path }}"));
+      {%- else %}
         var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("{{ fallback_path }}"));
+      {%- endif %}
         if (!remember_password) {
             return null
         }
@@ -61,7 +77,7 @@ function getItemExpiry(key) {
     const now = new Date()
     if (now.getTime() > item.expiry) {
         // if the item is expired, delete the item from storage and return null
-        localStorage.removeItem('encryptcontent_' + encodeURIComponent(key))
+        delItemName(key)
         return null
     }
     return decodeURIComponent(item.value)
