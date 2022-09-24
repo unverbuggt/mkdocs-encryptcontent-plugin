@@ -31,15 +31,16 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
   * [Usage](#usage)
     * [Global password protection](#global-password-protection)
     * [Secret from environment](#secret-from-environment)
-    * [Customization](#extra-vars-customization)
+    * [Customization](#default-vars-customization)
   * [Features](#features)
     * [HighlightJS support](#highlightjs-support) *(default)*
     * [Arithmatex support](#arithmatex-support) *(default)*
     * [Mermaid2 support](#mermaid-support) *(default)*
     * [Tag encrypted page](#tag-encrypted-page) *(default)*
-    * [Rebember password](#rebember-password)
+    * [Remember password](#remember-password)
     * [Encrypt something](#encrypt-something)
     * [Search index encryption](#search-index-encryption)
+    * [Override default templates](#override-default-templates)
     * [Add button](#add-button)
     * [Reload scripts](#reload-scripts)
   * [Contributing](#contributing)
@@ -58,7 +59,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-2.2.1-py3-none-any.whl
+pip3 install dist/mkdocs_encryptcontent_plugin-2.3.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -111,7 +112,7 @@ plugins:
 > **NOTE** Keep in mind that if the `use_secret:` configuration is set, it will always be used even if you have also set a global password with the `global_password` variable.
 
 
-### Extra vars customization
+### Default vars customization
 
 Optionally you can use some extra variables in plugin configuration to customize default messages.
 
@@ -218,7 +219,7 @@ For example, in your theme template, you can use conditional check to add custom
 <a {% if nav_item.encrypted %}class="mkdocs-encrypted-class"{% endif %}href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
 ```
 
-### Rebember password
+### Remember password
 
 Related to [issue #6](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/6)
 
@@ -240,14 +241,14 @@ If your password is a [global password](#global-password-protection), you can fi
 The key that will be created with a generic name to making it accessible, by default, on all the pages of your site.
 
 The form of decryption remains visible as long as the content has not been successfully decrypted, which allows in case of error to retry. 
-All keys created with this feature on localstorage have an default expire time daly set to 24 hours, just cause ...
+All keys created with this feature on sessionStorage/localStorage have an default expire time daly set to 24 hours, just cause ...
 
-However *(optionally)*, its possible to change the default expire time by setting options `default_expire_dalay: <number>` in your `mkdocs.yml`. Your configuration should look like this when you enabled this feature :
+However *(optionally)*, its possible to change the default expire time by setting options `default_expire_delay: <number>` in your `mkdocs.yml`. Your configuration should look like this when you enabled this feature :
 ```yaml
 plugins:
     - encryptcontent:
         remember_password: True
-        default_expire_dalay: 24   # <-- Default expire delay in hours (optional)
+        default_expire_delay: 24   # <-- Default expire delay in hours (optional)
 ```
 
 > **NOTE** The expired elements of the localStorage are only deleted by the execution of the decrypt-content.js scripts and therefore by the navigation on the site. Secret items can therefore remain visible in local storage after their expiration dates. 
@@ -370,6 +371,42 @@ This functionality overwrite the index creation function of the “search” plu
 When the configuration mode is set to "**dynamically**", the [javascripts contribution files](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/tree/experimental/encryptcontent/contrib/templates/search) are used to override the default search plugin files provided by MKdocs. They include a process of decrypting and keeping the search index in a SessionStorage.
 
 > **NOTE** The mode 'dynamically' is currently **not compatible with Material Theme** !
+
+### Override default templates
+
+Related to [issue #32](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/32)
+
+You can override the default templates with your own templates by providing an actual replacement path in the `html_template_path` *(HTML)* and `js_template_path` *(JS)* directives. Overridden templates **completely** replace the default templates. You **must** therefore copy the default templates to keep this module working.
+
+```yaml
+plugins:
+    - encryptcontent:
+        html_template_path: "/root/real/path/mkdocs_poc/my_html_template.html"
+        js_template_path: "/root/real/path/mkdocs_poc/my_js_template.js"
+```
+
+When you overriding the default templates, you can add and use your own Jinja variables to condition and enrich your template, by defining `html_extra_vars` and `js_extra_vars` directives in key/value format. Added values can be used in your Jinja templates via the variable `extra`.
+
+```yaml
+plugins:
+    - encryptcontent:
+        html_extra_vars:
+            my_extra: "extra value"
+            <key>: <value>
+        js_extra_vars:
+            my_extra: "extra value"
+            <key>: <value>
+```
+
+For example, you can modify your HTML template, to add a new title with your own text variable.
+
+```jinja
+[ ... ] 
+<h2>{{ extra.my_extra }}</h2>
+[ ... ]
+```
+
+> **NOTE** You must avoid replacing/overwriting the variables used by default by this module. The limitations are the same as those of the jinja models. Issues related to template override will not be addressed.
 
 ### Add button
 

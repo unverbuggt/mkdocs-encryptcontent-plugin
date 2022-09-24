@@ -27,19 +27,11 @@ JS_LIBRARIES = [
 ]
 
 PLUGIN_DIR = os.path.dirname(os.path.realpath(__file__))
-DECRYPT_FORM_TPL_PATH = os.path.join(PLUGIN_DIR, 'decrypt-form.tpl.html')
-DECRYPT_JS_TPL_PATH = os.path.join(PLUGIN_DIR, 'decrypt-contents.tpl.js')
-
-with open(DECRYPT_FORM_TPL_PATH, 'r') as template_html:
-    DECRYPT_FORM_TPL = template_html.read()
-
-with open(DECRYPT_JS_TPL_PATH, 'r') as template_js:
-    DECRYPT_JS_TPL = template_js.read()
 
 SETTINGS = {
     'title_prefix': '[Protected] ',
     'summary': 'This content is protected with AES encryption. ',
-    'placeholder': 'Provide password and press ENTER',
+    'placeholder': 'Use CTRL+ENTER to provide global password',
     'password_button_text': 'Decrypt',
     'decryption_failure_message': 'Invalid password.',
     'encryption_info_message': 'Contact your administrator for access to this page.'
@@ -53,22 +45,32 @@ class encryptContentPlugin(BasePlugin):
     """ Plugin that encrypt markdown content with AES and inject decrypt form. """
 
     config_scheme = (
-        ('use_secret', config_options.Type(string_types, default=None)),
+        # default customization
         ('title_prefix', config_options.Type(string_types, default=str(SETTINGS['title_prefix']))),
         ('summary', config_options.Type(string_types, default=str(SETTINGS['summary']))),
         ('placeholder', config_options.Type(string_types, default=str(SETTINGS['placeholder']))),
         ('decryption_failure_message', config_options.Type(string_types, default=str(SETTINGS['decryption_failure_message']))),
         ('encryption_info_message', config_options.Type(string_types, default=str(SETTINGS['encryption_info_message']))),
         ('password_button_text', config_options.Type(string_types, default=str(SETTINGS['password_button_text']))),
+        ('password_button', config_options.Type(bool, default=False)),
+        # password feature
         ('global_password', config_options.Type(string_types, default=None)),
+        ('use_secret', config_options.Type(string_types, default=None)),
         ('password', config_options.Type(string_types, default=None)),
+        ('remember_password', config_options.Type(bool, default=False)),
+        ('session_storage', config_options.Type(bool, default=True)),
+        ('default_expire_delay', config_options.Type(int, default=int(24))),
+        # default features enabled
         ('arithmatex', config_options.Type(bool, default=True)),
         ('hljs', config_options.Type(bool, default=True)),
         ('mermaid2', config_options.Type(bool, default=True)),
-        ('remember_password', config_options.Type(bool, default=False)),
-        ('default_expire_dalay', config_options.Type(int, default=int(24))),
         ('tag_encrypted_page', config_options.Type(bool, default=True)),
-        ('password_button', config_options.Type(bool, default=False)),
+        # override feature
+        ('html_template_path', config_options.Type(string_types, default=str(os.path.join(PLUGIN_DIR, 'decrypt-form.tpl.html')))),
+        ('html_extra_vars', config_options.Type(dict, default={})),
+        ('js_template_path', config_options.Type(string_types, default=str(os.path.join(PLUGIN_DIR, 'decrypt-contents.tpl.js')))),
+        ('js_extra_vars', config_options.Type(dict, default={})),
+        # others features
         ('encrypted_something', config_options.Type(dict, default={})),
         ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
         ('reload_scripts', config_options.Type(list, default=[])),
@@ -104,7 +106,7 @@ class encryptContentPlugin(BasePlugin):
     def __encrypt_content__(self, content, base_path):
         """ Replaces page or article content with decrypt form. """
         ciphertext_bundle = self.__encrypt_text_aes__(content, str(self.config['password']))
-        decrypt_form = Template(DECRYPT_FORM_TPL).render({
+        decrypt_form = Template(self.config['html_template']).render({
             # custom message and template rendering
             'summary': self.config['summary'],
             'placeholder': self.config['placeholder'],
@@ -115,13 +117,15 @@ class encryptContentPlugin(BasePlugin):
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
             'js_libraries': JS_LIBRARIES,
-            'base_path': base_path
+            'base_path': base_path,
+            # add extra vars
+            'extra': self.config['html_extra_vars']
         })
         return decrypt_form
 
     def __generate_decrypt_js__(self):
         """ Generate JS file with enable feature. """
-        decrypt_js = Template(DECRYPT_JS_TPL).render({
+        decrypt_js = Template(self.config['js_template']).render({
             # custom message and template rendering
             'password_button': self.config['password_button'],
             'decryption_failure_message': self.config['decryption_failure_message'],
@@ -130,10 +134,13 @@ class encryptContentPlugin(BasePlugin):
             'hljs': self.config['hljs'],
             'mermaid2': self.config['mermaid2'],
             'remember_password': self.config['remember_password'],
-            'default_expire_dalay': int(self.config['default_expire_dalay']),
+            'session_storage': self.config['session_storage'],
+            'default_expire_delay': int(self.config['default_expire_delay']),
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
-            'experimental': self.config['experimental']
+            'experimental': self.config['experimental'],
+            # add extra vars
+            'extra': self.config['js_extra_vars']
         })
         return decrypt_js
 
@@ -148,6 +155,13 @@ class encryptContentPlugin(BasePlugin):
         :param config: global configuration object (mkdocs.yml)
         :return: global configuration object modified to include templates files
         """
+        # Override default template
+        logger.debug('Load HTML template from file: "{file}".'.format(file=str(self.config['html_template_path'])))
+        with open(self.config['html_template_path'], 'r') as template_html:
+            self.config['html_template'] = template_html.read()
+        logger.debug('Load JS template from file: "{file}".'.format(file=str(self.config['js_template_path'])))
+        with open(self.config['js_template_path'], 'r') as template_js:
+            self.config['js_template'] = template_js.read()
         # Optionnaly use Github secret
         if self.config.get('use_secret'):
             if os.environ.get(str(self.config['use_secret'])):
@@ -156,7 +170,7 @@ class encryptContentPlugin(BasePlugin):
                 logger.error('Cannot get global password from environment variable: {var}. Abort !'.format(
                     var=str(self.config['use_secret']))
                 )
-                os._exit(1)
+                os._exit(1)                                 # prevent build without password to avoid leak
         # Set global password as default password for each page
         self.config['password'] = self.config['global_password']
         # Check if hljs feature need to be enabled, based on theme configuration

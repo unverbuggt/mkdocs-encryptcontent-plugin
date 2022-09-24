@@ -32,27 +32,43 @@ function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {
 };
 
 {% if remember_password -%}
-/* Set key:value with expire time in localStorage */
+/* Set key:value with expire time in sessionStorage/localStorage */
 function setItemExpiry(key, value, ttl) {
     const now = new Date()
     const item = {
         value: encodeURIComponent(value),
         expiry: now.getTime() + ttl,
     }
+    {% if session_storage -%}
+    sessionStorage.setItem('encryptcontent_' + encodeURIComponent(key), JSON.stringify(item))
+    {%- else %}
     localStorage.setItem('encryptcontent_' + encodeURIComponent(key), JSON.stringify(item))
+    {%- endif %}
 };
 
-/* Delete key with specific name in localStorage */
+/* Delete key with specific name in sessionStorage/localStorage */
 function delItemName(key) {
+    {% if session_storage -%}
+    sessionStorage.removeItem('encryptcontent_' + encodeURIComponent(key));
+    {%- else %}
     localStorage.removeItem('encryptcontent_' + encodeURIComponent(key));
+    {%- endif %}
 };
 
-/* Get key:value from localStorage */
+/* Get key:value from sessionStorage/localStorage */
 function getItemExpiry(key) {
+    {% if session_storage -%}
+    var remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent(key));
+    {%- else %}
     var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent(key));
+    {%- endif %}
     if (!remember_password) {
         // fallback to search default password defined by path
+        {% if session_storage -%}
+        var remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent("/"));
+        {%- else %}
         var remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("/"));
+        {%- endif %}
         if (!remember_password) {
             return null
         }
@@ -61,7 +77,7 @@ function getItemExpiry(key) {
     const now = new Date()
     if (now.getTime() > item.expiry) {
         // if the item is expired, delete the item from storage and return null
-        localStorage.removeItem('encryptcontent_' + encodeURIComponent(key))
+        delItemName(key)
         return null
     }
     return decodeURIComponent(item.value)
@@ -202,7 +218,7 @@ function init_decryptor() {
     {%- endif %}
 
     {% if remember_password -%}
-    /* If remember_password is set, try to use localstorage item to decrypt content when page is loaded */
+    /* If remember_password is set, try to use sessionStorage/localstorage item to decrypt content when page is loaded */
     var password_cookie = getItemExpiry(window.location.pathname);
     if (password_cookie) {
         password_input.value = password_cookie;
@@ -218,7 +234,7 @@ function init_decryptor() {
             var something_decrypted = decrypt_somethings(password_input, encrypted_something);
             {%- endif %}
         } else {
-            // remove item on localStorage if decryption process fail (Invalid item)
+            // remove item on sessionStorage/localStorage if decryption process fail (Invalid item)
             delItemName(window.location.pathname)
         }
     };
@@ -234,8 +250,8 @@ function init_decryptor() {
             );
             if (content_decrypted) {
                 {% if remember_password -%}
-                // keep password value on localStorage with specific path (relative)
-                setItemExpiry(document.location.pathname, password_input.value, 1000*3600*{{ default_expire_dalay | int }});
+                // keep password value on sessionStorage/localStorage with specific path (relative)
+                setItemExpiry(document.location.pathname, password_input.value, 1000*3600*{{ default_expire_delay | int }});
                 {%- endif %}
                 // continue to decrypt others parts
                 {% if experimental -%}
@@ -266,8 +282,8 @@ function init_decryptor() {
             );
             if (content_decrypted) {
                 {% if remember_password -%}
-                // keep password value on localStorage with specific path (relative)
-                setItemExpiry(location_path, password_input.value, 1000*3600*{{ default_expire_dalay | int }});
+                // keep password value on sessionStorage/localStorage with specific path (relative)
+                setItemExpiry(location_path, password_input.value, 1000*3600*{{ default_expire_delay | int }});
                 {%- endif %}
                 // continue to decrypt others parts
                 {% if experimental -%}
