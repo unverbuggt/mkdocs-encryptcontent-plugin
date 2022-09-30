@@ -389,7 +389,8 @@ class encryptContentPlugin(BasePlugin):
                             if isinstance(item['style'], list):
                                 item['style'].append("display:none")
                             else:
-                                item['style'] = item['class'] + "display:none"
+                                # if style contains a single element (str)
+                                item['style'] = item['style'] + "display:none"
                         else:
                             item['style'] = "display:none"
             output_content = str(soup)
