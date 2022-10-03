@@ -253,19 +253,27 @@ class encryptContentPlugin(BasePlugin):
                     parser, url, text = ContentParser(), page.url, ''
                     parser.feed(page.content)
                     parser.close()
+                    use_encryptcontent = (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None)
+                    remove_from_search = False
+                    if use_encryptcontent:
+                        plugin = config['plugins']['encryptcontent']
+                        remove_from_search = plugin.config['search_index'] == 'encrypted'
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
                         text = parser.stripped_html.rstrip('\n')
-                    if (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None):
-                        plugin = config['plugins']['encryptcontent']
+                    if use_encryptcontent:
                         code = plugin.__encrypt_text_aes__(text, str(page.password))
                         text = b';'.join(code).decode('ascii')
-                    self._add_entry(title=page.title, text=text, loc=url)
+                    if remove_from_search:
+                        self._add_entry(title='', text='', loc=url)
+                    else:
+                        self._add_entry(title=page.title, text=text, loc=url)
                     if (self.config.get('indexing') and self.config['indexing'] in ['full', 'sections']):
                         for section in parser.data:
-                            if (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None):
-                                self.create_entry_for_section(section, page.toc, url, page.password)
-                            else:
-                                self.create_entry_for_section(section, page.toc, url)
+                            if not remove_from_search:
+                                if use_encryptcontent:
+                                    self.create_entry_for_section(section, page.toc, url, page.password)
+                                else:
+                                    self.create_entry_for_section(section, page.toc, url)
                 SearchIndex.add_entry_from_context = _add_entry_from_context
             if self.config['experimental'] is True:
                 if config['theme'].name == 'material':
