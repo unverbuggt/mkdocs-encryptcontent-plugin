@@ -11,6 +11,7 @@ from Crypto.Cipher import AES
 from bs4 import BeautifulSoup
 from mkdocs.plugins import BasePlugin
 from mkdocs.config import config_options
+from urllib.parse import urlsplit
 
 try:
     from mkdocs.utils import string_types
@@ -139,6 +140,7 @@ class encryptContentPlugin(BasePlugin):
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
             'experimental': self.config['experimental'],
+            'site_path': self.config['site_path'],
             # add extra vars
             'extra': self.config['js_extra_vars']
         })
@@ -218,6 +220,8 @@ class encryptContentPlugin(BasePlugin):
         if self.config['search_index'] == 'dynamically':
             logger.info('EXPERIMENTAL MODE ENABLE. Only work with default SearchPlugin, not Material.')
             self.config['experimental'] = True
+        # Get path to site in case of subdir in site_url
+        self.config['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
 
     def on_pre_build(self, config, **kwargs):
         """
@@ -236,32 +240,48 @@ class encryptContentPlugin(BasePlugin):
                 from mkdocs.contrib.search.search_index import SearchIndex, ContentParser
                 def _create_entry_for_section(self, section, toc, abs_url, password=None):
                     toc_item, text = self._find_toc_by_id(toc, section.id), ''
+                    title = toc_item.title
+                    toc_url = toc_item.url
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
                         text = ' '.join(section.text)
                     if password is not None:
                         plugin = config['plugins']['encryptcontent']
                         code = plugin.__encrypt_text_aes__(text, str(password))
                         text = b';'.join(code).decode('ascii')
+                        code = plugin.__encrypt_text_aes__(title, str(password))
+                        title = b';'.join(code).decode('ascii')
+                        code = plugin.__encrypt_text_aes__(toc_url, str(password))
+                        toc_url = ';' + b';'.join(code).decode('ascii')
                     if toc_item is not None:
-                        self._add_entry(title=toc_item.title, text=text, loc=abs_url + toc_item.url)
+                        self._add_entry(title=title, text=text, loc=abs_url + toc_url)
                 SearchIndex.create_entry_for_section = _create_entry_for_section
                 def _add_entry_from_context(self, page):
-                    parser, url, text = ContentParser(), page.url, ''
+                    parser, url, text, title = ContentParser(), page.url, '', page.title
                     parser.feed(page.content)
                     parser.close()
+                    use_encryptcontent = (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None)
+                    remove_from_search = False
+                    if use_encryptcontent:
+                        plugin = config['plugins']['encryptcontent']
+                        remove_from_search = plugin.config['search_index'] == 'encrypted'
                     if not self.config.get('indexing') or self.config['indexing'] == 'full':
                         text = parser.stripped_html.rstrip('\n')
-                    if (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None):
-                        plugin = config['plugins']['encryptcontent']
+                    if use_encryptcontent:
                         code = plugin.__encrypt_text_aes__(text, str(page.password))
                         text = b';'.join(code).decode('ascii')
-                    self._add_entry(title=page.title, text=text, loc=url)
+                        code = plugin.__encrypt_text_aes__(title, str(page.password))
+                        title = b';'.join(code).decode('ascii')
+                    if remove_from_search:
+                        self._add_entry(title='', text='', loc=url)
+                    else:
+                        self._add_entry(title=title, text=text, loc=url)
                     if (self.config.get('indexing') and self.config['indexing'] in ['full', 'sections']):
                         for section in parser.data:
-                            if (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None):
-                                self.create_entry_for_section(section, page.toc, url, page.password)
-                            else:
-                                self.create_entry_for_section(section, page.toc, url)
+                            if not remove_from_search:
+                                if use_encryptcontent:
+                                    self.create_entry_for_section(section, page.toc, url, page.password)
+                                else:
+                                    self.create_entry_for_section(section, page.toc, url)
                 SearchIndex.add_entry_from_context = _add_entry_from_context
             if self.config['experimental'] is True:
                 if config['theme'].name == 'material':
@@ -270,7 +290,7 @@ class encryptContentPlugin(BasePlugin):
                 # Overwrite search/*.js files from templates/search with encryptcontent contrib search assets
                 config['theme'].dirs = [
                     e for e in config['theme'].dirs
-                    if not re.compile(r".*/contrib/search/templates$").match(e)
+                    if not re.compile(r".*[/\\]contrib[/\\]search[/\\]templates$").match(e)
                 ]
                 path = os.path.join(base_path, 'contrib/templates')
                 config['theme'].dirs.append(path)

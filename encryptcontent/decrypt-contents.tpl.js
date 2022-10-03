@@ -1,4 +1,4 @@
-/* encryptcontent/decryp-contents.tpl.js */
+/* encryptcontent/decrypt-contents.tpl.js */
 
 /* Strips the padding character from decrypted content. */
 function strip_padding(padded_content, padding_char) {
@@ -97,16 +97,36 @@ function decrypt_search(password_input, path_location) {
         sessionIndex = JSON.parse(sessionIndex);
         for (var i=0; i < sessionIndex.docs.length; i++) {
             var doc = sessionIndex.docs[i];
-            if (doc.location.indexOf(path_location) !== -1) {
+            if (doc.location.indexOf(path_location.replace('{{ site_path }}', '')) !== -1) {
+                var parts, content;
                 // grab the ciphertext bundle and try to decrypt it
-                var parts = doc.text.split(';');
+                parts = doc.text.split(';');
                 if (parts[0], parts[1], parts[2]) {
-                    var content = decrypt_content(password_input.value, parts[0], parts[1], parts[2]);
+                    content = decrypt_content(password_input.value, parts[0], parts[1], parts[2]);
+                    if (content) {
+                        doc.text = content;
+                        // any post processing on the decrypted search index should be done here
+                    };
                 };
-                if (content) {
-                    doc.text = content;
-                    // any post processing on the decrypted search index should be done here
+
+                parts = doc.title.split(';');
+                if (parts[0], parts[1], parts[2]) {
+                    content = decrypt_content(password_input.value, parts[0], parts[1], parts[2]);
+                    if (content) {
+                        doc.title = content;
+                        // any post processing on the decrypted search index should be done here
+                    };
                 };
+
+                parts = doc.location.split(';');
+                if (parts[1], parts[2], parts[3]) {
+                    content = decrypt_content(password_input.value, parts[1], parts[2], parts[3]);
+                    if (content) {
+                        doc.location = parts[0] + content;
+                        // any post processing on the decrypted search index should be done here
+                    };
+                };
+
             }
         };
         // force search index reloading on Worker
