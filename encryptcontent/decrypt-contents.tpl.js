@@ -1,4 +1,4 @@
-/* encryptcontent/decryp-contents.tpl.js */
+/* encryptcontent/decrypt-contents.tpl.js */
 
 /* Strips the padding character from decrypted content. */
 function strip_padding(padded_content, padding_char) {
@@ -97,7 +97,7 @@ function decrypt_search(password_input, path_location) {
         sessionIndex = JSON.parse(sessionIndex);
         for (var i=0; i < sessionIndex.docs.length; i++) {
             var doc = sessionIndex.docs[i];
-            if (doc.location.indexOf(path_location) !== -1) {
+            if (doc.location.indexOf(path_location.replace('{{ site_path }}', '')) !== -1) {
                 // grab the ciphertext bundle and try to decrypt it
                 var parts = doc.text.split(';');
                 if (parts[0], parts[1], parts[2]) {
