@@ -107,6 +107,22 @@ function decrypt_search(password_input, path_location) {
                     doc.text = content;
                     // any post processing on the decrypted search index should be done here
                 };
+                parts = doc.title.split(';');
+                if (parts[0], parts[1], parts[2]) {
+                    var content = decrypt_content(password_input.value, parts[0], parts[1], parts[2]);
+                };
+                if (content) {
+                    doc.title = content;
+                    // any post processing on the decrypted search index should be done here
+                };
+                parts = doc.location.split(';');
+                if (parts[1], parts[2], parts[3]) {
+                    var content = decrypt_content(password_input.value, parts[1], parts[2], parts[3]);
+                };
+                if (content) {
+                    doc.location = parts[0] + content;
+                    // any post processing on the decrypted search index should be done here
+                };
             }
         };
         // force search index reloading on Worker
