@@ -270,7 +270,7 @@ class encryptContentPlugin(BasePlugin):
                 # Overwrite search/*.js files from templates/search with encryptcontent contrib search assets
                 config['theme'].dirs = [
                     e for e in config['theme'].dirs
-                    if not re.compile(r".*/contrib/search/templates$").match(e)
+                    if not re.compile(r".*[/\\]contrib[/\\]search[/\\]templates$").match(e)
                 ]
                 path = os.path.join(base_path, 'contrib/templates')
                 config['theme'].dirs.append(path)
