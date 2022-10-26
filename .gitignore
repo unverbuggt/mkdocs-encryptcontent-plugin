@@ -1,0 +1,3 @@
+build/
+mkdocs_encryptcontent_plugin.egg-info/
+install.cmd

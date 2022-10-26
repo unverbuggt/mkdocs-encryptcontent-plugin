@@ -75,6 +75,7 @@ class encryptContentPlugin(BasePlugin):
         ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
         ('reload_scripts', config_options.Type(list, default=[])),
         ('experimental', config_options.Type(bool, default=False)),
+        ('inject', config_options.Type(dict, default={})),
         # legacy features, doesn't exist anymore
         ('disable_cookie_protection', config_options.Type(bool, default=False)),
         ('decrypt_search', config_options.Type(bool, default=False))
@@ -218,6 +219,7 @@ class encryptContentPlugin(BasePlugin):
         if self.config['search_index'] == 'dynamically':
             logger.info('EXPERIMENTAL MODE ENABLE. Only work with default SearchPlugin, not Material.')
             self.config['experimental'] = True
+        self.config['encrypted_something'] = self.config['encrypted_something'] | self.config['inject'] #add inject to encrypted_something
 
     def on_pre_build(self, config, **kwargs):
         """
@@ -325,7 +327,10 @@ class encryptContentPlugin(BasePlugin):
             # Set password attributes on page for other mkdocs events
             setattr(page, 'password', str(self.config['password']))
             # Keep encrypted html as temporary variable on page cause we need clear html for search plugin
-            setattr(page, 'html_encrypted', self.__encrypt_content__(html, base_path))
+            if not self.config['inject']:
+                setattr(page, 'html_encrypted', self.__encrypt_content__(html, base_path))
+            else:
+                setattr(page, 'decrypt_form', self.__encrypt_content__('<!-- dummy -->', base_path))
         return html
 
     def on_page_context(self, context, page, config, **kwargs):
@@ -393,6 +398,13 @@ class encryptContentPlugin(BasePlugin):
                                 item['style'] = item['style'] + "display:none"
                         else:
                             item['style'] = "display:none"
+            if self.config['inject'] and len(self.config['inject']) == 1:
+                name, tag = list(self.config['inject'].items())[0]
+                injector = soup.new_tag("div")
+                something_search = soup.find(tag[0], {tag[1]: name})
+                something_search.wrap(injector)
+                injector.append(BeautifulSoup(page.decrypt_form, 'html.parser'))
+                delattr(page, 'decrypt_form')
             output_content = str(soup)
         return output_content
 
