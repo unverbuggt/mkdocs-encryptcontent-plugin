@@ -402,7 +402,7 @@ class encryptContentPlugin(BasePlugin):
                 name, tag = list(self.config['inject'].items())[0]
                 injector = soup.new_tag("div")
                 something_search = soup.find(tag[0], {tag[1]: name})
-                something_search.wrap(injector)
+                something_search.insert_before(injector)
                 injector.append(BeautifulSoup(page.decrypt_form, 'html.parser'))
                 delattr(page, 'decrypt_form')
             output_content = str(soup)

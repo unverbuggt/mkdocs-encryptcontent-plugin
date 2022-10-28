@@ -135,17 +135,17 @@ function decrypt_somethings(password_input, encrypted_something) {
             for (i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
                 if (html_item[i]) {
-                    var parts = html_item[i].innerHTML.split(';');
+                    let parts = html_item[i].innerHTML.split(';');
                     // decrypt it
                     if (parts[0], parts[1], parts[2]) {
-                        var content = decrypt_content(password_input.value, parts[0], parts[1], parts[2]);
-                    };
-                    if (content) {
-                        // success; display the decrypted content
-                        html_item[i].innerHTML = content;
-                        html_item[i].style.display = null;
-                        // any post processing on the decrypted content should be done here
-                    };
+                        let content = decrypt_content(password_input.value, parts[0], parts[1], parts[2]);
+                        if (content) {
+                            // success; display the decrypted content
+                            html_item[i].innerHTML = content;
+                            html_item[i].style.display = null;
+                            // any post processing on the decrypted content should be done here
+                        }
+                    }
                 }
             }
         }
