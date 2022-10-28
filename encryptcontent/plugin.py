@@ -219,7 +219,7 @@ class encryptContentPlugin(BasePlugin):
         if self.config['search_index'] == 'dynamically':
             logger.info('EXPERIMENTAL MODE ENABLE. Only work with default SearchPlugin, not Material.')
             self.config['experimental'] = True
-        self.config['encrypted_something'] = self.config['encrypted_something'] | self.config['inject'] #add inject to encrypted_something
+        self.config['encrypted_something'] = self.config['inject'] | self.config['encrypted_something'] #add inject to encrypted_something
 
     def on_pre_build(self, config, **kwargs):
         """
