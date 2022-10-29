@@ -10,7 +10,7 @@ function strip_padding(padded_content, padding_char) {
 };
 
 /* Decrypts the content from the ciphertext bundle. */
-function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {   
+function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {
     var key = CryptoJS.MD5(password),
         iv = CryptoJS.enc.Base64.parse(iv_b64),
         ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64),
@@ -29,6 +29,19 @@ function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {
         // encoding failed; wrong password
         return false;
     }
+};
+
+/* Split cyphertext bundle and try to decrypt it */
+function decrypt_content_from_bundle(password, ciphertext_bundle) {
+    // grab the ciphertext bundle and try to decrypt it
+    let parts = ciphertext_bundle.split(';');
+    if (parts.length == 3) {
+        let content = decrypt_content(password, parts[0], parts[1], parts[2]);
+        if (content) {
+            return content;
+        }
+    }
+    return false;
 };
 
 {% if remember_password -%}
@@ -99,10 +112,7 @@ function decrypt_search(password_input, path_location) {
             var doc = sessionIndex.docs[i];
             if (doc.location.indexOf(path_location) !== -1) {
                 // grab the ciphertext bundle and try to decrypt it
-                var parts = doc.text.split(';');
-                if (parts[0], parts[1], parts[2]) {
-                    var content = decrypt_content(password_input.value, parts[0], parts[1], parts[2]);
-                };
+                let content = decrypt_content_from_bundle(password_input.value, doc.text)
                 if (content) {
                     doc.text = content;
                     // any post processing on the decrypted search index should be done here
@@ -135,16 +145,12 @@ function decrypt_somethings(password_input, encrypted_something) {
             for (i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
                 if (html_item[i]) {
-                    let parts = html_item[i].innerHTML.split(';');
-                    // decrypt it
-                    if (parts[0], parts[1], parts[2]) {
-                        let content = decrypt_content(password_input.value, parts[0], parts[1], parts[2]);
-                        if (content) {
-                            // success; display the decrypted content
-                            html_item[i].innerHTML = content;
-                            html_item[i].style.display = null;
-                            // any post processing on the decrypted content should be done here
-                        }
+                    let content = decrypt_content_from_bundle(password_input.value, html_item[i].innerHTML);
+                    if (content) {
+                        // success; display the decrypted content
+                        html_item[i].innerHTML = content;
+                        html_item[i].style.display = null;
+                        // any post processing on the decrypted content should be done here
                     }
                 }
             }
@@ -155,11 +161,8 @@ function decrypt_somethings(password_input, encrypted_something) {
 /* Decrypt content a page */
 function decrypt_action(password_input, encrypted_content, decrypted_content) {
     // grab the ciphertext bundle
-    var parts = encrypted_content.innerHTML.split(';');
-    // decrypt it
-    var content = decrypt_content(
-        password_input.value, parts[0], parts[1], parts[2]
-    );
+    // and decrypt it
+    let content = decrypt_content_from_bundle(password_input.value, encrypted_content.innerHTML);
     if (content) {
         // success; display the decrypted content
         decrypted_content.innerHTML = content;
