@@ -115,7 +115,7 @@ function decrypt_search(password_input, path_location) {
             if (doc.location.indexOf(path_location) !== -1) {
                 // grab the ciphertext bundle and try to decrypt it
                 let content = decrypt_content_from_bundle(password_input.value, doc.text)
-                if (content) {
+                if (typeof content === "string") {
                     doc.text = content;
                     // any post processing on the decrypted search index should be done here
                 };
@@ -147,7 +147,7 @@ function decrypt_somethings(password_input, encrypted_something) {
             for (i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
                 let content = decrypt_content_from_bundle(password_input.value, html_item[i].innerHTML);
-                if (content) {
+                if (typeof content === "string") {
                     // success; display the decrypted content
                     html_item[i].innerHTML = content;
                     html_item[i].style.display = null;
@@ -163,7 +163,7 @@ function decrypt_action(password_input, encrypted_content, decrypted_content) {
     // grab the ciphertext bundle
     // and decrypt it
     let content = decrypt_content_from_bundle(password_input.value, encrypted_content.innerHTML);
-    if (content) {
+    if (typeof content === "string") {
         // success; display the decrypted content
         decrypted_content.innerHTML = content;
         // encrypted_content.parentNode.removeChild(encrypted_content);
