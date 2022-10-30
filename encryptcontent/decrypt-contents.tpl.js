@@ -1,4 +1,4 @@
-/* encryptcontent/decryp-contents.tpl.js */
+/* encryptcontent/decrypt-contents.tpl.js */
 
 /* Strips the padding character from decrypted content. */
 function strip_padding(padded_content, padding_char) {
@@ -7,6 +7,7 @@ function strip_padding(padded_content, padding_char) {
             return padded_content.slice(0, i);
         }
     }
+    return '';
 };
 
 /* Decrypts the content from the ciphertext bundle. */
@@ -37,10 +38,7 @@ function decrypt_content_from_bundle(password, ciphertext_bundle) {
     if (ciphertext_bundle) {
         let parts = ciphertext_bundle.split(';');
         if (parts.length == 3) {
-            let content = decrypt_content(password, parts[0], parts[1], parts[2]);
-            if (content) {
-                return content;
-            }
+            return decrypt_content(password, parts[0], parts[1], parts[2]);
         }
     }
     return false;
@@ -114,8 +112,8 @@ function decrypt_search(password_input, path_location) {
             var doc = sessionIndex.docs[i];
             if (doc.location.indexOf(path_location) !== -1) {
                 // grab the ciphertext bundle and try to decrypt it
-                let content = decrypt_content_from_bundle(password_input.value, doc.text)
-                if (typeof content === "string") {
+                let content = decrypt_content_from_bundle(password_input.value, doc.text);
+                if (content !== false) {
                     doc.text = content;
                     // any post processing on the decrypted search index should be done here
                 };
@@ -147,7 +145,7 @@ function decrypt_somethings(password_input, encrypted_something) {
             for (i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
                 let content = decrypt_content_from_bundle(password_input.value, html_item[i].innerHTML);
-                if (typeof content === "string") {
+                if (content !== false) {
                     // success; display the decrypted content
                     html_item[i].innerHTML = content;
                     html_item[i].style.display = null;
@@ -163,7 +161,7 @@ function decrypt_action(password_input, encrypted_content, decrypted_content) {
     // grab the ciphertext bundle
     // and decrypt it
     let content = decrypt_content_from_bundle(password_input.value, encrypted_content.innerHTML);
-    if (typeof content === "string") {
+    if (content !== false) {
         // success; display the decrypted content
         decrypted_content.innerHTML = content;
         // encrypted_content.parentNode.removeChild(encrypted_content);
