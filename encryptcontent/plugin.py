@@ -213,8 +213,11 @@ class encryptContentPlugin(BasePlugin):
         # Re order plugins to be sure search-index are not encrypted
         if self.config['search_index'] == 'clear':
             logger.debug('Reordering plugins loading and put search and encryptcontent at the end of the event pipe.')
-            config['plugins'].move_to_end('search')
-            config['plugins'].move_to_end('encryptcontent')
+            try: #PluginCollection is no instance of OrderedDict anymore since MkDocs 1.4
+                config['plugins'].move_to_end('search')
+                config['plugins'].move_to_end('encryptcontent')
+            except:
+                logger.warning('Please check that "search" and "encryptcontent" are at the end of plugins')
         # Enable experimental code .. :popcorn:
         if self.config['search_index'] == 'dynamically':
             logger.info('EXPERIMENTAL MODE ENABLE. Only work with default SearchPlugin, not Material.')
