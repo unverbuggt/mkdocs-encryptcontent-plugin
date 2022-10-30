@@ -34,11 +34,13 @@ function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {
 /* Split cyphertext bundle and try to decrypt it */
 function decrypt_content_from_bundle(password, ciphertext_bundle) {
     // grab the ciphertext bundle and try to decrypt it
-    let parts = ciphertext_bundle.split(';');
-    if (parts.length == 3) {
-        let content = decrypt_content(password, parts[0], parts[1], parts[2]);
-        if (content) {
-            return content;
+    if (ciphertext_bundle) {
+        let parts = ciphertext_bundle.split(';');
+        if (parts.length == 3) {
+            let content = decrypt_content(password, parts[0], parts[1], parts[2]);
+            if (content) {
+                return content;
+            }
         }
     }
     return false;
@@ -144,14 +146,12 @@ function decrypt_somethings(password_input, encrypted_something) {
         if (html_item) {
             for (i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
-                if (html_item[i]) {
-                    let content = decrypt_content_from_bundle(password_input.value, html_item[i].innerHTML);
-                    if (content) {
-                        // success; display the decrypted content
-                        html_item[i].innerHTML = content;
-                        html_item[i].style.display = null;
-                        // any post processing on the decrypted content should be done here
-                    }
+                let content = decrypt_content_from_bundle(password_input.value, html_item[i].innerHTML);
+                if (content) {
+                    // success; display the decrypted content
+                    html_item[i].innerHTML = content;
+                    html_item[i].style.display = null;
+                    // any post processing on the decrypted content should be done here
                 }
             }
         }
