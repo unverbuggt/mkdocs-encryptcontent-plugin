@@ -1,5 +1,10 @@
 # mkdocs-encryptcontent-plugin
 
+> :warning: **The insiders version of mkdocs-material theme overrides [search index encryption](#search-index-encryption)**
+>
+> Either disable search plugin or manually exclude encrypted pages from search.
+> Always double-check the generated `search/search_index.json`!
+
 [![PyPI Version][pypi-v-image]][pypi-v-link]
 [![PyPI downloads](https://img.shields.io/pypi/dm/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
