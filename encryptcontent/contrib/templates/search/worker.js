@@ -1,14 +1,12 @@
-/* encryptcontent/contrib/templates/search/worker.js */
-
 var base_path = 'function' === typeof importScripts ? '.' : '/search/';
 var allowSearch = false;
 var index;
-var data;
 var documents = {};
 var lang = ['en'];
-var session = false;
+var data;
 
 function getScript(script, callback) {
+  console.log('Loading script: ' + script);
   $.getScript(base_path + script).done(function () {
     callback();
   }).fail(function (jqxhr, settings, exception) {
@@ -27,7 +25,7 @@ function getScriptsInOrder(scripts, callback) {
 }
 
 function loadScripts(urls, callback) {
-  if ('function' === typeof importScripts) {
+  if( 'function' === typeof importScripts ) {
     importScripts.apply(null, urls);
     callback();
   } else {
@@ -36,9 +34,7 @@ function loadScripts(urls, callback) {
 }
 
 function onJSONLoaded () {
-  if (!data) {
-    data = JSON.parse(this.responseText);
-  }
+  data = JSON.parse(this.responseText);
   var scriptsToLoad = ['lunr.js'];
   if (data.config && data.config.lang && data.config.lang.length) {
     lang = data.config.lang;
@@ -65,6 +61,7 @@ function onScriptsLoaded () {
   if (data.config && data.config.separator && data.config.separator.length) {
     lunr.tokenizer.separator = new RegExp(data.config.separator);
   }
+
   if (data.index) {
     index = lunr.Index.load(data.index);
     data.docs.forEach(function (doc) {
@@ -76,9 +73,7 @@ function onScriptsLoaded () {
       if (lang.length === 1 && lang[0] !== "en" && lunr[lang[0]]) {
         this.use(lunr[lang[0]]);
       } else if (lang.length > 1) {
-        // spread operator not supported in all browsers: 
-        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator#Browser_compatibility
-        this.use(lunr.multiLanguage.apply(null, lang)); 
+        this.use(lunr.multiLanguage.apply(null, lang));  // spread operator not supported in all browsers: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator#Browser_compatibility
       }
       this.field('title');
       this.field('text');
@@ -95,26 +90,17 @@ function onScriptsLoaded () {
   allowSearch = true;
   postMessage({config: data.config});
   postMessage({allowSearch: allowSearch});
-  // Skip data return if searchIndex exist on sessionStorage
-  if (!session) {
-    postMessage({saveIndex: JSON.stringify(data)});
-  }
 }
 
-function init (sessionIndex) {
-  if (!session) {
-    var oReq = new XMLHttpRequest();
-    oReq.addEventListener("load", onJSONLoaded);
-    var index_path = base_path + '/search_index.json';
-    if ( 'function' === typeof importScripts ) {
-        index_path = 'search_index.json';
-    }
-    oReq.open("GET", index_path);
-    oReq.send();
-  } else {
-    data = JSON.parse(sessionIndex);
-    onJSONLoaded();
+function init () {
+  var oReq = new XMLHttpRequest();
+  oReq.addEventListener("load", onJSONLoaded);
+  var index_path = base_path + '/search_index.json';
+  if( 'function' === typeof importScripts ){
+      index_path = 'search_index.json';
   }
+  oReq.open("GET", index_path);
+  oReq.send();
 }
 
 function search (query) {
@@ -122,6 +108,7 @@ function search (query) {
     console.error('Assets for search still loading');
     return;
   }
+
   var resultDocuments = [];
   var results = index.search(query);
   for (var i=0; i < results.length; i++){
@@ -133,15 +120,10 @@ function search (query) {
   return resultDocuments;
 }
 
-if ('function' === typeof importScripts) {
+if( 'function' === typeof importScripts ) {
   onmessage = function (e) {
     if (e.data.init) {
-      if (e.data.sessionIndex) {
-        session = true;
-        init(e.data.sessionIndex);
-      } else {
-        init();
-      }
+      init();
     } else if (e.data.query) {
       postMessage({ results: search(e.data.query) });
     } else {
