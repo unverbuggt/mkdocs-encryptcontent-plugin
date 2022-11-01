@@ -110,7 +110,7 @@ function decrypt_search(password_input, path_location) {
         sessionIndex = JSON.parse(sessionIndex);
         for (var i=0; i < sessionIndex.docs.length; i++) {
             var doc = sessionIndex.docs[i];
-            if (doc.location.indexOf(path_location) !== -1) {
+            if (doc.location.indexOf(path_location.replace('{{ site_path }}', '')) !== -1) {
                 // grab the ciphertext bundle and try to decrypt it
                 let content = decrypt_content_from_bundle(password_input.value, doc.text);
                 if (content !== false) {

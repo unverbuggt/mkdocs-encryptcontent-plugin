@@ -11,6 +11,7 @@ from Crypto.Cipher import AES
 from bs4 import BeautifulSoup
 from mkdocs.plugins import BasePlugin
 from mkdocs.config import config_options
+from urllib.parse import urlsplit
 
 try:
     from mkdocs.utils import string_types
@@ -140,6 +141,7 @@ class encryptContentPlugin(BasePlugin):
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
             'experimental': self.config['experimental'],
+            'site_path': self.config['site_path'],
             # add extra vars
             'extra': self.config['js_extra_vars']
         })
@@ -223,6 +225,8 @@ class encryptContentPlugin(BasePlugin):
             logger.info('EXPERIMENTAL MODE ENABLE. Only work with default SearchPlugin, not Material.')
             self.config['experimental'] = True
         self.config['encrypted_something'] = self.config['inject'] | self.config['encrypted_something'] #add inject to encrypted_something
+        # Get path to site in case of subdir in site_url
+        self.config['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
 
     def on_pre_build(self, config, **kwargs):
         """
