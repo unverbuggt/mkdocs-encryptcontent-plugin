@@ -233,15 +233,15 @@ For example, in your theme template, you can use conditional check to add custom
 
 Related to [issue #6](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/6)
 
-> :warning: **This feature is not really secure !** Password are store in clear text inside local storage.
+> :warning: **This feature is not really secure !** Password are store in clear text inside session storage.
 >
 > Instead of using this feature, I recommend to use a password manager with its web plugins.
 > For example **KeepassXC** allows you, with a simple keyboard shortcut, to detect the password field `mkdocs-content-password` and to fill it automatically in a much more secure way.
 
 If you do not have password manager, you can set `remember_password: True` in your `mkdocs.yml` to enable password remember feature.
 
-When enabled, each time you fill password form and press `Enter` a key on local storage is create with your password
-as value. When you reload the page, if you already have an 'encryptcontent' key in the local storage of your browser,
+When enabled, each time you fill password form and press `Enter` a key on session storage is create with your password
+as value. When you reload the page, if you already have an 'encryptcontent' key in the session storage of your browser,
 the page will be automatically decrypted using the value previously created.
 
 By default, the key is created with a name relative to the page on which it was generated.
@@ -262,6 +262,7 @@ plugins:
 ```
 
 > **NOTE** The expired elements of the localStorage are only deleted by the execution of the decrypt-content.js scripts and therefore by the navigation on the site. Secret items can therefore remain visible in local storage after their expiration dates. 
+> Now The default is to use sessionStorage instead of localStorage, so the browser forgets the password after the current tab was closed. However it can be set to use localStorage by setting `session_storage = False`
 
 ### Encrypt something
 
