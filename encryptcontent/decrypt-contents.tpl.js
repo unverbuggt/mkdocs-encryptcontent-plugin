@@ -112,13 +112,27 @@ function decrypt_search(password_input, path_location) {
             var doc = sessionIndex.docs[i];
             if (doc.location.indexOf(path_location.replace('{{ site_path }}', '')) !== -1) {
                 // grab the ciphertext bundle and try to decrypt it
-                let content = decrypt_content_from_bundle(password_input.value, doc.text);
-                if (content !== false) {
-                    doc.text = content;
+                let title = decrypt_content_from_bundle(password_input.value, doc.title);
+                if (title !== false) {
+                    doc.title = title;
                     // any post processing on the decrypted search index should be done here
-                };
+                    let content = decrypt_content_from_bundle(password_input.value, doc.text);
+                    if (content !== false) {
+                        doc.text = content;
+                        let location_bundle = doc.location;
+                        let location_sep = location_bundle.indexOf(';')
+                        if (location_sep !== -1) {
+                            let toc_bundle = location_bundle.substring(location_sep+1)
+                            let location_doc = location_bundle.substring(0,location_sep)
+                            let toc_url = decrypt_content_from_bundle(password_input.value, toc_bundle);
+                            if (toc_url !== false) {
+                                doc.location = location_doc + toc_url;
+                            }
+                        }
+                    }
+                }
             }
-        };
+        }
         // force search index reloading on Worker
         if (!window.Worker) {
             console.log('Web Worker API not supported');
@@ -126,7 +140,7 @@ function decrypt_search(password_input, path_location) {
             sessionIndex = JSON.stringify(sessionIndex);
             sessionStorage.setItem('encryptcontent-index', sessionIndex);
             searchWorker.postMessage({init: true, sessionIndex: sessionIndex});
-        };
+        }
     }
 };
 

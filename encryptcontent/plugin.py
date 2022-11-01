@@ -241,50 +241,20 @@ class encryptContentPlugin(BasePlugin):
         # encrypt 'text' fields of search_index.
         # ref: https://github.com/mkdocs/mkdocs/tree/master/mkdocs/contrib/search
         try:
-            if self.config['search_index'] in ['encrypted', 'dynamically']:
-                from mkdocs.contrib.search.search_index import SearchIndex, ContentParser
-                def _create_entry_for_section(self, section, toc, abs_url, password=None):
-                    toc_item, text = self._find_toc_by_id(toc, section.id), ''
-                    if not self.config.get('indexing') or self.config['indexing'] == 'full':
-                        text = ' '.join(section.text)
-                    if password is not None:
-                        plugin = config['plugins']['encryptcontent']
-                        code = plugin.__encrypt_text_aes__(text, str(password))
-                        text = b';'.join(code).decode('ascii')
-                    if toc_item is not None:
-                        self._add_entry(title=toc_item.title, text=text, loc=abs_url + toc_item.url)
-                SearchIndex.create_entry_for_section = _create_entry_for_section
-                def _add_entry_from_context(self, page):
-                    parser, url, text = ContentParser(), page.url, ''
-                    parser.feed(page.content)
-                    parser.close()
-                    if not self.config.get('indexing') or self.config['indexing'] == 'full':
-                        text = parser.stripped_html.rstrip('\n')
-                    if (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None):
-                        plugin = config['plugins']['encryptcontent']
-                        code = plugin.__encrypt_text_aes__(text, str(page.password))
-                        text = b';'.join(code).decode('ascii')
-                    self._add_entry(title=page.title, text=text, loc=url)
-                    if (self.config.get('indexing') and self.config['indexing'] in ['full', 'sections']):
-                        for section in parser.data:
-                            if (hasattr(page, 'encrypted') and hasattr(page, 'password') and page.password is not None):
-                                self.create_entry_for_section(section, page.toc, url, page.password)
-                            else:
-                                self.create_entry_for_section(section, page.toc, url)
-                SearchIndex.add_entry_from_context = _add_entry_from_context
+            #search_index encryption was moved to on_post_page
             if self.config['experimental'] is True:
                 if config['theme'].name == 'material':
                     logger.error("UNSUPPORTED Material theme with experimantal feature search_index=dynamically !")
                     exit("UNSUPPORTED Material theme: use search_index: [clear|encrypted] instead.")
                 # Overwrite search/*.js files from templates/search with encryptcontent contrib search assets
-                config['theme'].dirs = [
-                    e for e in config['theme'].dirs
-                    if not re.compile(r".*/contrib/search/templates$").match(e)
-                ]
-                path = os.path.join(base_path, 'contrib/templates')
-                config['theme'].dirs.append(path)
-                if 'search/main.js' not in config['extra_javascript']:
-                    config['extra_javascript'].append('search/main.js')
+                for dir in config['theme'].dirs.copy():
+                    if re.compile(r".*[/\\]contrib[/\\]search[/\\]templates$").match(dir):
+                        config['theme'].dirs.remove(dir)
+                        path = os.path.join(base_path, 'contrib/templates')
+                        config['theme'].dirs.append(path)
+                        if 'search/main.js' not in config['extra_javascript']:
+                            config['extra_javascript'].append('search/main.js')
+                        break
         except Exception as exp:
             logger.exception(exp)
 
@@ -413,6 +383,27 @@ class encryptContentPlugin(BasePlugin):
                 injector.append(BeautifulSoup(page.decrypt_form, 'html.parser'))
                 delattr(page, 'decrypt_form')
             output_content = str(soup)
+
+            #encrypt or exclude encrypted pages from search_index.json
+            search_entries = config['plugins']['search'].search_index._entries
+            for entry in search_entries.copy(): #iterate through all entries of search_index
+                location = page.url.lstrip('/')
+                if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
+                    if self.config['search_index'] == 'encrypted':
+                        search_entries.remove(entry)
+                    elif self.config['search_index'] == 'dynamically' and page.password is not None:
+                        #encrypt text/title/location(anchor only)
+                        text = entry['text']
+                        title = entry['title']
+                        toc_anchor = entry['location'].replace(location, '')
+                        code = self.__encrypt_text_aes__(text, page.password)
+                        entry['text'] = b';'.join(code).decode('ascii')
+                        code = self.__encrypt_text_aes__(title, page.password)
+                        entry['title'] = b';'.join(code).decode('ascii')
+                        code = self.__encrypt_text_aes__(toc_anchor, page.password)
+                        entry['location'] = location + ';' + b';'.join(code).decode('ascii')
+            config['plugins']['search'].search_index._entries = search_entries
+
         return output_content
 
     def on_post_build(self, config, **kwargs):
