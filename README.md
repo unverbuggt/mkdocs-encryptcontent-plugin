@@ -350,6 +350,15 @@ plugins:
             mkdocs-encrypted-footer-meta: [div, id]
 ```
 
+3. If you are using mkdocs-material, then this example will also encrypt menu, toc and footer
+
+```yaml
+plugins:
+    - encryptcontent:
+        encrypted_something:
+            md-footer__inner: [nav, class]
+            md-nav: [nav, class]
+```
 ### Search index encryption
 
 > **Default value is "encrypted"**
