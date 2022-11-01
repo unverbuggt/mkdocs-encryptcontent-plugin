@@ -401,8 +401,8 @@ This feature allows you to control the behavior of the encryption plugin with th
 Three configuration modes are possible:
 
  * **clear** : Search index is not encrypted. Search is possible even on protected pages.
- * **dynamically** : Search index is encrypted on build. Search is possible once the pages have been decrypted ones.
- * **encrypted** : Search index is encrypted on build. Search is not possible on all encrypted pages.
+ * **dynamically** : Search index is encrypted on build. Search is possible once the pages have been decrypted.
+ * **encrypted** : Search index of encrypted pages is removed on build. Search is not possible on all encrypted pages.
 
 You can set `search_index: '<mode_name>'` in your `mkdocs.yml` to change the search index encryption mode. Possible values are `clear`, `dynamically`, `encrypted`. The default mode is "**encrypted**".
 
@@ -412,9 +412,14 @@ plugins:
         search_index: 'dynamically'
 ```
 
-This functionality overwrite the index creation function of the “search” plug-in provided by mkdocs. The modifications carried out make it possible to encrypt the content of the search index *after* the default plugin has carried out these treatments *(search configuration)*. It is therefore dependent on the default search plugin. 
+This functionality modifies the search index created by the “search” plug-in.
+Some themes might override the default “search” plug-in provided by mkdocs, but so far the structure of the `search/search_index.json` file is consistent.
 
-When the configuration mode is set to "**dynamically**", the [javascripts contribution files](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/tree/experimental/encryptcontent/contrib/templates/search) are used to override the default search plugin files provided by MKdocs. They include a process of decrypting and keeping the search index in a SessionStorage.
+> The modification of the search index is carried out last (if `encryptcontent` is also last in `plugins`).
+> But always double-check the generated index after `mkdocs build` to see if your information is protected.
+
+When the configuration mode is set to "**dynamically**", the [javascripts contribution files](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/tree/experimental/encryptcontent/contrib/templates/search)
+are used to override the default search plugin files provided by MKdocs. They include a process of decrypting and keeping the search index in a SessionStorage.
 
 > **NOTE** The mode 'dynamically' is currently **not compatible with Material Theme** !
 
