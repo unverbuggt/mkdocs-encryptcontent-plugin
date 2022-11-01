@@ -359,6 +359,32 @@ plugins:
             md-footer__inner: [nav, class]
             md-nav: [nav, class]
 ```
+
+### Inject decrypt-form.tpl to theme (experimental)
+
+Some themes or plugins might interfere with the way this plugin encrypts the content of a page.
+In this case this feature will find and encrypt a unique tag in the same way as `encrypted_something`
+does and additionally inject its `decrypt-form.tpl.html` in front of it.
+
+```yaml
+plugins:
+    - encryptcontent:
+        inject:
+            <uniq name>: [<html tag>, <'class' or 'id'>]
+```
+
+This is an example for mkdocs-material:
+```yaml
+plugins:
+  - blog
+  - encryptcontent:
+        encrypted_something:
+            md-footer__inner: [nav, class] #Footer
+            md-nav: [nav, class] #Menu and toc
+        inject:
+            md-content: [div, class]
+```
+
 ### Search index encryption
 
 > **Default value is "encrypted"**
