@@ -104,7 +104,7 @@ function reload_js(src) {
 };
 
 /* Decrypt part of the search index and refresh it for search engine */
-function decrypt_search(password_input, path_location) {
+function decrypt_search(password_value, path_location) {
     sessionIndex = sessionStorage.getItem('encryptcontent-index');
     if (sessionIndex) {
         sessionIndex = JSON.parse(sessionIndex);
@@ -112,11 +112,11 @@ function decrypt_search(password_input, path_location) {
             var doc = sessionIndex.docs[i];
             if (doc.location.indexOf(path_location.replace('{{ site_path }}', '')) !== -1) {
                 // grab the ciphertext bundle and try to decrypt it
-                let title = decrypt_content_from_bundle(password_input.value, doc.title);
+                let title = decrypt_content_from_bundle(password_value, doc.title);
                 if (title !== false) {
                     doc.title = title;
                     // any post processing on the decrypted search index should be done here
-                    let content = decrypt_content_from_bundle(password_input.value, doc.text);
+                    let content = decrypt_content_from_bundle(password_value, doc.text);
                     if (content !== false) {
                         doc.text = content;
                         let location_bundle = doc.location;
@@ -124,7 +124,7 @@ function decrypt_search(password_input, path_location) {
                         if (location_sep !== -1) {
                             let toc_bundle = location_bundle.substring(location_sep+1)
                             let location_doc = location_bundle.substring(0,location_sep)
-                            let toc_url = decrypt_content_from_bundle(password_input.value, toc_bundle);
+                            let toc_url = decrypt_content_from_bundle(password_value, toc_bundle);
                             if (toc_url !== false) {
                                 doc.location = location_doc + toc_url;
                             }
@@ -145,7 +145,7 @@ function decrypt_search(password_input, path_location) {
 };
 
 /* Decrypt speficique html entry from mkdocs configuration */
-function decrypt_somethings(password_input, encrypted_something) {
+function decrypt_somethings(password_value, encrypted_something) {
     var html_item = '';
     for (const [name, tag] of Object.entries(encrypted_something)) {
         if (tag[1] == 'id') {
@@ -158,7 +158,7 @@ function decrypt_somethings(password_input, encrypted_something) {
         if (html_item) {
             for (i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
-                let content = decrypt_content_from_bundle(password_input.value, html_item[i].innerHTML);
+                let content = decrypt_content_from_bundle(password_value, html_item[i].innerHTML);
                 if (content !== false) {
                     // success; display the decrypted content
                     html_item[i].innerHTML = content;
@@ -236,17 +236,17 @@ function init_decryptor() {
     /* If remember_password is set, try to use sessionStorage/localstorage item to decrypt content when page is loaded */
     var password_cookie = getItemExpiry(window.location.pathname);
     if (password_cookie) {
-        password_input.value = password_cookie;
+        password_input.value = password_cookie.value;
         var content_decrypted = decrypt_action(
             password_input, encrypted_content, decrypted_content
         );
         if (content_decrypted) {
             // continue to decrypt others parts
             {% if experimental -%}
-            var search_decrypted = decrypt_search(password_input, window.location.pathname.substring(1));
+            var search_decrypted = decrypt_search(password_input.value, window.location.pathname.substring(1));
             {%- endif %}
             {% if encrypted_something -%}
-            var something_decrypted = decrypt_somethings(password_input, encrypted_something);
+            var something_decrypted = decrypt_somethings(password_input.value, encrypted_something);
             {%- endif %}
         } else {
             // remove item on sessionStorage/localStorage if decryption process fail (Invalid item)
@@ -273,7 +273,7 @@ function init_decryptor() {
                 var search_decrypted = decrypt_search(password_input, window.location.pathname.substring(1));
                 {%- endif %}
                 {% if encrypted_something -%}
-                var something_decrypted = decrypt_somethings(password_input, encrypted_something);
+                var something_decrypted = decrypt_somethings(password_input.value, encrypted_something);
                 {%- endif %}
             } else {
                 // TODO ?
@@ -309,7 +309,7 @@ function init_decryptor() {
                 };
                 {%- endif %}
                 {% if encrypted_something -%}
-                var something_decrypted = decrypt_somethings(password_input, encrypted_something);
+                var something_decrypted = decrypt_somethings(password_input.value, encrypted_something);
                 {%- endif %}
             } else {
                 // TODO ?
