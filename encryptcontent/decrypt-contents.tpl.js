@@ -170,8 +170,8 @@ function decrypt_somethings(password_value, encrypted_something) {
     }
 };
 
-/* Decrypt content a page */
-function decrypt_action(password_input, encrypted_content, decrypted_content) {
+/* Decrypt content of a page */
+function decrypt_action(password_input, encrypted_content, decrypted_content, display_err=true) {
     // grab the ciphertext bundle
     // and decrypt it
     let content = decrypt_content_from_bundle(password_input.value, encrypted_content.innerHTML);
@@ -199,17 +199,11 @@ function decrypt_action(password_input, encrypted_content, decrypted_content) {
         {%- endif %}
         return true
     } else {
-        // create HTML element for the inform message
-        var decrypt_msg = document.createElement('p');
-        decrypt_msg.setAttribute('id', 'mkdocs-decrypt-msg');
-        var node = document.createTextNode('{{ decryption_failure_message }}');
-        decrypt_msg.appendChild(node);
-        var mkdocs_decrypt_msg = document.getElementById('mkdocs-decrypt-msg');
-        // clear all previous failure messages
-        while (mkdocs_decrypt_msg.firstChild) {
-            mkdocs_decrypt_msg.firstChild.remove();
+        if (display_err) {
+            // create HTML element for the inform message
+            let mkdocs_decrypt_msg = document.getElementById('mkdocs-decrypt-msg');
+            mkdocs_decrypt_msg.textContent = '{{ decryption_failure_message }}';
         }
-        mkdocs_decrypt_msg.appendChild(decrypt_msg);
         password_input.value = '';
         password_input.focus();
         return false
