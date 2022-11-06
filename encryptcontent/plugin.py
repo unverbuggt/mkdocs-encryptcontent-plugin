@@ -299,15 +299,13 @@ class encryptContentPlugin(BasePlugin):
             if self.config['tag_encrypted_page']:
                 # Set attribute on page to identify encrypted page on template rendering
                 setattr(page, 'encrypted', True)
-            # Create relative path in case of subdir in site_url
-            base_path = page.abs_url.replace(page.url, '') if page.abs_url is not None else '/'
             # Set password attributes on page for other mkdocs events
             setattr(page, 'password', str(self.config['password']))
-            # Keep encrypted html as temporary variable on page cause we need clear html for search plugin
+            # Keep encrypted html to encrypt as temporary variable on page
             if not self.config['inject']:
-                setattr(page, 'html_encrypted', self.__encrypt_content__(html, base_path))
+                setattr(page, 'html_to_encrypt', html)
             else:
-                setattr(page, 'decrypt_form', self.__encrypt_content__('<!-- dummy -->', base_path))
+                setattr(page, 'html_to_encrypt', '<!-- dummy -->')
         return html
 
     def on_page_context(self, context, page, config, **kwargs):
@@ -323,9 +321,9 @@ class encryptContentPlugin(BasePlugin):
         :param nav: global navigation object
         :return: dict of template context variables
         """
-        if hasattr(page, 'html_encrypted'):
-            page.content = page.html_encrypted
-            delattr(page, 'html_encrypted')
+        if hasattr(page, 'html_to_encrypt'):
+            page.content = self.__encrypt_content__(page.html_to_encrypt, context['base_url']+'/')
+            delattr(page, 'html_to_encrypt')
         return context
 
     def on_post_page(self, output_content, page, config, **kwargs):
