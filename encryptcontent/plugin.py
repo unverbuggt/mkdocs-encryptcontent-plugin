@@ -305,8 +305,6 @@ class encryptContentPlugin(BasePlugin):
             # Keep encrypted html to encrypt as temporary variable on page
             if not self.config['inject']:
                 setattr(page, 'html_to_encrypt', html)
-            else:
-                setattr(page, 'html_to_encrypt', '<!-- dummy -->')
         return html
 
     def on_page_context(self, context, page, config, **kwargs):
@@ -330,6 +328,13 @@ class encryptContentPlugin(BasePlugin):
                 self.config['site_path']+page.url
             )
             delattr(page, 'html_to_encrypt')
+        if self.config['inject']:
+            setattr(page, 'decrypt_form', self.__encrypt_content__(
+                '<!-- dummy -->', 
+                str(page.password),
+                context['base_url']+'/',
+                self.config['site_path']+page.url
+            ))
         return context
 
     def on_post_page(self, output_content, page, config, **kwargs):
