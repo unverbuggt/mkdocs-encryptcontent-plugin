@@ -93,22 +93,15 @@ function getItemExpiry(key) {
             {%- endif %}
         }
         if (!remember_password) {
-            // fallback site_url
+            // fallback global
             {% if session_storage -%}
-            remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent("/{{ site_path }}"));
+            remember_password = sessionStorage.getItem('encryptcontent_');
             {%- else %}
-            remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("/{{ site_path }}"));
+            remember_password = localStorage.getItem('encryptcontent_');
             {%- endif %}
             if (!remember_password) {
-                // fallback global_password
-                {% if session_storage -%}
-                remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent("/"));
-                {%- else %}
-                remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("/"));
-                {%- endif %}
-                if (!remember_password) {
-                    return null;
-                }
+                //no password saved and no fallback found
+                return null;
             }
         }
     }
@@ -235,24 +228,23 @@ function decrypt_action(password_input, encrypted_content, decrypted_content) {
 function decryptor_reaction(content_decrypted, password_input, fallback_used, set_global, save_cookie) {
     let location_path;
     if (set_global) {
-        location_path = "/"; //global password is saved at "/"
+        location_path = "/{{ site_path}}"; //global password decrypts at "/{site_path}"
     } else {
-        location_path= document.location.pathname;
+        location_path = encryptcontent_path;
     }
     if (content_decrypted) {
         {% if remember_password -%}
         // keep password value on sessionStorage/localStorage with specific path (relative)
-        if (!fallback_used) {
+        if (set_global) {
+            setItemExpiry("", password_input.value, 1000*3600*{{ default_expire_delay | int }});
+        }
+        else if (!fallback_used) {
             setItemExpiry(location_path, password_input.value, 1000*3600*{{ default_expire_delay | int }});
         }
         {%- endif %}
         // continue to decrypt others parts
         {% if experimental -%}
-        if (set_global) {
-            decrypt_search(password_input.value, location_path); //global password is saved at "/"
-        } else {
-            decrypt_search(password_input.value, location_path.substring(1));
-        };
+        decrypt_search(password_input.value, location_path);
         {%- endif %}
         {% if encrypted_something -%}
         let encrypted_something = {{ encrypted_something }};
@@ -282,7 +274,7 @@ function init_decryptor() {
     var decrypted_content = document.getElementById('mkdocs-decrypted-content');
     {% if remember_password -%}
     /* If remember_password is set, try to use sessionStorage/localstorage item to decrypt content when page is loaded */
-    let password_cookie = getItemExpiry(window.location.pathname);
+    let password_cookie = getItemExpiry(encryptcontent_path);
     if (password_cookie) {
         password_input.value = password_cookie.value;
         let content_decrypted = decrypt_action(

@@ -105,9 +105,9 @@ class encryptContentPlugin(BasePlugin):
             PADDING_CHAR
         )
 
-    def __encrypt_content__(self, content, base_path):
+    def __encrypt_content__(self, content, password, base_path, encryptcontent_path):
         """ Replaces page or article content with decrypt form. """
-        ciphertext_bundle = self.__encrypt_text_aes__(content, str(self.config['password']))
+        ciphertext_bundle = self.__encrypt_text_aes__(content, password)
         decrypt_form = Template(self.config['html_template']).render({
             # custom message and template rendering
             'summary': self.config['summary'],
@@ -120,6 +120,7 @@ class encryptContentPlugin(BasePlugin):
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
             'js_libraries': JS_LIBRARIES,
             'base_path': base_path,
+            'encryptcontent_path': encryptcontent_path,
             # add extra vars
             'extra': self.config['html_extra_vars']
         })
@@ -322,7 +323,12 @@ class encryptContentPlugin(BasePlugin):
         :return: dict of template context variables
         """
         if hasattr(page, 'html_to_encrypt'):
-            page.content = self.__encrypt_content__(page.html_to_encrypt, context['base_url']+'/')
+            page.content = self.__encrypt_content__(
+                page.html_to_encrypt, 
+                str(page.password),
+                context['base_url']+'/',
+                self.config['site_path']+page.url
+            )
             delattr(page, 'html_to_encrypt')
         return context
 
