@@ -93,15 +93,23 @@ function getItemExpiry(key) {
             {%- endif %}
         }
         if (!remember_password) {
-            // fallback global
+            // fallback site_path
             {% if session_storage -%}
-            remember_password = sessionStorage.getItem('encryptcontent_');
+            remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent("{{ site_path }}"));
             {%- else %}
-            remember_password = localStorage.getItem('encryptcontent_');
+            remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("{{ site_path }}"));
             {%- endif %}
             if (!remember_password) {
-                //no password saved and no fallback found
-                return null;
+                // fallback global
+                {% if session_storage -%}
+                remember_password = sessionStorage.getItem('encryptcontent_');
+                {%- else %}
+                remember_password = localStorage.getItem('encryptcontent_');
+                {%- endif %}
+                if (!remember_password) {
+                    //no password saved and no fallback found
+                    return null;
+                }
             }
         }
     }
