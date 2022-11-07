@@ -393,6 +393,7 @@ class encryptContentPlugin(BasePlugin):
                 delattr(page, 'decrypt_form')
             output_content = str(soup)
 
+        if hasattr(page, 'encrypted'):
             #encrypt or exclude encrypted pages from search_index.json
             search_entries = config['plugins']['search'].search_index._entries
             for entry in search_entries.copy(): #iterate through all entries of search_index
