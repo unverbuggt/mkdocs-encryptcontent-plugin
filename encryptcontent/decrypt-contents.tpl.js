@@ -185,7 +185,7 @@ function decrypt_somethings(password_value, encrypted_something) {
         } else {
             console.log('WARNING: Unknow tag html found, check "encrypted_something" configuration.');
         }
-        if (html_item) {
+        if (html_item[0]) {
             for (i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
                 let content = decrypt_content_from_bundle(password_value, html_item[i].innerHTML);
