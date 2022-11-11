@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from mkdocs.plugins import BasePlugin
 from mkdocs.config import config_options
 from urllib.parse import urlsplit
+from urllib.request import urlopen
 
 try:
     from mkdocs.utils import string_types
@@ -77,6 +78,8 @@ class encryptContentPlugin(BasePlugin):
         ('reload_scripts', config_options.Type(list, default=[])),
         ('experimental', config_options.Type(bool, default=False)),
         ('inject', config_options.Type(dict, default={})),
+        ('selfhost', config_options.Type(bool, default=False)),
+        ('selfhost_download', config_options.Type(bool, default=True)),
         # legacy features, doesn't exist anymore
         ('disable_cookie_protection', config_options.Type(bool, default=False)),
         ('decrypt_search', config_options.Type(bool, default=False))
@@ -108,6 +111,15 @@ class encryptContentPlugin(BasePlugin):
     def __encrypt_content__(self, content, password, base_path, encryptcontent_path):
         """ Replaces page or article content with decrypt form. """
         ciphertext_bundle = self.__encrypt_text_aes__(content, password)
+
+        # optionally selfhost cryptojs
+        if self.config["selfhost"]:
+            js_libraries = []
+            for jsurl in JS_LIBRARIES:
+                js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl.rsplit('/',1)[1])
+        else:
+            js_libraries = JS_LIBRARIES
+
         decrypt_form = Template(self.config['html_template']).render({
             # custom message and template rendering
             'summary': self.config['summary'],
@@ -118,7 +130,7 @@ class encryptContentPlugin(BasePlugin):
             # this benign decoding is necessary before writing to the template,
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
-            'js_libraries': JS_LIBRARIES,
+            'js_libraries': js_libraries,
             'base_path': base_path,
             'encryptcontent_path': encryptcontent_path,
             # add extra vars
@@ -427,3 +439,14 @@ class encryptContentPlugin(BasePlugin):
         decrypt_js_path = Path(config.data["site_dir"] + '/assets/javascripts/decrypt-contents.js')
         with open(decrypt_js_path, "w") as file:
             file.write(self.__generate_decrypt_js__())
+
+        # optionally download cryptojs
+        if self.config["selfhost"] and self.config["selfhost_download"]:
+            logger.info('Downloading cryptojs for self-hosting... Please consider copying "assets/javascripts/cryptojs/" to "doc/" and setting "selfhost_download: false" to decrease build time.')
+            Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/').mkdir(parents=True, exist_ok=True)
+            for jsurl in JS_LIBRARIES:
+                dlurl = "https:" + jsurl
+                filepath = Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/' + jsurl.rsplit('/',1)[1])
+                with urlopen(dlurl) as response:
+                    with open(filepath, 'wb') as file:
+                        file.write(response.read())

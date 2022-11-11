@@ -14,5 +14,6 @@ var encryptcontent_path = "{{ encryptcontent_path }}";
 </script>
 {% for library in js_libraries %}
 <script type="text/javascript" src="{{ library }}"></script>
-{% endfor %}
+{%- endfor %}
 <script type="text/javascript" src="{{ base_path }}assets/javascripts/decrypt-contents.js" defer></script>
+
