@@ -1,15 +1,5 @@
 # mkdocs-encryptcontent-plugin
 
-> :warning: **The insiders version of mkdocs-material theme overrides [search index encryption](#search-index-encryption)!**
->
-> Please check your `search/search_index.json` from previous builds whether they leak private data!
->
-> The search index basically contains all words from all pages.
-> If the data from encrypted pages isn't removed or also encrypted in the index, then these pages aren't protected anymore.
->
-> The current development version will always remove or encrypt the search index entries of encrypted pages.
-
-
 [![PyPI Version][pypi-v-image]][pypi-v-link]
 [![PyPI downloads](https://img.shields.io/pypi/dm/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
