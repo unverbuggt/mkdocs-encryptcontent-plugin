@@ -136,6 +136,7 @@ function reload_js(src) {
 /* Decrypt part of the search index and refresh it for search engine */
 function decrypt_search(password_value, path_location) {
     sessionIndex = sessionStorage.getItem('encryptcontent-index');
+    let could_decrypt = false;
     if (sessionIndex) {
         sessionIndex = JSON.parse(sessionIndex);
         for (var i=0; i < sessionIndex.docs.length; i++) {
@@ -144,6 +145,7 @@ function decrypt_search(password_value, path_location) {
                 // grab the ciphertext bundle and try to decrypt it
                 let title = decrypt_content_from_bundle(password_value, doc.title);
                 if (title !== false) {
+                    could_decrypt = true;
                     doc.title = title;
                     // any post processing on the decrypted search index should be done here
                     let content = decrypt_content_from_bundle(password_value, doc.text);
@@ -163,13 +165,16 @@ function decrypt_search(password_value, path_location) {
                 }
             }
         }
-        // force search index reloading on Worker
-        if (!window.Worker) {
-            console.log('Web Worker API not supported');
-        } else {
+        if (could_decrypt) {
+            //save decrypted index
             sessionIndex = JSON.stringify(sessionIndex);
             sessionStorage.setItem('encryptcontent-index', sessionIndex);
-            searchWorker.postMessage({init: true, sessionIndex: sessionIndex});
+            // force search index reloading on Worker
+            if (typeof searchWorker !== 'undefined') {
+                searchWorker.postMessage({init: true, sessionIndex: sessionIndex});
+            } else { //not default search plugin: reload whole page
+                window.location.reload();
+            }
         }
     }
 };
