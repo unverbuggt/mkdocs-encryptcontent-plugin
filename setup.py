@@ -11,14 +11,14 @@ def read(fname):
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='2.3.1',
-    author='CoinK0in',
-    author_email='12155947+CoinK0in@users.noreply.github.com',
+    version='2.4.0',
+    author='unverbuggt',
+    author_email='unverbuggt@xn--rthlein-n2a.de',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
     keywords='mkdocs python markdown encrypt decrypt content',
-    url='https://github.com/coink0in/mkdocs-encryptcontent-plugin/',
+    url='https://github.com/unverbuggt/mkdocs-encryptcontent-plugin',
     license='MIT',
     python_requires='>=3.5',
     install_requires=[
@@ -26,6 +26,7 @@ setup(
         'pyyaml',
         'pycryptodome',
         'beautifulsoup4',
+        'urllib',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
