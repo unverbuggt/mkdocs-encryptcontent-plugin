@@ -1,0 +1,22 @@
+--- src/assets/javascripts/integrations/search/worker/_/index.ts	2022-11-11 18:49:20.000000000 +0100
++++ "src/assets/javascripts/integrations/search/worker/_/index - encryptcontent.ts"	2022-11-13 20:24:57.313110700 +0100
+@@ -86,6 +86,19 @@
+     suggestions: feature("search.suggest")
+   }
+ 
++  /* Hack to enable search Index decryption */
++  let sessionIndex = sessionStorage.getItem('encryptcontent-index')
++  let saveIndex = {}
++  if (!sessionIndex) {
++    saveIndex['config'] = config
++    saveIndex['docs'] = docs
++    sessionStorage.setItem('encryptcontent-index', JSON.stringify(saveIndex))
++  } else {
++    saveIndex = JSON.parse(sessionIndex)
++    config = saveIndex['config']
++    docs = saveIndex['docs']
++  }
++
+   /* Return search index after defaulting */
+   return { config, docs, options }
+ }
