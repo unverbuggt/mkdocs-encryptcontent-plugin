@@ -407,24 +407,25 @@ class encryptContentPlugin(BasePlugin):
 
         if hasattr(page, 'encrypted'):
             #encrypt or exclude encrypted pages from search_index.json
-            search_entries = config['plugins']['search'].search_index._entries
-            for entry in search_entries.copy(): #iterate through all entries of search_index
-                location = page.url.lstrip('/')
-                if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
-                    if self.config['search_index'] == 'encrypted':
-                        search_entries.remove(entry)
-                    elif self.config['search_index'] == 'dynamically' and page.password is not None:
-                        #encrypt text/title/location(anchor only)
-                        text = entry['text']
-                        title = entry['title']
-                        toc_anchor = entry['location'].replace(location, '')
-                        code = self.__encrypt_text_aes__(text, page.password)
-                        entry['text'] = b';'.join(code).decode('ascii')
-                        code = self.__encrypt_text_aes__(title, page.password)
-                        entry['title'] = b';'.join(code).decode('ascii')
-                        code = self.__encrypt_text_aes__(toc_anchor, page.password)
-                        entry['location'] = location + ';' + b';'.join(code).decode('ascii')
-            config['plugins']['search'].search_index._entries = search_entries
+            if 'search' in config['plugins']:
+                search_entries = config['plugins']['search'].search_index._entries
+                for entry in search_entries.copy(): #iterate through all entries of search_index
+                    location = page.url.lstrip('/')
+                    if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
+                        if self.config['search_index'] == 'encrypted':
+                            search_entries.remove(entry)
+                        elif self.config['search_index'] == 'dynamically' and page.password is not None:
+                            #encrypt text/title/location(anchor only)
+                            text = entry['text']
+                            title = entry['title']
+                            toc_anchor = entry['location'].replace(location, '')
+                            code = self.__encrypt_text_aes__(text, page.password)
+                            entry['text'] = b';'.join(code).decode('ascii')
+                            code = self.__encrypt_text_aes__(title, page.password)
+                            entry['title'] = b';'.join(code).decode('ascii')
+                            code = self.__encrypt_text_aes__(toc_anchor, page.password)
+                            entry['location'] = location + ';' + b';'.join(code).decode('ascii')
+                config['plugins']['search'].search_index._entries = search_entries
 
         return output_content
 
