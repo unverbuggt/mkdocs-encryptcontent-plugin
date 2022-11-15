@@ -133,6 +133,7 @@ function reload_js(src) {
     $('<script>').attr('src', src).appendTo('head');
 };
 
+{% if experimental -%}
 /* Decrypt part of the search index and refresh it for search engine */
 function decrypt_search(password_value, path_location) {
     sessionIndex = sessionStorage.getItem('encryptcontent-index');
@@ -178,6 +179,7 @@ function decrypt_search(password_value, path_location) {
         }
     }
 };
+{%- endif %}
 
 /* Decrypt speficique html entry from mkdocs configuration */
 function decrypt_somethings(password_value, encrypted_something) {

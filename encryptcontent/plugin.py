@@ -76,13 +76,13 @@ class encryptContentPlugin(BasePlugin):
         ('encrypted_something', config_options.Type(dict, default={})),
         ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
         ('reload_scripts', config_options.Type(list, default=[])),
-        ('experimental', config_options.Type(bool, default=False)),
         ('inject', config_options.Type(dict, default={})),
         ('selfhost', config_options.Type(bool, default=False)),
         ('selfhost_download', config_options.Type(bool, default=True)),
         # legacy features, doesn't exist anymore
         ('disable_cookie_protection', config_options.Type(bool, default=False)),
-        ('decrypt_search', config_options.Type(bool, default=False))
+        ('decrypt_search', config_options.Type(bool, default=False)),
+        ('experimental', config_options.Type(bool, default=False)),
     )
 
     def __hash_md5__(self, text):
@@ -153,7 +153,7 @@ class encryptContentPlugin(BasePlugin):
             'default_expire_delay': int(self.config['default_expire_delay']),
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
-            'experimental': self.config['experimental'],
+            'experimental': self.config['search_index'] == 'dynamically',
             'site_path': self.config['site_path'],
             # add extra vars
             'extra': self.config['js_extra_vars']
@@ -232,11 +232,10 @@ class encryptContentPlugin(BasePlugin):
                 config['plugins'].move_to_end('search')
                 config['plugins'].move_to_end('encryptcontent')
             except:
-                logger.warning('Please check that "search" and "encryptcontent" are at the end of plugins')
+                logger.warning('Could not reorder plugins. Please check that "search" and "encryptcontent" are at the end of plugins')
         # Enable experimental code .. :popcorn:
-        if self.config['search_index'] == 'dynamically':
-            logger.info('EXPERIMENTAL MODE ENABLE. Only work with default SearchPlugin, not Material.')
-            self.config['experimental'] = True
+        elif self.config['search_index'] == 'dynamically':
+            logger.info("EXPERIMENTAL search index encryption enabled.")
         self.config['encrypted_something'] = self.config['inject'] | self.config['encrypted_something'] #add inject to encrypted_something
         # Get path to site in case of subdir in site_url
         self.config['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
@@ -255,19 +254,19 @@ class encryptContentPlugin(BasePlugin):
         # ref: https://github.com/mkdocs/mkdocs/tree/master/mkdocs/contrib/search
         try:
             #search_index encryption was moved to on_post_page
-            if self.config['experimental'] is True:
+            if self.config['search_index'] == 'dynamically':
                 if config['theme'].name == 'material':
-                    logger.error("UNSUPPORTED Material theme with experimantal feature search_index=dynamically !")
-                    exit("UNSUPPORTED Material theme: use search_index: [clear|encrypted] instead.")
-                # Overwrite search/*.js files from templates/search with encryptcontent contrib search assets
-                for dir in config['theme'].dirs.copy():
-                    if re.compile(r".*[/\\]contrib[/\\]search[/\\]templates$").match(dir):
-                        config['theme'].dirs.remove(dir)
-                        path = os.path.join(base_path, 'contrib/templates')
-                        config['theme'].dirs.append(path)
-                        if 'search/main.js' not in config['extra_javascript']:
-                            config['extra_javascript'].append('search/main.js')
-                        break
+                    logger.warning("To enable EXPERIMENTAL search index decryption mkdocs-material needs to be customized (patched)!")
+                else:
+                    # Overwrite search/*.js files from templates/search with encryptcontent contrib search assets
+                    for dir in config['theme'].dirs.copy():
+                        if re.compile(r".*[/\\]contrib[/\\]search[/\\]templates$").match(dir):
+                            config['theme'].dirs.remove(dir)
+                            path = os.path.join(base_path, 'contrib/templates')
+                            config['theme'].dirs.append(path)
+                            if 'search/main.js' not in config['extra_javascript']:
+                                config['extra_javascript'].append('search/main.js')
+                            break
         except Exception as exp:
             logger.exception(exp)
 
@@ -407,25 +406,29 @@ class encryptContentPlugin(BasePlugin):
 
         if hasattr(page, 'encrypted'):
             #encrypt or exclude encrypted pages from search_index.json
-            if 'search' in config['plugins']:
-                search_entries = config['plugins']['search'].search_index._entries
-                for entry in search_entries.copy(): #iterate through all entries of search_index
-                    location = page.url.lstrip('/')
-                    if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
-                        if self.config['search_index'] == 'encrypted':
-                            search_entries.remove(entry)
-                        elif self.config['search_index'] == 'dynamically' and page.password is not None:
-                            #encrypt text/title/location(anchor only)
-                            text = entry['text']
-                            title = entry['title']
-                            toc_anchor = entry['location'].replace(location, '')
-                            code = self.__encrypt_text_aes__(text, page.password)
-                            entry['text'] = b';'.join(code).decode('ascii')
-                            code = self.__encrypt_text_aes__(title, page.password)
-                            entry['title'] = b';'.join(code).decode('ascii')
-                            code = self.__encrypt_text_aes__(toc_anchor, page.password)
-                            entry['location'] = location + ';' + b';'.join(code).decode('ascii')
-                config['plugins']['search'].search_index._entries = search_entries
+            for plugin in config['plugins']:
+                if plugin.endswith('search'):
+                    try:
+                        search_entries = config['plugins'][plugin].search_index._entries
+                        for entry in search_entries.copy(): #iterate through all entries of search_index
+                            location = page.url.lstrip('/')
+                            if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
+                                if self.config['search_index'] == 'encrypted':
+                                    search_entries.remove(entry)
+                                elif self.config['search_index'] == 'dynamically' and page.password is not None:
+                                    #encrypt text/title/location(anchor only)
+                                    text = entry['text']
+                                    title = entry['title']
+                                    toc_anchor = entry['location'].replace(location, '')
+                                    code = self.__encrypt_text_aes__(text, page.password)
+                                    entry['text'] = b';'.join(code).decode('ascii')
+                                    code = self.__encrypt_text_aes__(title, page.password)
+                                    entry['title'] = b';'.join(code).decode('ascii')
+                                    code = self.__encrypt_text_aes__(toc_anchor, page.password)
+                                    entry['location'] = location + ';' + b';'.join(code).decode('ascii')
+                        config['plugins'][plugin].search_index._entries = search_entries
+                    except:
+                        logger.error('Could not encrypt search index of "' + page.title + '" for "' + plugin+ '" plugin!')
 
         return output_content
 
