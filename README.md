@@ -39,10 +39,13 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
     * [Tag encrypted page](#tag-encrypted-page) *(default)*
     * [Remember password](#remember-password)
     * [Encrypt something](#encrypt-something)
+    * [Inject decrypt-form.tpl to theme](#inject-decrypt-formtpl-to-theme) **(NEW)**
     * [Search index encryption](#search-index-encryption)
+    * [Search index encryption for mkdocs-material](#search-index-encryption-for-mkdocs-material) **(NEW)**
     * [Override default templates](#override-default-templates)
     * [Add button](#add-button)
     * [Reload scripts](#reload-scripts)
+    * [Self-host crypto-js](#self-host-crypto-js) **(NEW)**
   * [Contributing](#contributing)
 
 
@@ -350,7 +353,7 @@ plugins:
             md-nav: [nav, class]
 ```
 
-### Inject decrypt-form.tpl to theme (experimental)
+### Inject decrypt-form.tpl to theme
 
 Some themes or plugins might interfere with the way this plugin encrypts the content of a page.
 In this case this feature will find and encrypt a unique tag in the same way as `encrypted_something`
@@ -408,10 +411,31 @@ Some themes might override the default “search” plug-in provided by mkdocs, 
 > The modification of the search index is carried out last (if `encryptcontent` is also last in `plugins`).
 > But always double-check the generated index after `mkdocs build` to see if your information is protected.
 
-When the configuration mode is set to "**dynamically**", the [javascripts contribution files](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/tree/experimental/encryptcontent/contrib/templates/search)
+When the configuration mode is set to "**dynamically**", the [javascripts contribution files](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/master/encryptcontent/contrib/templates/search)
 are used to override the default search plugin files provided by MKdocs. They include a process of decrypting and keeping the search index in a SessionStorage.
 
-> **NOTE** The mode 'dynamically' is currently **not compatible with Material Theme** !
+### Search index encryption for mkdocs-material
+
+[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) uses a different search plugin that cannot "easily" be overridden like the default search plugin.
+However this Plugin will still remove encrypted pages (`encrypted`) or encrypt the search entries (`dynamically`) for `mkdocs-material`.
+
+In order to be able to decrypt the search index (`dynamically`) `mkdocs-material` needs to be customized (patched).
+
+You'll need some [prerequisites](https://squidfunk.github.io/mkdocs-material/customization/#environment-setup) and also execute these commands:
+
+```
+git clone https://github.com/squidfunk/mkdocs-material
+cd mkdocs-material
+pip install mkdocs-minify-plugin
+pip install mkdocs-redirects
+npm install
+
+#copy material_search_worker.patch to mkdocs-material
+patch -p 0 < material_search_worker.patch
+
+pip install --force-reinstall .
+#pip install --force-reinstall --no-deps . #faster if mkdocs-material was already installed
+```
 
 ### Override default templates
 
@@ -472,8 +496,9 @@ You can set `reload_scripts:` in your `mkdocs.yml` with list of script source, t
 
 ```yaml
 plugins:
-    reload_scripts:
-        - "./js/example.js"
+    - encryptcontent:
+        reload_scripts:
+            - "./js/example.js"
 ```
 
 This feature use the following JQuery function to remove, add and reload javascripts. 
@@ -484,6 +509,22 @@ var reload_js = function(src) {
     $('<script>').attr('src', src).appendTo('head');
 };
 ```
+
+### Self-host crypto-js
+
+If you enable `selfhost` then you'll choose to upload crypto-js to your web server rather than using cloudflare CDN.
+
+Additionally if you set `selfhost_download` then the required files will be downloaded **every time** on `mkdocs serve` or `mkdocs build`. 
+Be aware that this costs additional build time and it is better to copy the files from `site/assets/javascripts/cryptojs/*` to `docs/assets/javascripts/cryptojs/*` to speed things up.
+
+```yaml
+plugins:
+    - encryptcontent:
+        selfhost: true
+        selfhost_download: false
+```
+
+
 
 # Contributing
 
