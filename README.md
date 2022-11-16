@@ -499,10 +499,13 @@ You can set `reload_scripts:` in your `mkdocs.yml` with list of script source, t
 plugins:
     - encryptcontent:
         reload_scripts:
-            - "./js/example.js"
+            - 'js/example.js'
+            - '#autoexec'
 ```
 
-This feature now doesn't use JQuery anymore (related to [issue #30](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/30)).
+This feature now doesn't use JQuery anymore.
+
+It is also possible to reload a script id like `<script id="autoexec">console.log('test');</script>` that was encrypted within the page (related to [issue #30](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/30)).
 
 ### Self-host crypto-js
 

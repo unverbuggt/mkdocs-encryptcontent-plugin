@@ -132,18 +132,28 @@ function reload_js(src) {
     let script_src, script_tag, new_script_tag;
     let head = document.getElementsByTagName('head')[0];
 
-    if (base_url == '.') {
-        script_src = src;
+    if (src.startsWith('#')) {
+        script_tag = document.getElementById(src.substr(1));
+        if (script_tag) {
+            script_tag.remove();
+            new_script_tag = document.createElement('script');
+            new_script_tag.innerHTML = script_tag.innerHTML;
+            head.appendChild(new_script_tag);
+        }
     } else {
-        script_src = base_url + '/' + src;
-    }
+        if (base_url == '.') {
+            script_src = src;
+        } else {
+            script_src = base_url + '/' + src;
+        }
 
-    script_tag = document.querySelector('script[src="' + script_src + '"]');
-    if (script_tag) {
-        script_tag.remove();
-        new_script_tag = document.createElement('script');
-        new_script_tag.src = script_src;
-        head.appendChild(new_script_tag);
+        script_tag = document.querySelector('script[src="' + script_src + '"]');
+        if (script_tag) {
+            script_tag.remove();
+            new_script_tag = document.createElement('script');
+            new_script_tag.src = script_src;
+            head.appendChild(new_script_tag);
+        }
     }
 };
 
