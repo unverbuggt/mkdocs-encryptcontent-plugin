@@ -61,8 +61,8 @@ Install the package from source with pip:
 
 ```bash
 cd mkdocs-encryptcontent-plugin/
-python3 setup.py sdist bdist_wheel
-pip3 install dist/mkdocs_encryptcontent_plugin-2.3.1-py3-none-any.whl
+python setup.py sdist bdist_wheel
+pip install dist/mkdocs_encryptcontent_plugin-2.4.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -204,7 +204,8 @@ Related to [issue #7](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/i
 
 This feature add an additional attribute `encrypted` with value `True` to the mkdocs type `mkdocs.nav.page` object.
 
-You can add `tag_encrypted_page: False` in plugin configuration, to disable tagging of encrypted pages. **BUT** This feature is neccessary for others feature working correctly. If you disable this feature, do no use [Encrypt Somethings](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#encrypt-something), 
+You can add `tag_encrypted_page: False` in plugin configuration, to disable tagging of encrypted pages. **BUT** This feature is neccessary for others feature working correctly. 
+If you disable this feature, f.ex. [Encrypt something](#encrypt-something) and [Search index encryption](#search-index-encryption) won't work.
 
 When enable, it becomes possible to use `encrypted` attribute in the jinja template of your theme, as a condition to perform custom modification.
 
@@ -423,7 +424,7 @@ In order to be able to decrypt the search index (`dynamically`) `mkdocs-material
 
 You'll need some [prerequisites](https://squidfunk.github.io/mkdocs-material/customization/#environment-setup) and also execute these commands:
 
-```
+```bash
 git clone https://github.com/squidfunk/mkdocs-material
 cd mkdocs-material
 pip install mkdocs-minify-plugin
@@ -501,14 +502,7 @@ plugins:
             - "./js/example.js"
 ```
 
-This feature use the following JQuery function to remove, add and reload javascripts. 
-
-```javascript
-var reload_js = function(src) {
-    $('script[src="' + src + '"]').remove();
-    $('<script>').attr('src', src).appendTo('head');
-};
-```
+This feature now doesn't use JQuery anymore (related to [issue #30](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/30)).
 
 ### Self-host crypto-js
 

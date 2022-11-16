@@ -129,8 +129,22 @@ function getItemExpiry(key) {
 
 /* Reload scripts src after decryption process */
 function reload_js(src) {
-    $('script[src="' + src + '"]').remove();
-    $('<script>').attr('src', src).appendTo('head');
+    let script_src, script_tag, new_script_tag;
+    let head = document.getElementsByTagName('head')[0];
+
+    if (base_url == '.') {
+        script_src = src;
+    } else {
+        script_src = base_url + '/' + src;
+    }
+
+    script_tag = document.querySelector('script[src="' + script_src + '"]');
+    if (script_tag) {
+        script_tag.remove();
+        new_script_tag = document.createElement('script');
+        new_script_tag.src = script_src;
+        head.appendChild(new_script_tag);
+    }
 };
 
 {% if experimental -%}
