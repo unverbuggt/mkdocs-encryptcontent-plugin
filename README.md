@@ -416,7 +416,7 @@ Some themes might override the default “search” plug-in provided by mkdocs, 
 > But always double-check the generated index after `mkdocs build` to see if your information is protected.
 
 When the configuration mode is set to "**dynamically**", the [javascripts contribution files](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/master/encryptcontent/contrib/templates/search)
-are used to override the default search plugin files provided by MKdocs. They include a process of decrypting and keeping the search index in a SessionStorage.
+are used to override the default search plugin files provided by MkDocs. They include a process of decrypting and keeping the search index in a SessionStorage.
 
 ### Search index encryption for mkdocs-material
 
