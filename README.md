@@ -127,6 +127,8 @@ plugins:
         placeholder: 'another password placeholder'
         decryption_failure_message: 'another informational message when decryption fail'
         encryption_info_message: 'another information message when you dont have acess !'
+        input_class: 'md-search__form md-search__input'
+        button_class: 'md-search__icon'
 ```
 
 Default prefix title is `[Protected]`.
@@ -141,6 +143,7 @@ Defaut encryption information message is `Contact your administrator for access 
 
 > **NOTE** Adding a prefix to the title does not change the default navigation path !
 
+Use `input_class` and `button_class` to optionally set a CSS class for the password field and the button.
 
 # Features
 

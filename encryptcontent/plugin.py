@@ -55,6 +55,8 @@ class encryptContentPlugin(BasePlugin):
         ('encryption_info_message', config_options.Type(string_types, default=str(SETTINGS['encryption_info_message']))),
         ('password_button_text', config_options.Type(string_types, default=str(SETTINGS['password_button_text']))),
         ('password_button', config_options.Type(bool, default=False)),
+        ('input_class', config_options.Type(string_types, default=None)),
+        ('button_class', config_options.Type(string_types, default=None)),
         # password feature
         ('global_password', config_options.Type(string_types, default=None)),
         ('use_secret', config_options.Type(string_types, default=None)),
@@ -127,6 +129,8 @@ class encryptContentPlugin(BasePlugin):
             'password_button': self.config['password_button'],
             'password_button_text': self.config['password_button_text'],
             'encryption_info_message': self.config['encryption_info_message'],
+            'input_class': self.config['input_class'],
+            'button_class': self.config['button_class'],
             # this benign decoding is necessary before writing to the template,
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
