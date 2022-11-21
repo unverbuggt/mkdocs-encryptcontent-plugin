@@ -240,7 +240,7 @@ class encryptContentPlugin(BasePlugin):
         # Enable experimental code .. :popcorn:
         elif self.config['search_index'] == 'dynamically':
             logger.info("EXPERIMENTAL search index encryption enabled.")
-        self.config['encrypted_something'] = self.config['inject'] | self.config['encrypted_something'] #add inject to encrypted_something
+        self.config['encrypted_something'] = {**self.config['inject'], **self.config['encrypted_something']} #add inject to encrypted_something
         # Get path to site in case of subdir in site_url
         self.config['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
 
