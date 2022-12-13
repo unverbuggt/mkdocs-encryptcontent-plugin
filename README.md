@@ -46,6 +46,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
     * [Add button](#add-button)
     * [Reload scripts](#reload-scripts)
     * [Self-host crypto-js](#self-host-crypto-js) **(NEW)**
+    * [Translations](#translations) **(NEW)**
   * [Contributing](#contributing)
 
 
@@ -62,7 +63,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install dist/mkdocs_encryptcontent_plugin-2.4.1-py3-none-any.whl
+pip install dist/mkdocs_encryptcontent_plugin-2.4.2-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -524,6 +525,22 @@ plugins:
         selfhost_download: false
 ```
 
+### Translations
+
+If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/) plugin you can provide `translations` for the used `i18n_page_file_locale`.
+
+```yaml
+    - encryptcontent:
+        #...
+        translations:
+          de:
+            title_prefix: '[Verschlüsselt] '
+            summary: 'Der Inhalt dieser Seite ist mit AES verschlüsselt. '
+            placeholder: 'Mit Strg+Enter wird das Passwort global gesetzt'
+            password_button_text: 'Entschlüsseln'
+            decryption_failure_message: 'Falsches passwort.'
+            encryption_info_message: 'Bitte wenden Sie sich an den Systemadministrator um auf diese Seite zuzugreifen.'
+```
 
 
 # Contributing

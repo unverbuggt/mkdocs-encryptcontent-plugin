@@ -81,6 +81,7 @@ class encryptContentPlugin(BasePlugin):
         ('inject', config_options.Type(dict, default={})),
         ('selfhost', config_options.Type(bool, default=False)),
         ('selfhost_download', config_options.Type(bool, default=True)),
+        ('translations', config_options.Type(dict, default={}, required=False)),
         # legacy features, doesn't exist anymore
         ('disable_cookie_protection', config_options.Type(bool, default=False)),
         ('decrypt_search', config_options.Type(bool, default=False)),
@@ -335,6 +336,23 @@ class encryptContentPlugin(BasePlugin):
         :param nav: global navigation object
         :return: dict of template context variables
         """
+        if hasattr(page, 'html_to_encrypt') or self.config['inject']:
+            if 'i18n_page_file_locale' in context:
+                locale = context['i18n_page_file_locale']
+                if locale in self.config['translations']:
+                    translations = self.config['translations'][locale]
+                    if 'title_prefix' in translations:
+                        self.config['title_prefix'] = translations['title_prefix']
+                    if 'summary' in translations:
+                        self.config['summary'] = translations['summary']
+                    if 'placeholder' in translations:
+                        self.config['placeholder'] = translations['placeholder']
+                    if 'password_button_text' in translations:
+                        self.config['password_button_text'] = translations['password_button_text']
+                    if 'decryption_failure_message' in translations:
+                        self.config['decryption_failure_message'] = translations['decryption_failure_message']
+                    if 'encryption_info_message' in translations:
+                        self.config['encryption_info_message'] = translations['encryption_info_message']
         if hasattr(page, 'html_to_encrypt'):
             page.content = self.__encrypt_content__(
                 page.html_to_encrypt, 
