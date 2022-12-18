@@ -63,7 +63,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install dist/mkdocs_encryptcontent_plugin-2.4.2-py3-none-any.whl
+pip install dist/mkdocs_encryptcontent_plugin-2.4.3-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:

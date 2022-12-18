@@ -294,7 +294,7 @@ function decryptor_reaction(content_decrypted, password_input, fallback_used, se
         if (!fallback_used || set_global) {
             // create HTML element for the inform message
             let mkdocs_decrypt_msg = document.getElementById('mkdocs-decrypt-msg');
-            mkdocs_decrypt_msg.textContent = '{{ decryption_failure_message }}';
+            mkdocs_decrypt_msg.textContent = decryption_failure_message;
             {% if remember_password -%}
             delItemName(location_path);
             {%- endif %}

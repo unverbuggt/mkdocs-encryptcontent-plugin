@@ -4,6 +4,7 @@ import re
 import base64
 import hashlib
 import logging
+import json
 from pathlib import Path
 from Crypto import Random
 from jinja2 import Template
@@ -130,6 +131,7 @@ class encryptContentPlugin(BasePlugin):
             'password_button': self.config['password_button'],
             'password_button_text': self.config['password_button_text'],
             'encryption_info_message': self.config['encryption_info_message'],
+            'decryption_failure_message': json.dumps(self.config['decryption_failure_message']),
             'input_class': self.config['input_class'],
             'button_class': self.config['button_class'],
             # this benign decoding is necessary before writing to the template,
@@ -148,7 +150,6 @@ class encryptContentPlugin(BasePlugin):
         decrypt_js = Template(self.config['js_template']).render({
             # custom message and template rendering
             'password_button': self.config['password_button'],
-            'decryption_failure_message': self.config['decryption_failure_message'],
             # enable / disable features
             'arithmatex': self.config['arithmatex'],
             'hljs': self.config['hljs'],
