@@ -137,7 +137,12 @@ function reload_js(src) {
         if (script_tag) {
             script_tag.remove();
             new_script_tag = document.createElement('script');
-            new_script_tag.innerHTML = script_tag.innerHTML;
+            if (script_tag.innerHTML) {
+                new_script_tag.innerHTML = script_tag.innerHTML;
+            }
+            if (script_tag.src) {
+                new_script_tag.src = script_tag.src;
+            }
             head.appendChild(new_script_tag);
         }
     } else {
