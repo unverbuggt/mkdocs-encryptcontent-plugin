@@ -432,7 +432,13 @@ class encryptContentPlugin(BasePlugin):
             for plugin in config['plugins']:
                 if plugin.endswith('search'):
                     try:
-                        search_entries = config['plugins'][plugin].search_index._entries
+                        if hasattr(config['plugins'][plugin].search_index, '_entries'):
+                            search_entries = config['plugins'][plugin].search_index._entries
+                        elif hasattr(config['plugins'][plugin].search_index, 'entries'):
+                            search_entries = config['plugins'][plugin].search_index.entries
+                        else:
+                            logger.error('The search plugin "' + plugin + '" is currently unknown!')
+
                         for entry in search_entries.copy(): #iterate through all entries of search_index
                             location = page.url.lstrip('/')
                             if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
@@ -449,7 +455,12 @@ class encryptContentPlugin(BasePlugin):
                                     entry['title'] = b';'.join(code).decode('ascii')
                                     code = self.__encrypt_text_aes__(toc_anchor, page.password)
                                     entry['location'] = location + ';' + b';'.join(code).decode('ascii')
-                        config['plugins'][plugin].search_index._entries = search_entries
+
+                        if hasattr(config['plugins'][plugin].search_index, '_entries'):
+                            config['plugins'][plugin].search_index._entries = search_entries
+                        elif hasattr(config['plugins'][plugin].search_index, 'entries'):
+                            config['plugins'][plugin].search_index.entries = search_entries
+
                     except:
                         logger.error('Could not encrypt search index of "' + page.title + '" for "' + plugin+ '" plugin!')
 

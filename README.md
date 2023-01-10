@@ -63,7 +63,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install dist/mkdocs_encryptcontent_plugin-2.4.3-py3-none-any.whl
+pip install dist/mkdocs_encryptcontent_plugin-2.4.4-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -260,7 +260,7 @@ plugins:
 ```
 
 > **NOTE** The expired elements of the localStorage are only deleted by the execution of the decrypt-content.js scripts and therefore by the navigation on the site. Secret items can therefore remain visible in local storage after their expiration dates. 
-> Now The default is to use sessionStorage instead of localStorage, so the browser forgets the password after the current tab was closed. However it can be set to use localStorage by setting `session_storage = False`
+> Now The default is to use sessionStorage instead of localStorage, so the browser forgets the password after the current tab was closed. However it can be set to use localStorage by setting `session_storage: False`
 
 ### Encrypt something
 
