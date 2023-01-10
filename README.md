@@ -442,6 +442,8 @@ pip install --force-reinstall .
 #pip install --force-reinstall --no-deps . #faster if mkdocs-material was already installed
 ```
 
+> Note: this currently doesn't work with mkdocs-material-9.x.x
+
 ### Override default templates
 
 Related to [issue #32](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/32)
