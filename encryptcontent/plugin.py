@@ -427,6 +427,7 @@ class encryptContentPlugin(BasePlugin):
                 delattr(page, 'decrypt_form')
             output_content = str(soup)
 
+        #TODO: Move search index processing to on_post_build to be less likely to fail due to incompatible search plugins
         if hasattr(page, 'encrypted'):
             #encrypt or exclude encrypted pages from search_index.json
             for plugin in config['plugins']:
@@ -462,8 +463,8 @@ class encryptContentPlugin(BasePlugin):
                             config['plugins'][plugin].search_index.entries = search_entries
 
                     except:
-                        logger.error('Could not encrypt search index of "' + page.title + '" for "' + plugin+ '" plugin!')
-
+                        logger.error('Could not encrypt search index of "' + page.title + '" for "' + plugin+ '" plugin! Abort !')
+                        os._exit(1)                                 # prevent build with possible plaintext in search_index
         return output_content
 
     def on_post_build(self, config, **kwargs):
