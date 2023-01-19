@@ -30,7 +30,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
   * [Installation](#installation)
   * [Usage](#usage)
     * [Global password protection](#global-password-protection)
-    * [Secret from environment](#secret-from-environment)
+    * [Secret from environment](#secret-from-environment) **(UPDATE)**
     * [Customization](#default-vars-customization)
   * [Features](#features)
     * [HighlightJS support](#highlightjs-support) *(default)*
@@ -63,7 +63,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install dist/mkdocs_encryptcontent_plugin-2.4.4-py3-none-any.whl
+pip install dist/mkdocs_encryptcontent_plugin-2.4.5-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -104,7 +104,6 @@ This process is in two steps:
 
 1. First, you need to make an environment variable with your global password accessible at runtime (via any CI/CD pipeline or by setting it yourself in your environment).
 
-
 2. Then in the mkdocs.yml file, instead of specifying a global password, just set the `use_secret` field with your environment variable name, e.g. in case my secret is stored in the `ENCRYPTCONTENT_PASSWORD` variable:
 
 ``` yaml
@@ -114,7 +113,12 @@ plugins:
 ```
 
 > **NOTE** Keep in mind that if the `use_secret:` configuration is set, it will always be used even if you have also set a global password with the `global_password` variable.
+>
+> If this environment variable is empty or missing, then the build will fail to prevent the unwanted leak of information.
+> However this can be converted into a warning by setting `ignore_missing_secret: true`. 
+> Use this only if you use a secret environment variable for production and a plain password for testing. You have been warned.
 
+> **NEW** The meta tag `use_secret` can also be set to achieve the same functionality on page level.
 
 ### Default vars customization
 
