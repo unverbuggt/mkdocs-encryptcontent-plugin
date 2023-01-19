@@ -193,8 +193,6 @@ class encryptContentPlugin(BasePlugin):
                     var=str(self.config['use_secret']))
                 )
                 os._exit(1)                                 # prevent build without password to avoid leak
-        # Set global password as default password for each page
-        self.config['password'] = self.config['global_password']
         # Check if hljs feature need to be enabled, based on theme configuration
         if ('highlightjs' in config['theme']._vars
                 and config['theme']._vars['highlightjs']    # noqa: W503
@@ -289,6 +287,9 @@ class encryptContentPlugin(BasePlugin):
         :param site_navigation: global navigation object
         :return: Markdown source text of page as string
         """
+
+        # Set global password as default password for each page
+        self.config['password'] = self.config['global_password']
 
         if 'password' in page.meta.keys():
             # If global_password is set, but you don't want to encrypt content
