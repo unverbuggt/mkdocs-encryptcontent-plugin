@@ -281,7 +281,7 @@ class encryptContentPlugin(BasePlugin):
         The page_markdown event is called after the page's markdown is loaded from file and
         can be used to alter the Markdown source text. The meta- data has been stripped off
         and is available as page.meta at this point.
-        Load password from meta header *.md pages and override global_password if define.
+        Load password from meta header *.md pages and override global_password if defined.
 
         :param markdown: Markdown source text of page as string
         :param page: mkdocs.nav.Page instance
@@ -289,7 +289,7 @@ class encryptContentPlugin(BasePlugin):
         :param site_navigation: global navigation object
         :return: Markdown source text of page as string
         """
-        self.config['password'] = self.config['global_password']
+
         if 'password' in page.meta.keys():
             # If global_password is set, but you don't want to encrypt content
             page_password = str(page.meta.get('password'))
