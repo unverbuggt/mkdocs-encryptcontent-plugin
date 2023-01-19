@@ -61,6 +61,7 @@ class encryptContentPlugin(BasePlugin):
         # password feature
         ('global_password', config_options.Type(string_types, default=None)),
         ('use_secret', config_options.Type(string_types, default=None)),
+        ('ignore_missing_secret', config_options.Type(bool, default=False)),
         ('password', config_options.Type(string_types, default=None)),
         ('remember_password', config_options.Type(bool, default=False)),
         ('session_storage', config_options.Type(bool, default=True)),
@@ -189,10 +190,16 @@ class encryptContentPlugin(BasePlugin):
             if os.environ.get(str(self.config['use_secret'])):
                 self.config['global_password'] = os.environ.get(str(self.config['use_secret']))
             else:
-                logger.error('Cannot get global password from environment variable: {var}. Abort !'.format(
-                    var=str(self.config['use_secret']))
-                )
-                os._exit(1)                                 # prevent build without password to avoid leak
+                if self.config['ignore_missing_secret'] and self.config['global_password']:
+                    logger.warning('Cannot get global password from environment variable: {var}. Using global_password as fallback!'.format(
+                        var=str(self.config['use_secret']))
+                    )
+                else:
+                    logger.error('Cannot get global password from environment variable: {var}. Abort !'.format(
+                        var=str(self.config['use_secret']))
+                    )
+                    os._exit(1)                                 # prevent build without password to avoid leak
+
         # Check if hljs feature need to be enabled, based on theme configuration
         if ('highlightjs' in config['theme']._vars
                 and config['theme']._vars['highlightjs']    # noqa: W503
@@ -297,6 +304,21 @@ class encryptContentPlugin(BasePlugin):
             self.config['password'] = None if page_password == '' else page_password
             # Delete meta password information before rendering to avoid leak :]
             del page.meta['password']
+
+        if 'use_secret' in page.meta.keys():
+            if os.environ.get(str(page.meta.get('use_secret'))):
+                self.config['password'] = os.environ.get(str(page.meta.get('use_secret')))
+            else:
+                if self.config['ignore_missing_secret'] and self.config['password']:
+                    logger.warning('Cannot get password from environment variable: {var}. Using password from config or meta key as fallback!'.format(
+                        var=str(page.meta.get('use_secret')))
+                    )
+                else:
+                    logger.error('Cannot get password from environment variable: {var}. Abort !'.format(
+                        var=str(page.meta.get('use_secret')))
+                    )
+                    os._exit(1)                                 # prevent build without password to avoid leak0
+
         return markdown
 
     def on_page_content(self, html, page, config, **kwargs):
