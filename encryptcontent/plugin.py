@@ -310,12 +310,12 @@ class encryptContentPlugin(BasePlugin):
                 self.config['password'] = os.environ.get(str(page.meta.get('use_secret')))
             else:
                 if self.config['ignore_missing_secret'] and self.config['password']:
-                    logger.warning('Cannot get password from environment variable: {var}. Using password from config or meta key as fallback!'.format(
-                        var=str(page.meta.get('use_secret')))
+                    logger.warning('Cannot get password for "{page}" from environment variable: {var}. Using password from config or meta key as fallback!'.format(
+                        var=str(page.meta.get('use_secret')), page=page.title)
                     )
                 else:
-                    logger.error('Cannot get password from environment variable: {var}. Abort !'.format(
-                        var=str(page.meta.get('use_secret')))
+                    logger.error('Cannot get password for "{page}" from environment variable: {var}. Abort !'.format(
+                        var=str(page.meta.get('use_secret')), page=page.title)
                     )
                     os._exit(1)                                 # prevent build without password to avoid leak0
 
