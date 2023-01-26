@@ -24,6 +24,14 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 
 ![encryptcontent_demo](https://user-images.githubusercontent.com/12155947/177001700-f0920d4b-0c41-4d11-8164-9f63d29d8a6a.gif)
 
+# Todo for 2.5.x
+
+* Sanitize code. F.ex. self.config variables should not be overwritten on other places than on_config.
+* Rework search_index handling to be more bulletproof.
+* Add optional obfuscation of filenames. F.ex. to make it impossible to guess image names.
+* Rework password handling or inventory of some sort
+* As we are vulnerable to brute force: Review strenght of used passwords.
+* ...to be defined
 
 # Table of Contents
 
