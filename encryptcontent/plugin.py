@@ -85,9 +85,6 @@ class encryptContentPlugin(BasePlugin):
         ('selfhost_download', config_options.Type(bool, default=True)),
         ('translations', config_options.Type(dict, default={}, required=False)),
         # legacy features, doesn't exist anymore
-        ('disable_cookie_protection', config_options.Type(bool, default=False)),
-        ('decrypt_search', config_options.Type(bool, default=False)),
-        ('experimental', config_options.Type(bool, default=False)),
     )
 
     def __hash_md5__(self, text):
@@ -226,24 +223,9 @@ class encryptContentPlugin(BasePlugin):
             self.config['mermaid2'] = False
         # Warn about deprecated features on Vervion 2.0.0
         deprecated_options_detected = False
-        if self.config.get('disable_cookie_protection'):
-            logger.warning('DEPRECATED: Feature "disable_cookie_protection" is no longer supported. Can by remove.')
-            deprecated_options_detected = True
-        if self.config.get('decrypt_search'):
-            logger.warning('DEPRECATED: Feature "decrypt_search" is no longer supported. Use search_index on "clear" mode instead.')
-            deprecated_options_detected = True
-            logger.info('Fallback "decrypt_search" configuraiton to "search_index" mode clear.')
-            self.config['search_index'] = 'clear'
+
         if deprecated_options_detected:
             logger.warning('DEPRECATED: Features marked as deprecated will be remove in next minor version !')
-        # Re order plugins to be sure search-index are not encrypted
-        if self.config['search_index'] == 'clear':
-            logger.debug('Reordering plugins loading and put search and encryptcontent at the end of the event pipe.')
-            try: #PluginCollection is no instance of OrderedDict anymore since MkDocs 1.4
-                config['plugins'].move_to_end('search')
-                config['plugins'].move_to_end('encryptcontent')
-            except:
-                logger.warning('Could not reorder plugins. Please check that "search" and "encryptcontent" are at the end of plugins')
         # Enable experimental code .. :popcorn:
         elif self.config['search_index'] == 'dynamically':
             logger.info("EXPERIMENTAL search index encryption enabled.")
