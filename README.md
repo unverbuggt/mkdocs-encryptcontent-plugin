@@ -220,8 +220,7 @@ Related to [issue #7](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/i
 
 This feature add an additional attribute `encrypted` with value `True` to the mkdocs type `mkdocs.nav.page` object.
 
-You can add `tag_encrypted_page: False` in plugin configuration, to disable tagging of encrypted pages. **BUT** This feature is neccessary for others feature working correctly. 
-If you disable this feature, f.ex. [Encrypt something](#encrypt-something) and [Search index encryption](#search-index-encryption) won't work.
+You can add `tag_encrypted_page: False` in plugin configuration, to disable tagging of encrypted pages. 
 
 When enable, it becomes possible to use `encrypted` attribute in the jinja template of your theme, as a condition to perform custom modification.
 
