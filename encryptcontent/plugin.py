@@ -234,6 +234,19 @@ class encryptContentPlugin(BasePlugin):
         # Get path to site in case of subdir in site_url
         self.setup['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
 
+        search_plugin_found = False
+        encryptcontent_plugin_found = False
+        for plugin in config['plugins']:
+            if plugin.endswith('search'):
+                if encryptcontent_plugin_found:
+                    logger.error('Plugins need to be reordered ("search" ahead of "encryptcontent" in the end)! Otherwise search index might leak sensitive data.')
+                    os._exit(1) # prevent build without search index modification
+                search_plugin_found = True
+            if plugin == 'encryptcontent':
+                encryptcontent_plugin_found = True
+        if not search_plugin_found:
+            logger.warning('"search" plugin wasn\'t enabled. Search index isn\'t generated or modified.')
+
         #init default translation from config
         self.setup['title_prefix'] = self.config['title_prefix']
         self.setup['summary'] = self.config['summary']
