@@ -234,17 +234,17 @@ class encryptContentPlugin(BasePlugin):
         # Get path to site in case of subdir in site_url
         self.setup['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
 
-        search_plugin_found = False
+        self.setup['search_plugin_found'] = False
         encryptcontent_plugin_found = False
         for plugin in config['plugins']:
             if plugin.endswith('search'):
                 if encryptcontent_plugin_found:
                     logger.error('Plugins need to be reordered ("search" ahead of "encryptcontent" in the end)! Otherwise search index might leak sensitive data.')
                     os._exit(1) # prevent build without search index modification
-                search_plugin_found = True
+                self.setup['search_plugin_found'] = True
             if plugin == 'encryptcontent':
                 encryptcontent_plugin_found = True
-        if not search_plugin_found:
+        if not self.setup['search_plugin_found']:
             logger.warning('"search" plugin wasn\'t enabled. Search index isn\'t generated or modified.')
 
         #init default translation from config
@@ -254,6 +254,7 @@ class encryptContentPlugin(BasePlugin):
         self.setup['password_button_text'] = self.config['password_button_text']
         self.setup['decryption_failure_message'] = self.config['decryption_failure_message']
         self.setup['encryption_info_message'] = self.config['encryption_info_message']
+        self.setup['locations'] = {}
 
     def on_pre_build(self, config, **kwargs):
         """
@@ -471,44 +472,11 @@ class encryptContentPlugin(BasePlugin):
                 delattr(page, 'decrypt_form')
             output_content = str(soup)
 
-        #TODO: Move search index processing to on_post_build to be less likely to fail due to incompatible search plugins
         if hasattr(page, 'password'):
-            #encrypt or exclude encrypted pages from search_index.json
-            for plugin in config['plugins']:
-                if plugin.endswith('search'):
-                    try:
-                        if hasattr(config['plugins'][plugin].search_index, '_entries'):
-                            search_entries = config['plugins'][plugin].search_index._entries
-                        elif hasattr(config['plugins'][plugin].search_index, 'entries'):
-                            search_entries = config['plugins'][plugin].search_index.entries
-                        else:
-                            logger.error('The search plugin "' + plugin + '" is currently unknown!')
+            if self.setup['search_plugin_found']:
+                location = page.url.lstrip('/')
+                self.setup['locations'][location] = page.password
 
-                        for entry in search_entries.copy(): #iterate through all entries of search_index
-                            location = page.url.lstrip('/')
-                            if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
-                                if self.config['search_index'] == 'encrypted':
-                                    search_entries.remove(entry)
-                                elif self.config['search_index'] == 'dynamically' and page.password is not None:
-                                    #encrypt text/title/location(anchor only)
-                                    text = entry['text']
-                                    title = entry['title']
-                                    toc_anchor = entry['location'].replace(location, '')
-                                    code = self.__encrypt_text_aes__(text, page.password)
-                                    entry['text'] = b';'.join(code).decode('ascii')
-                                    code = self.__encrypt_text_aes__(title, page.password)
-                                    entry['title'] = b';'.join(code).decode('ascii')
-                                    code = self.__encrypt_text_aes__(toc_anchor, page.password)
-                                    entry['location'] = location + ';' + b';'.join(code).decode('ascii')
-
-                        if hasattr(config['plugins'][plugin].search_index, '_entries'):
-                            config['plugins'][plugin].search_index._entries = search_entries
-                        elif hasattr(config['plugins'][plugin].search_index, 'entries'):
-                            config['plugins'][plugin].search_index.entries = search_entries
-
-                    except:
-                        logger.error('Could not encrypt search index of "' + page.title + '" for "' + plugin+ '" plugin! Abort !')
-                        os._exit(1)                                 # prevent build with possible plaintext in search_index
         return output_content
 
     def on_post_build(self, config, **kwargs):
@@ -523,8 +491,39 @@ class encryptContentPlugin(BasePlugin):
         with open(decrypt_js_path, "w") as file:
             file.write(self.__generate_decrypt_js__())
 
+        #modify search_index in the style of mkdocs-exclude-search
+        if self.setup['search_plugin_found'] and self.config['search_index'] != 'clear':
+            search_index_filename = Path(config.data["site_dir"] + "/search/search_index.json")
+            #TODO: Check if search_index.json exists and error if not found (moved its location)
+            with open(search_index_filename, "r") as f:
+                search_entries = json.load(f)
+
+            for entry in search_entries['docs'].copy(): #iterate through all entries of search_index
+                for location in self.setup['locations'].keys():
+                    if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
+                        page_password = self.setup['locations'][location]
+                        if self.config['search_index'] == 'encrypted':
+                            search_entries.remove(entry)
+                        elif self.config['search_index'] == 'dynamically' and page_password is not None:
+                            #encrypt text/title/location(anchor only)
+                            text = entry['text']
+                            title = entry['title']
+                            toc_anchor = entry['location'].replace(location, '')
+                            code = self.__encrypt_text_aes__(text, page_password )
+                            entry['text'] = b';'.join(code).decode('ascii')
+                            code = self.__encrypt_text_aes__(title, page_password)
+                            entry['title'] = b';'.join(code).decode('ascii')
+                            code = self.__encrypt_text_aes__(toc_anchor, page_password)
+                            entry['location'] = location + ';' + b';'.join(code).decode('ascii')
+                        break
+
+            with open(search_index_filename, "w") as f:
+                json.dump(search_entries, f)
+            logger.info('Modified search_index.')
+
         # optionally download cryptojs
         if self.config["selfhost"] and self.config["selfhost_download"]:
+            #TODO just download once and verify hash afterwards
             logger.info('Downloading cryptojs for self-hosting... Please consider copying "assets/javascripts/cryptojs/" to "doc/" and setting "selfhost_download: false" to decrease build time.')
             Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/').mkdir(parents=True, exist_ok=True)
             for jsurl in JS_LIBRARIES:
