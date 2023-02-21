@@ -31,6 +31,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * Add optional obfuscation of filenames. F.ex. to make it impossible to guess image names.
 * Rework password handling or inventory of some sort
 * As we are vulnerable to brute force: Review strenght of used passwords.
+* download self-hosted cryptojs just once (check hash of js files)
 * ...to be defined
 
 # Table of Contents
