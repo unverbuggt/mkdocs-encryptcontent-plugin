@@ -5,6 +5,7 @@ import base64
 import hashlib
 import logging
 import json
+import math
 from pathlib import Path
 from Crypto import Random
 from jinja2 import Template
@@ -164,6 +165,45 @@ class encryptContentPlugin(BasePlugin):
             'extra': self.config['js_extra_vars']
         })
         return decrypt_js
+
+    def __get_entropy_from_password__(self, password):
+        #          123456789012345678901234567890
+        lcase =   "abcdefghijklmnopqrstuvwxyz"
+        ucase =   "ABCDEFGHIJKLMNOPQRTSUVWXYZ"
+        number =  "0123456789"
+        special = "!*#,;?+-_.=~^%()[]{}|:/"
+        other = ""
+        lcase_used = False
+        ucase_used = False
+        number_used = False
+        special_used = False
+        other_used = 0
+        for character in password:
+            if character in lcase:
+                lcase_used = True
+            elif character in ucase:
+                ucase_used = True
+            elif character in number:
+                number_used = True
+            elif character in special:
+                special_used = True
+            elif character not in other:
+                other_used += 1
+                other += character
+        ent = 0
+        if lcase_used:
+            ent += len(lcase)
+        if ucase_used:
+            ent += len(ucase)
+        if number_used:
+            ent += len(number)
+        if special_used:
+            ent += len(special)
+        ent += other_used
+        ent_max = len(lcase) + len(ucase) + len(number) + len(special) + len(other)
+        enttropy_spied_on = math.log( pow(ent, len(password)) ) / math.log(2)
+        enttropy_secret = math.log( pow(ent_max, len(password)) ) / math.log(2)
+        return enttropy_spied_on, enttropy_secret
 
     # MKDOCS Events builds
 
@@ -532,3 +572,19 @@ class encryptContentPlugin(BasePlugin):
                 with urlopen(dlurl) as response:
                     with open(filepath, 'wb') as file:
                         file.write(response.read())
+
+        passwords = set() #get all unique passwords
+        for location in self.setup['locations'].keys():
+            passwords.add(self.setup['locations'][location])
+        min_enttropy_spied_on, min_enttropy_secret = 0, 0
+        for password in passwords:
+            enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
+            if min_enttropy_spied_on == 0 or enttropy_spied_on < min_enttropy_spied_on:
+                min_enttropy_spied_on = enttropy_spied_on
+            if min_enttropy_secret == 0 or enttropy_secret < min_enttropy_secret:
+                min_enttropy_secret = enttropy_secret
+        if min_enttropy_spied_on < 100:
+            logger.warning('mkdocs-encryptcontent-plugin will always be vulnerable to brute-force attacks!'
+                           ' If someone watched you while typing your weakest password only got {spied_on} bits of entropy'
+                           ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(enttropy_spied_on), secret = math.ceil(min_enttropy_secret))
+                    )
