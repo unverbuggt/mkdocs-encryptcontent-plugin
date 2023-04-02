@@ -313,7 +313,9 @@ function decryptor_reaction(content_decrypted, password_input, fallback_used, se
 function init_decryptor() {
     var password_input = document.getElementById('mkdocs-content-password');
     // adjust password field width to placeholder length
-    password_input.setAttribute('size', password_input.getAttribute('placeholder').length);
+    if (password_input.hasAttribute('placeholder')) {
+        password_input.setAttribute('size', password_input.getAttribute('placeholder').length);
+    }
     var encrypted_content = document.getElementById('mkdocs-encrypted-content');
     var decrypted_content = document.getElementById('mkdocs-decrypted-content');
     {% if remember_password -%}

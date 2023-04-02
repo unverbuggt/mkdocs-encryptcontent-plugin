@@ -1,0 +1,19 @@
+<div id="mkdocs-encrypted-content" style="display:none">{{ ciphertext_bundle }}</div>
+<div id="mkdocs-decrypted-content">
+    <form id="mkdocs-decrypt-form">
+        <h1>{{ summary }}</h1>
+        <input type="hidden" id="mkdocs-content-password" value="{{ placeholder }}"/>
+        <button{% if button_class %} class="{{ button_class }}"{% endif %} id="mkdocs-decrypt-button">{{ password_button_text }}</button>
+        <p id="mkdocs-decrypt-msg"></p>
+    </form>
+</div>
+
+<script type="text/javascript">
+var encryptcontent_path = "{{ encryptcontent_path }}";
+var decryption_failure_message = {{ decryption_failure_message }};
+</script>
+{% for library in js_libraries %}
+<script type="text/javascript" src="{{ library }}"></script>
+{%- endfor %}
+<script type="text/javascript" src="{{ base_path }}assets/javascripts/decrypt-contents.js" defer></script>
+
