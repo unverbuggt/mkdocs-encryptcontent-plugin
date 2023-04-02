@@ -26,12 +26,13 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 
 # Todo for 2.5.x
 
-* Sanitize code. F.ex. self.config variables should not be overwritten on other places than on_config.
-* Rework search_index handling to be more bulletproof.
+* ~~Sanitize code. F.ex. self.config variables should not be overwritten on other places than on_config.~~
+* ~~Rework search_index handling to be more bulletproof.~~
 * Add optional obfuscation of filenames. F.ex. to make it impossible to guess image names.
 * Rework password handling or inventory of some sort
-* As we are vulnerable to brute force: Review strenght of used passwords.
+* ~~As we are vulnerable to brute force: Review strenght of used passwords.~~
 * download self-hosted cryptojs just once (check hash of js files)
+* Add button press to decrypt without password (just to hide content from search engines)
 * ...to be defined
 
 # Table of Contents
