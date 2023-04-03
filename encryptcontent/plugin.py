@@ -358,11 +358,6 @@ class encryptContentPlugin(BasePlugin):
         if 'encryption_info_message' in page.meta.keys():
             setattr(page, 'custom_encryption_info_message', str(page.meta.get('encryption_info_message')))
 
-        if 'obfuscate' in page.meta.keys(): # would be overridden if password meta key is defined
-            setattr(page, 'obfuscate', True)
-            self.setup['password'] = str(page.meta.get('obfuscate'))
-            del page.meta['obfuscate']
-
         if 'password' in page.meta.keys():
             # If global_password is set, but you don't want to encrypt content
             page_password = str(page.meta.get('password'))
@@ -383,6 +378,12 @@ class encryptContentPlugin(BasePlugin):
                         var=str(page.meta.get('use_secret')), page=page.title)
                     )
                     os._exit(1)                                 # prevent build without password to avoid leak0
+
+        if 'obfuscate' in page.meta.keys():
+            if self.setup['password'] is None: # Only allow obfuscation if no password defined
+                setattr(page, 'obfuscate', True)
+                self.setup['password'] = str(page.meta.get('obfuscate'))
+            del page.meta['obfuscate']
 
         return markdown
 
@@ -457,11 +458,6 @@ class encryptContentPlugin(BasePlugin):
             if self.setup['title_prefix']: 
                 page.title = str(self.config['title_prefix']) + str(page.title)
 
-        if hasattr(page, 'obfuscate'):
-            obfuscate = True
-        else:
-            obfuscate = False
-
         if hasattr(page, 'custom_summary'):
             summary = page.custom_summary
         else:
@@ -471,6 +467,8 @@ class encryptContentPlugin(BasePlugin):
             encryption_info_message = page.custom_encryption_info_message
         else:
             encryption_info_message = self.setup['encryption_info_message']
+
+        obfuscate = hasattr(page, 'obfuscate')
 
         if hasattr(page, 'html_to_encrypt'):
             page.content = self.__encrypt_content__(
