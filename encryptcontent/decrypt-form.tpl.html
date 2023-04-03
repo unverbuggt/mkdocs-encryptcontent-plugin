@@ -3,7 +3,11 @@
     <form id="mkdocs-decrypt-form">
         <h1>{{ summary }}</h1>
         {% if encryption_info_message %}<p>{{ encryption_info_message }}</p>{% endif %}
+        {%- if obfuscate %}
+        <input type="hidden" id="mkdocs-content-password" value="{{ obfuscate_password }}" />
+        {%- else %}
         <input{% if input_class %} class="{{ input_class }}"{% endif %} type="password" id="mkdocs-content-password" placeholder="{{ placeholder }}" />
+        {%- endif %}
         {% if password_button %}<button{% if button_class %} class="{{ button_class }}"{% endif %} id="mkdocs-decrypt-button">{{ password_button_text }}</button>{% endif %}
         <p id="mkdocs-decrypt-msg"></p>
     </form>

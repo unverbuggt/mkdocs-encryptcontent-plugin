@@ -32,7 +32,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * Rework password handling or inventory of some sort
 * ~~As we are vulnerable to brute force: Review strenght of used passwords.~~
 * download self-hosted cryptojs just once (check hash of js files)
-* Add button press to decrypt without password (just to hide content from search engines)
+* ~~Add button press to decrypt without password (just to hide content from search engines)
 * ...to be defined
 
 # Table of Contents

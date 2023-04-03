@@ -76,7 +76,6 @@ class encryptContentPlugin(BasePlugin):
         ('html_extra_vars', config_options.Type(dict, default={})),
         ('js_template_path', config_options.Type(string_types, default=str(os.path.join(PLUGIN_DIR, 'decrypt-contents.tpl.js')))),
         ('js_extra_vars', config_options.Type(dict, default={})),
-        ('html_button_path', config_options.Type(string_types, default=str(os.path.join(PLUGIN_DIR, 'decrypt-button.tpl.html')))), #NEW
         # others features
         ('encrypted_something', config_options.Type(dict, default={})),
         ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
@@ -113,7 +112,7 @@ class encryptContentPlugin(BasePlugin):
             PADDING_CHAR
         )
 
-    def __encrypt_content__(self, content, password, base_path, encryptcontent_path, summary):
+    def __encrypt_content__(self, content, password, base_path, encryptcontent_path, summary, encryption_info_message, obfuscate):
         """ Replaces page or article content with decrypt form. """
         ciphertext_bundle = self.__encrypt_text_aes__(content, password)
 
@@ -124,6 +123,11 @@ class encryptContentPlugin(BasePlugin):
                 js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl.rsplit('/',1)[1])
         else:
             js_libraries = JS_LIBRARIES
+
+        if obfuscate:
+            obfuscate_password = password
+        else:
+            obfuscate_password = None
 
         decrypt_form = Template(self.setup['html_template']).render({
             # custom message and template rendering
@@ -131,43 +135,12 @@ class encryptContentPlugin(BasePlugin):
             'placeholder': self.setup['placeholder'],
             'password_button': self.config['password_button'],
             'password_button_text': self.setup['password_button_text'],
-            'encryption_info_message': self.setup['encryption_info_message'],
+            'encryption_info_message': encryption_info_message,
             'decryption_failure_message': json.dumps(self.setup['decryption_failure_message']),
             'input_class': self.config['input_class'],
             'button_class': self.config['button_class'],
-            # this benign decoding is necessary before writing to the template,
-            # otherwise the output string will be wrapped with b''
-            'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
-            'js_libraries': js_libraries,
-            'base_path': base_path,
-            'encryptcontent_path': encryptcontent_path,
-            # add extra vars
-            'extra': self.config['html_extra_vars']
-        })
-        return decrypt_form
-
-    def __obfuscate_content__(self, content, password, base_path, encryptcontent_path, summary):
-        """ Replaces page or article content with decrypt form. """
-        ciphertext_bundle = self.__encrypt_text_aes__(content, password)
-
-        # optionally selfhost cryptojs
-        if self.config["selfhost"]:
-            js_libraries = []
-            for jsurl in JS_LIBRARIES:
-                js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl.rsplit('/',1)[1])
-        else:
-            js_libraries = JS_LIBRARIES
-
-        decrypt_form = Template(self.setup['button_template']).render({
-            # custom message and template rendering
-            'summary': summary,
-            'placeholder': password,
-            'password_button': self.config['password_button'],
-            'password_button_text': self.setup['password_button_text'],
-            'encryption_info_message': self.setup['encryption_info_message'],
-            'decryption_failure_message': json.dumps(self.setup['decryption_failure_message']),
-            'input_class': self.config['input_class'],
-            'button_class': self.config['button_class'],
+            'obfuscate': obfuscate,
+            'obfuscate_password': obfuscate_password,
             # this benign decoding is necessary before writing to the template,
             # otherwise the output string will be wrapped with b''
             'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
@@ -257,9 +230,6 @@ class encryptContentPlugin(BasePlugin):
         logger.debug('Load JS template from file: "{file}".'.format(file=str(self.config['js_template_path'])))
         with open(self.config['js_template_path'], 'r') as template_js:
             self.setup['js_template'] = template_js.read()
-        logger.debug('Load HTML button template from file: "{file}".'.format(file=str(self.config['html_button_path'])))
-        with open(self.config['html_button_path'], 'r') as template_button:
-            self.setup['button_template'] = template_button.read()
 
         # Optionnaly use Github secret
         if self.config.get('use_secret'):
@@ -382,9 +352,11 @@ class encryptContentPlugin(BasePlugin):
         # Set global password as default password for each page
         self.setup['password'] = self.config['global_password']
 
-        # Custom per-page summary
+        # Custom per-page strings
         if 'summary' in page.meta.keys():
             setattr(page, 'custom_summary', str(page.meta.get('summary')))
+        if 'encryption_info_message' in page.meta.keys():
+            setattr(page, 'custom_encryption_info_message', str(page.meta.get('encryption_info_message')))
 
         if 'obfuscate' in page.meta.keys(): # would be overridden if password meta key is defined
             setattr(page, 'obfuscate', True)
@@ -486,32 +458,41 @@ class encryptContentPlugin(BasePlugin):
                 page.title = str(self.config['title_prefix']) + str(page.title)
 
         if hasattr(page, 'obfuscate'):
-            encrypt_func = self.__obfuscate_content__
+            obfuscate = True
         else:
-            encrypt_func = self.__encrypt_content__
+            obfuscate = False
 
         if hasattr(page, 'custom_summary'):
             summary = page.custom_summary
         else:
             summary = self.setup['summary']
 
+        if hasattr(page, 'custom_encryption_info_message'):
+            encryption_info_message = page.custom_encryption_info_message
+        else:
+            encryption_info_message = self.setup['encryption_info_message']
+
         if hasattr(page, 'html_to_encrypt'):
-            page.content = encrypt_func(
+            page.content = self.__encrypt_content__(
                 page.html_to_encrypt, 
                 str(page.password),
                 context['base_url']+'/',
                 self.setup['site_path']+page.url,
-                summary
+                summary,
+                encryption_info_message,
+                obfuscate
             )
             delattr(page, 'html_to_encrypt')
 
         if self.config['inject']:
-            setattr(page, 'decrypt_form', encrypt_func(
+            setattr(page, 'decrypt_form', self.__encrypt_content__(
                 '<!-- dummy -->', 
                 str(page.password),
                 context['base_url']+'/',
                 self.setup['site_path']+page.url,
-                summary
+                summary,
+                encryption_info_message,
+                obfuscate
             ))
 
         return context
