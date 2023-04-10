@@ -112,9 +112,9 @@ class encryptContentPlugin(BasePlugin):
             PADDING_CHAR
         )
 
-    def __encrypt_content__(self, content, password, base_path, encryptcontent_path, summary, encryption_info_message, obfuscate):
+    def __encrypt_content__(self, content, base_path, encryptcontent_path, encryptcontent):
         """ Replaces page or article content with decrypt form. """
-        ciphertext_bundle = self.__encrypt_text_aes__(content, password)
+        ciphertext_bundle = self.__encrypt_text_aes__(content, encryptcontent['password'])
 
         # optionally selfhost cryptojs
         if self.config["selfhost"]:
@@ -124,19 +124,20 @@ class encryptContentPlugin(BasePlugin):
         else:
             js_libraries = JS_LIBRARIES
 
+        obfuscate = encryptcontent.get('obfuscate')
         if obfuscate:
-            obfuscate_password = password
+            obfuscate_password = encryptcontent['password']
         else:
             obfuscate_password = None
 
         decrypt_form = Template(self.setup['html_template']).render({
             # custom message and template rendering
-            'summary': summary,
-            'placeholder': self.setup['placeholder'],
+            'summary': encryptcontent['summary'],
+            'placeholder': encryptcontent['placeholder'],
             'password_button': self.config['password_button'],
-            'password_button_text': self.setup['password_button_text'],
-            'encryption_info_message': encryption_info_message,
-            'decryption_failure_message': json.dumps(self.setup['decryption_failure_message']),
+            'password_button_text': encryptcontent['password_button_text'],
+            'encryption_info_message': encryptcontent['encryption_info_message'],
+            'decryption_failure_message': json.dumps(encryptcontent['decryption_failure_message']),
             'input_class': self.config['input_class'],
             'button_class': self.config['button_class'],
             'obfuscate': obfuscate,
@@ -295,14 +296,6 @@ class encryptContentPlugin(BasePlugin):
         if not self.setup['search_plugin_found']:
             logger.warning('"search" plugin wasn\'t enabled. Search index isn\'t generated or modified.')
 
-        #init default translation from config
-        self.setup['title_prefix'] = self.config['title_prefix']
-        self.setup['summary'] = self.config['summary']
-        self.setup['placeholder'] = self.config['placeholder']
-        self.setup['password_button_text'] = self.config['password_button_text']
-        self.setup['decryption_failure_message'] = self.config['decryption_failure_message']
-        self.setup['encryption_info_message'] = self.config['encryption_info_message']
-
         self.setup['locations'] = {}
 
     def on_pre_build(self, config, **kwargs):
@@ -349,27 +342,23 @@ class encryptContentPlugin(BasePlugin):
         :return: Markdown source text of page as string
         """
 
-        # Set global password as default password for each page
-        self.setup['password'] = self.config['global_password']
+        encryptcontent = {} #init page data dict
 
-        # Custom per-page strings
-        if 'summary' in page.meta.keys():
-            setattr(page, 'custom_summary', str(page.meta.get('summary')))
-        if 'encryption_info_message' in page.meta.keys():
-            setattr(page, 'custom_encryption_info_message', str(page.meta.get('encryption_info_message')))
+        # Set global password as default password for each page
+        encryptcontent['password'] = self.config['global_password']
 
         if 'password' in page.meta.keys():
             # If global_password is set, but you don't want to encrypt content
             page_password = str(page.meta.get('password'))
-            self.setup['password'] = None if page_password == '' else page_password
+            encryptcontent['password'] = None if page_password == '' else page_password
             # Delete meta password information before rendering to avoid leak :]
             del page.meta['password']
 
         if 'use_secret' in page.meta.keys():
             if os.environ.get(str(page.meta.get('use_secret'))):
-                self.setup['password'] = os.environ.get(str(page.meta.get('use_secret')))
+                encryptcontent['password'] = os.environ.get(str(page.meta.get('use_secret')))
             else:
-                if self.config['ignore_missing_secret'] and self.setup['password']:
+                if self.config['ignore_missing_secret'] and encryptcontent['password']:
                     logger.warning('Cannot get password for "{page}" from environment variable: {var}. Using password from config or meta key as fallback!'.format(
                         var=str(page.meta.get('use_secret')), page=page.title)
                     )
@@ -380,10 +369,22 @@ class encryptContentPlugin(BasePlugin):
                     os._exit(1)                                 # prevent build without password to avoid leak0
 
         if 'obfuscate' in page.meta.keys():
-            if self.setup['password'] is None: # Only allow obfuscation if no password defined
-                setattr(page, 'obfuscate', True)
-                self.setup['password'] = str(page.meta.get('obfuscate'))
+            if encryptcontent['password'] is None: # Only allow obfuscation if no password defined
+                encryptcontent['obfuscate'] = True
+                encryptcontent['password'] = str(page.meta.get('obfuscate'))
             del page.meta['obfuscate']
+
+        if encryptcontent.get('password'):
+            # Custom per-page strings
+            if 'encryption_summary' in page.meta.keys():
+                encryptcontent['summary'] = str(page.meta.get('encryption_summary'))
+                del page.meta['encryption_summary']
+
+            if 'encryption_info_message' in page.meta.keys():
+                encryptcontent['encryption_info_message'] = str(page.meta.get('encryption_info_message'))
+                del page.meta['encryption_info_message']
+
+            setattr(page, 'encryptcontent', encryptcontent)
 
         return markdown
 
@@ -400,19 +401,15 @@ class encryptContentPlugin(BasePlugin):
         :param site_navigation: global navigation object
         :return: HTML rendered from Markdown source as string encrypt with AES
         """
-        if self.setup['password'] is not None:
+
+        if hasattr(page, 'encryptcontent'):
             if self.config['tag_encrypted_page']:
                 # Set attribute on page to identify encrypted page on template rendering
                 setattr(page, 'encrypted', True)
 
-            # Set password attributes on page for other mkdocs events
-            setattr(page, 'password', str(self.setup['password']))
-
             # Keep encrypted html to encrypt as temporary variable on page
             if not self.config['inject']:
-                setattr(page, 'html_to_encrypt', html)
-
-            self.setup['password'] = None #reinit for next page
+                page.encryptcontent['html_to_encrypt'] = html
 
         return html
 
@@ -429,69 +426,59 @@ class encryptContentPlugin(BasePlugin):
         :param nav: global navigation object
         :return: dict of template context variables
         """
-        if hasattr(page, 'password'):
+        if hasattr(page, 'encryptcontent'):
             if 'i18n_page_file_locale' in context:
                 locale = context['i18n_page_file_locale']
                 if locale in self.config['translations']:
-                    #init default translation from config
-                    self.setup['title_prefix'] = self.config['title_prefix']
-                    self.setup['summary'] = self.config['summary']
-                    self.setup['placeholder'] = self.config['placeholder']
-                    self.setup['password_button_text'] = self.config['password_button_text']
-                    self.setup['decryption_failure_message'] = self.config['decryption_failure_message']
-                    self.setup['encryption_info_message'] = self.config['encryption_info_message']
                     translations = self.config['translations'][locale]
-                    #apply translation if defined
-                    if 'title_prefix' in translations:
-                        self.setup['title_prefix'] = translations['title_prefix']
-                    if 'summary' in translations:
-                        self.setup['summary'] = translations['summary']
-                    if 'placeholder' in translations:
-                        self.setup['placeholder'] = translations['placeholder']
-                    if 'password_button_text' in translations:
-                        self.setup['password_button_text'] = translations['password_button_text']
-                    if 'decryption_failure_message' in translations:
-                        self.setup['decryption_failure_message'] = translations['decryption_failure_message']
-                    if 'encryption_info_message' in translations:
-                        self.setup['encryption_info_message'] = translations['encryption_info_message']
 
-            if self.setup['title_prefix']: 
+                    #apply translation if defined
+                    if 'title_prefix' in translations and 'title_prefix' not in page.encryptcontent:
+                        page.encryptcontent['title_prefix'] = translations['title_prefix']
+                    if 'summary' in translations and 'summary' not in page.encryptcontent:
+                        page.encryptcontent['summary'] = translations['summary']
+                    if 'placeholder' in translations and 'placeholder' not in page.encryptcontent:
+                        page.encryptcontent['placeholder'] = translations['placeholder']
+                    if 'password_button_text' in translations and 'password_button_text' not in page.encryptcontent:
+                        page.encryptcontent['password_button_text'] = translations['password_button_text']
+                    if 'decryption_failure_message' in translations and 'decryption_failure_message' not in page.encryptcontent:
+                        page.encryptcontent['decryption_failure_message'] = translations['decryption_failure_message']
+                    if 'encryption_info_message' in translations and 'encryption_info_message' not in page.encryptcontent:
+                        page.encryptcontent['encryption_info_message'] = translations['encryption_info_message']
+
+            #init default strings from config
+            if 'title_prefix' not in page.encryptcontent:
+                page.encryptcontent['title_prefix'] = self.config['title_prefix']
+            if 'summary' not in page.encryptcontent:
+                page.encryptcontent['summary'] = self.config['summary']
+            if 'placeholder' not in page.encryptcontent:
+                page.encryptcontent['placeholder'] = self.config['placeholder']
+            if 'password_button_text' not in page.encryptcontent:
+                page.encryptcontent['password_button_text'] = self.config['password_button_text']
+            if 'decryption_failure_message' not in page.encryptcontent:
+                page.encryptcontent['decryption_failure_message'] = self.config['decryption_failure_message']
+            if 'encryption_info_message' not in page.encryptcontent:
+                page.encryptcontent['encryption_info_message'] = self.config['encryption_info_message']
+
+            if page.encryptcontent['title_prefix']: 
                 page.title = str(self.config['title_prefix']) + str(page.title)
 
-        if hasattr(page, 'custom_summary'):
-            summary = page.custom_summary
-        else:
-            summary = self.setup['summary']
+            if 'html_to_encrypt' in page.encryptcontent:
+                page.content = self.__encrypt_content__(
+                    page.encryptcontent['html_to_encrypt'], 
+                    context['base_url']+'/',
+                    self.setup['site_path']+page.url,
+                    page.encryptcontent
+                )
+                page.encryptcontent['html_to_encrypt'] = None
 
-        if hasattr(page, 'custom_encryption_info_message'):
-            encryption_info_message = page.custom_encryption_info_message
-        else:
-            encryption_info_message = self.setup['encryption_info_message']
-
-        obfuscate = hasattr(page, 'obfuscate')
-
-        if hasattr(page, 'html_to_encrypt'):
-            page.content = self.__encrypt_content__(
-                page.html_to_encrypt, 
-                str(page.password),
-                context['base_url']+'/',
-                self.setup['site_path']+page.url,
-                summary,
-                encryption_info_message,
-                obfuscate
-            )
-            delattr(page, 'html_to_encrypt')
-
-        if self.config['inject']:
-            setattr(page, 'decrypt_form', self.__encrypt_content__(
-                '<!-- dummy -->', 
-                str(page.password),
-                context['base_url']+'/',
-                self.setup['site_path']+page.url,
-                summary,
-                encryption_info_message,
-                obfuscate
-            ))
+            if self.config['inject']:
+                page.encryptcontent['decrypt_form'] = self.__encrypt_content__(
+                    '<!-- dummy -->', 
+                    context['base_url']+'/',
+                    self.setup['site_path']+page.url,
+                    page.encryptcontent
+                )
 
         return context
 
@@ -508,7 +495,7 @@ class encryptContentPlugin(BasePlugin):
         :return: output of rendered template as string
         """
         # Limit this process only if encrypted_something feature is enable *(speedup)*
-        if (self.setup['encrypted_something'] and hasattr(page, 'password')
+        if (self.setup['encrypted_something'] and hasattr(page, 'encryptcontent')
                 and len(self.setup['encrypted_something']) > 0):  # noqa: W503
             soup = BeautifulSoup(output_content, 'html.parser')
             for name, tag in self.setup['encrypted_something'].items():
@@ -529,7 +516,7 @@ class encryptContentPlugin(BasePlugin):
                         else:
                             merge_item = ""
                         # Encrypt child items on target tags with page password
-                        cipher_bundle = self.__encrypt_text_aes__(merge_item, str(page.password))
+                        cipher_bundle = self.__encrypt_text_aes__(merge_item, str(page.encryptcontent['password']))
                         encrypted_content = b';'.join(cipher_bundle).decode('ascii')
                         # Replace initial content with encrypted one
                         bs4_encrypted_content = BeautifulSoup(encrypted_content, 'html.parser')
@@ -542,19 +529,23 @@ class encryptContentPlugin(BasePlugin):
                                 item['style'] = item['style'] + "display:none"
                         else:
                             item['style'] = "display:none"
+
             if self.config['inject'] and len(self.config['inject']) == 1:
                 name, tag = list(self.config['inject'].items())[0]
                 injector = soup.new_tag("div")
                 something_search = soup.find(tag[0], {tag[1]: name})
                 something_search.insert_before(injector)
-                injector.append(BeautifulSoup(page.decrypt_form, 'html.parser'))
-                delattr(page, 'decrypt_form')
+                injector.append(BeautifulSoup(page.encryptcontent['decrypt_form'], 'html.parser'))
+                page.encryptcontent['decrypt_form'] = None
             output_content = str(soup)
 
-        if hasattr(page, 'password'):
+        if hasattr(page, 'encryptcontent'):
             if self.setup['search_plugin_found']:
                 location = page.url.lstrip('/')
-                self.setup['locations'][location] = page.password
+                self.setup['locations'][location] = page.encryptcontent['password']
+            print(page.title)
+            print(page.encryptcontent)
+            delattr(page, 'encryptcontent')
 
         return output_content
 
