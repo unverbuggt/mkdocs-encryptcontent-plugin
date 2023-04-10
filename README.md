@@ -28,11 +28,11 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 
 * ~~Sanitize code. F.ex. self.config variables should not be overwritten on other places than on_config.~~
 * ~~Rework search_index handling to be more bulletproof.~~
-* Add optional obfuscation of filenames. F.ex. to make it impossible to guess image names.
+* ~~Add optional obfuscation of file names. F.ex. to make it impossible to guess image names.~~
 * Rework password handling or inventory of some sort
 * ~~As we are vulnerable to brute force: Review strenght of used passwords.~~
 * download self-hosted cryptojs just once (check hash of js files)
-* ~~Add button press to decrypt without password (just to hide content from search engines)
+* ~~Add button press to decrypt without password (just to hide content from search engines)~~
 * ...to be defined
 
 # Table of Contents
@@ -43,7 +43,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
     * [Secret from environment](#secret-from-environment)
     * [Customization](#default-vars-customization)
     * [Translations](#translations)
-    * [Obfuscate pages](#obfuscate-pages)
+    * [Obfuscate pages](#obfuscate-pages) **NEW**
   * [Features](#features)
     * [HighlightJS support](#highlightjs-support) *(default)*
     * [Arithmatex support](#arithmatex-support) *(default)*
@@ -58,6 +58,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
     * [Add button](#add-button)
     * [Reload scripts](#reload-scripts)
     * [Self-host crypto-js](#self-host-crypto-js)
+    * [File name obfuscation](#filename-obfuscation)
   * [Contributing](#contributing)
 
 
@@ -594,6 +595,51 @@ plugins:
         selfhost: true
         selfhost_download: false
 ```
+
+### File name obfuscation
+
+Imagine your pages contain many images and you labeled them "1.jpg", "2.jpg" and so on for some reason.
+If you'd like to encrypt one of these pages, an attacker could try guessing the image file names
+and would be able to download them despite not having the password to the page.
+
+This feature should make it impossible or at least way harder for an external attacker to guess the file names.
+Please also check and disable directory listing for that matter.
+Keep in mind that you hosting provider is still able to see all your images and files.
+
+To counter file name guessing you could active the feature like this:
+
+```yaml
+plugins:
+    - encryptcontent:
+        selfhost: true
+        selfhost_download: false
+        hash_filenames:
+          extensions:
+            - 'png'
+            - 'jpg'
+            - 'jpeg'
+            - 'svg'
+          except:
+            - 'lilien.svg'
+```
+
+At `extensions` we define which file name extensions to obfuscate
+(extension is taken from the part after the last ".",
+so the extension of "image.jpg" is "jpg" and of "archive.tar.gz" is "gz").
+
+You can define multiple exceptions at the `except` list.
+The file names that end with these strings will be skipped.
+You should use this if some images are used by themes or other plugins.
+Otherwise, you'd need to change these file names to the obfuscated ones.
+
+The file names are obfuscated in a way that the corresponding file is hashed with MD5
+and the hash is added to the file name
+(If the file content is not changed the file name also not changes), like this:
+
+some_image_1_bb80db433751833b8f8b4ad23767c0fc.jpg
+("bb80db433751833b8f8b4ad23767c0fc" being the MD5 hash of said image.)
+
+> The file name obfuscation is currently applied to the whole site - not just the encrypted pages...
 
 # Contributing
 

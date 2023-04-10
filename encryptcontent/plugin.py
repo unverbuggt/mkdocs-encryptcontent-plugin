@@ -84,6 +84,7 @@ class encryptContentPlugin(BasePlugin):
         ('selfhost', config_options.Type(bool, default=False)),
         ('selfhost_download', config_options.Type(bool, default=True)),
         ('translations', config_options.Type(dict, default={}, required=False)),
+        ('hash_filenames', config_options.Type(dict, default={}, required=False)),
         # legacy features, doesn't exist anymore
     )
 
@@ -94,6 +95,13 @@ class encryptContentPlugin(BasePlugin):
         key = hashlib.md5()
         key.update(text.encode('utf-8'))
         return key.digest()
+
+    def __hash_md5_file__(self, fname):
+        hash_md5 = hashlib.md5()
+        with open(fname, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
 
     def __encrypt_text_aes__(self, text, password):
         """ Encrypts text with AES-256. """
@@ -328,6 +336,34 @@ class encryptContentPlugin(BasePlugin):
         except Exception as exp:
             logger.exception(exp)
 
+    def on_files(self, files, config, **kwargs):
+        """
+        The files event is called after the files collection is populated from the docs_dir.
+        Use this event to add, remove, or alter files in the collection.
+        Note that Page objects have not yet been associated with the file objects in the collection.
+        Use Page Events to manipulate page specific data.
+        """
+        if 'extensions' in self.config['hash_filenames']:
+            for file in files:
+
+                if 'except' in self.config['hash_filenames']:
+                    skip = False
+                    for check in self.config['hash_filenames']['except']:
+                        if file.src_path.endswith(check):
+                            skip = True
+                    if skip:
+                        continue
+
+                ext = file.src_path.rsplit('.',1)[1].lower()
+                if ext in self.config['hash_filenames']['extensions']:
+                    hash = self.__hash_md5_file__(file.abs_src_path)
+                    filename, ext =  file.abs_dest_path.rsplit('.',1)
+                    filename = filename + "_" + hash
+                    file.abs_dest_path = filename + "." + ext
+                    filename, ext =  file.url.rsplit('.',1)
+                    filename = filename + "_" + hash
+                    file.url = filename + "." + ext
+
     def on_page_markdown(self, markdown, page, config, **kwargs):
         """
         The page_markdown event is called after the page's markdown is loaded from file and
@@ -543,8 +579,6 @@ class encryptContentPlugin(BasePlugin):
             if self.setup['search_plugin_found']:
                 location = page.url.lstrip('/')
                 self.setup['locations'][location] = page.encryptcontent['password']
-            print(page.title)
-            print(page.encryptcontent)
             delattr(page, 'encryptcontent')
 
         return output_content
