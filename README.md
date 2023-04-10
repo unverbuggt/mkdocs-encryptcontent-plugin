@@ -31,7 +31,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * ~~Add optional obfuscation of file names. F.ex. to make it impossible to guess image names.~~
 * Rework password handling or inventory of some sort
 * ~~As we are vulnerable to brute force: Review strenght of used passwords.~~
-* download self-hosted cryptojs just once (check hash of js files)
+* ~~download self-hosted cryptojs just once (check hash of js files)~~
 * ~~Add button press to decrypt without password (just to hide content from search engines)~~
 * ...to be defined
 
@@ -585,15 +585,17 @@ It is also possible to reload a script id like `<script id="autoexec">console.lo
 ### Self-host crypto-js
 
 If you enable `selfhost` then you'll choose to upload crypto-js to your web server rather than using cloudflare CDN.
+The self-host location is "SITE_URL/assets/javascripts/cryptojs/".
 
-Additionally if you set `selfhost_download` then the required files will be downloaded **every time** on `mkdocs serve` or `mkdocs build`. 
-Be aware that this costs additional build time and it is better to copy the files from `site/assets/javascripts/cryptojs/*` to `docs/assets/javascripts/cryptojs/*` to speed things up.
+Additionally if you set `selfhost_download` then the required files will be automatically downloaded if needed.
+The files are checked for their MD5 hash and saved to `docs_dir` or `selfhost_dir` (relative to `mkdocs.yml`).
 
 ```yaml
 plugins:
     - encryptcontent:
         selfhost: true
         selfhost_download: false
+        selfhost_dir: 'theme_overrides'
 ```
 
 ### File name obfuscation

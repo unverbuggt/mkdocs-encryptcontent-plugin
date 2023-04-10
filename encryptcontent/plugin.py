@@ -7,6 +7,7 @@ import logging
 import json
 import math
 from pathlib import Path
+from os.path import exists
 from Crypto import Random
 from jinja2 import Template
 from Crypto.Cipher import AES
@@ -22,12 +23,12 @@ except ImportError:
     string_types = str
 
 JS_LIBRARIES = [
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/cipher-core.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/pad-nopadding.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/md5.js',
-    '//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.js'
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.js','b55ae8027253d4d54c4f1ef3b6254646'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.js','f551ce1340a86e5edbfef4a6aefa798f'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/cipher-core.js','dfddc0e33faf7a794e0c3c140544490e'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/pad-nopadding.js','e288e14e2cd299c3247120114e1178e6'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/md5.js','349498f298a6e6e6a85789d637e89109'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.js','da81b91b1b57c279c29b3469649d9b86'],
 ]
 
 PLUGIN_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -83,6 +84,7 @@ class encryptContentPlugin(BasePlugin):
         ('inject', config_options.Type(dict, default={})),
         ('selfhost', config_options.Type(bool, default=False)),
         ('selfhost_download', config_options.Type(bool, default=True)),
+        ('selfhost_dir', config_options.Type(string_types, default='')),
         ('translations', config_options.Type(dict, default={}, required=False)),
         ('hash_filenames', config_options.Type(dict, default={}, required=False)),
         # legacy features, doesn't exist anymore
@@ -102,6 +104,21 @@ class encryptContentPlugin(BasePlugin):
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
+
+    def __download_and_check__(self, filename, url, hash):
+        hash_md5 = hashlib.md5()
+        if not exists(filename):
+            with urlopen(url) as response:
+                filecontent = response.read()
+                hash_md5.update(filecontent)
+                hash_check = hash_md5.hexdigest()
+                if hash == hash_check:
+                    with open(filename, 'wb') as file:
+                        file.write(filecontent)
+                        logger.info('Downloaded external asset "' + filename.name + '"')
+                else:
+                    logger.error('Error downloading asset "' + filename.name + '" hash mismatch!')
+                    os._exit(1)
 
     def __encrypt_text_aes__(self, text, password):
         """ Encrypts text with AES-256. """
@@ -125,12 +142,12 @@ class encryptContentPlugin(BasePlugin):
         ciphertext_bundle = self.__encrypt_text_aes__(content, encryptcontent['password'])
 
         # optionally selfhost cryptojs
-        if self.config["selfhost"]:
-            js_libraries = []
-            for jsurl in JS_LIBRARIES:
-                js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl.rsplit('/',1)[1])
-        else:
-            js_libraries = JS_LIBRARIES
+        js_libraries = []
+        for jsurl in JS_LIBRARIES:
+            if self.config["selfhost"]:
+                js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
+            else:
+                js_libraries = jsurl[0]
 
         obfuscate = encryptcontent.get('obfuscate')
         if obfuscate:
@@ -626,16 +643,18 @@ class encryptContentPlugin(BasePlugin):
             logger.info('Modified search_index.')
 
         # optionally download cryptojs
-        if self.config["selfhost"] and self.config["selfhost_download"]:
-            #TODO just download once and verify hash afterwards
-            logger.info('Downloading cryptojs for self-hosting... Please consider copying "assets/javascripts/cryptojs/" to "doc/" and setting "selfhost_download: false" to decrease build time.')
-            Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/').mkdir(parents=True, exist_ok=True)
+        if self.config['selfhost'] and self.config['selfhost_download']:
+            logger.info('Downloading cryptojs for self-hosting (if needed)...')
+            if self.config['selfhost_dir']:
+                configpath = Path(config['config_file_path']).parents[0]
+                dlpath = configpath.joinpath(self.config['selfhost_dir'] + '/assets/javascripts/cryptojs/')
+            else:
+                dlpath = Path(config.data['docs_dir'] + '/assets/javascripts/cryptojs/')
+            dlpath.mkdir(parents=True, exist_ok=True)
             for jsurl in JS_LIBRARIES:
-                dlurl = "https:" + jsurl
-                filepath = Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/' + jsurl.rsplit('/',1)[1])
-                with urlopen(dlurl) as response:
-                    with open(filepath, 'wb') as file:
-                        file.write(response.read())
+                dlurl = "https:" + jsurl[0]
+                filepath = dlpath.joinpath(jsurl[0].rsplit('/',1)[1])
+                self.__download_and_check__(filepath, dlurl, jsurl[1])
 
         passwords = set() #get all unique passwords
         for location in self.setup['locations'].keys():
