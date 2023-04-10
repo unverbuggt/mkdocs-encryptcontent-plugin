@@ -40,8 +40,10 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
   * [Installation](#installation)
   * [Usage](#usage)
     * [Global password protection](#global-password-protection)
-    * [Secret from environment](#secret-from-environment) **(UPDATE)**
+    * [Secret from environment](#secret-from-environment)
     * [Customization](#default-vars-customization)
+    * [Translations](#translations)
+    * [Obfuscate pages](#obfuscate-pages)
   * [Features](#features)
     * [HighlightJS support](#highlightjs-support) *(default)*
     * [Arithmatex support](#arithmatex-support) *(default)*
@@ -49,14 +51,13 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
     * [Tag encrypted page](#tag-encrypted-page) *(default)*
     * [Remember password](#remember-password)
     * [Encrypt something](#encrypt-something)
-    * [Inject decrypt-form.tpl to theme](#inject-decrypt-formtpl-to-theme) **(NEW)**
+    * [Inject decrypt-form.tpl to theme](#inject-decrypt-formtpl-to-theme)
     * [Search index encryption](#search-index-encryption)
-    * [Search index encryption for mkdocs-material](#search-index-encryption-for-mkdocs-material) **(NEW)**
+    * [Search index encryption for mkdocs-material](#search-index-encryption-for-mkdocs-material)
     * [Override default templates](#override-default-templates)
     * [Add button](#add-button)
     * [Reload scripts](#reload-scripts)
-    * [Self-host crypto-js](#self-host-crypto-js) **(NEW)**
-    * [Translations](#translations) **(NEW)**
+    * [Self-host crypto-js](#self-host-crypto-js)
   * [Contributing](#contributing)
 
 
@@ -103,7 +104,8 @@ plugins:
 
 If a password is defined in an article, it will **ALWAYS** overwrite the global password. 
 
-> **NOTE** Keep in mind that if the `password:` tag exists without value in an article, it will **not be protected** !
+> **NOTE** Keep in mind that if the `password:` tag exists without value in a page, it will **not be protected** !
+> Use this to **disable** `global_password` on specific pages.
 
 
 ### Secret from environment
@@ -128,7 +130,7 @@ plugins:
 > However this can be converted into a warning by setting `ignore_missing_secret: true`. 
 > Use this only if you use a secret environment variable for production and a plain password for testing. You have been warned.
 
-> **NEW** The meta tag `use_secret` can also be set to achieve the same functionality on page level.
+> The meta tag `use_secret` can also be set to achieve the same functionality on page level.
 
 ### Default vars customization
 
@@ -140,8 +142,8 @@ plugins:
         title_prefix: '[LOCK]'
         summary: 'another informational message to encrypted content'
         placeholder: 'another password placeholder'
-        decryption_failure_message: 'another informational message when decryption fail'
-        encryption_info_message: 'another information message when you dont have acess !'
+        decryption_failure_message: 'another informational message when decryption fails'
+        encryption_info_message: "another information message when you don't have access !"
         input_class: 'md-search__form md-search__input'
         button_class: 'md-search__icon'
 ```
@@ -158,7 +160,38 @@ Defaut encryption information message is `Contact your administrator for access 
 
 > **NOTE** Adding a prefix to the title does not change the default navigation path !
 
-Use `input_class` and `button_class` to optionally set a CSS class for the password field and the button.
+### Translations
+
+If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/) plugin you can provide `translations` for the used `i18n_page_file_locale`.
+
+```yaml
+    - encryptcontent:
+        #...
+        translations:
+          de:
+            title_prefix: '[Verschlüsselt] '
+            summary: 'Der Inhalt dieser Seite ist mit AES verschlüsselt. '
+            placeholder: 'Mit Strg+Enter wird das Passwort global gesetzt'
+            password_button_text: 'Entschlüsseln'
+            decryption_failure_message: 'Falsches passwort.'
+            encryption_info_message: 'Bitte wenden Sie sich an den Systemadministrator um auf diese Seite zuzugreifen.'
+```
+
+#### Custom per-page strings
+
+You can set the  meta tag `encryption_summary` to customize `summary` and `encryption_info_message` on every page.
+
+### Obfuscate pages
+
+If you want to make it harder for search engines to scrape you pages content,
+you can set `obfuscate: SomeNotSoSecretPassword` meta tag in markdown.
+
+The page than will display `summary` and `encryption_info_message` together with a button labeled with.
+`password_button_text`. In order to view the pages content one hast to press the button first.
+
+If a `password` or `use_secret` is set, then the `obfuscate` feature will be disabled.
+If you want to use `obfuscate` in a configuration where `global_password` is defined, 
+you'll need to set `password:` meta tag (with no password defined) to undefine the password on this page.
 
 # Features
 
@@ -258,7 +291,8 @@ the page will be automatically decrypted using the value previously created.
 By default, the key is created with a name relative to the page on which it was generated.
 This 'relative' key will always be used as first attempt to decrypt the current page when loading.
 
-If your password is a [global password](#global-password-protection), you can fill in the form field  `mkdocs-content-password`, then use the keyboard shortcut `CTRL + ENTER` instead of the classic `ENTER`. 
+If your password is a [global password](#global-password-protection), you can fill in the form
+field  `mkdocs-content-password`, then use the keyboard shortcut `CTRL + ENTER` instead of the classic `ENTER`. 
 The key that will be created with a generic name to making it accessible, by default, on all the pages of your site.
 
 The form of decryption remains visible as long as the content has not been successfully decrypted, which allows in case of error to retry. 
@@ -272,14 +306,15 @@ plugins:
         default_expire_delay: 24   # <-- Default expire delay in hours (optional)
 ```
 
-> **NOTE** The expired elements of the localStorage are only deleted by the execution of the decrypt-content.js scripts and therefore by the navigation on the site. Secret items can therefore remain visible in local storage after their expiration dates. 
-> Now The default is to use sessionStorage instead of localStorage, so the browser forgets the password after the current tab was closed. However it can be set to use localStorage by setting `session_storage: False`
+> **NOTE** The expired elements of the localStorage are only deleted by the execution of the decrypt-content.js
+> scripts and therefore by the navigation on the site. Secret items can therefore remain visible in local storage
+> after their expiration dates. 
+> Now The default is to use sessionStorage instead of localStorage, so the browser forgets the password after
+> the current tab was closed. However it can be set to use localStorage by setting `session_storage: False`
 
 ### Encrypt something
 
 Related to [issue #9](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/9)
-
-The [tag encrypted page feature](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin#tag-encrypted-page) **MUST** be enabled (it's default) for this feature to work properly.
 
 Add `encrypted_something: {}` in the plugin configuration variable, to encrypt something else.
 
@@ -332,7 +367,7 @@ plugins:
             mkdocs-encrypted-toc: [div, id]
 ```
 
-2. Other example, with multiples target. In you Material Theme, you want to encrypt ToC content and Footer.
+2. Other example, with multiples target. In your custom Material theme, you want to encrypt ToC content and Footer.
 
 Materiel generate 2 `<nav>` structure with the same template `toc.html`, so you need to use a `class` instead of an id for this part.
 The footer part, is generated by the `footer.html` template in a classic div so an `id` is sufficient
@@ -351,7 +386,7 @@ After modification, your template looks like this :
 </footer>
 ```
 
-Your configuration like this :
+Your configuration would look like this :
 ```yaml
 plugins:
     - encryptcontent:
@@ -361,7 +396,8 @@ plugins:
             mkdocs-encrypted-footer-meta: [div, id]
 ```
 
-3. If you are using mkdocs-material, then this example will also encrypt menu, toc and footer
+3. If you are using unmodified mkdocs-material, then this example will encrypt menu, toc and footer
+But you'd need the Navigation pruning feature to hide the title of encrypted pages from navigation (or see 2.).
 
 ```yaml
 plugins:
@@ -396,6 +432,8 @@ plugins:
             md-content: [div, class]
 ```
 
+> This feature overrides the normal practice of replacing the rendered content of a page.
+
 ### Search index encryption
 
 > **Default value is "encrypted"**
@@ -413,7 +451,7 @@ Three configuration modes are possible:
 
  * **clear** : Search index is not encrypted. Search is possible even on protected pages.
  * **dynamically** : Search index is encrypted on build. Search is possible once the pages have been decrypted.
- * **encrypted** : Search index of encrypted pages is removed on build. Search is not possible on all encrypted pages.
+ * **encrypted** : Search index of encrypted pages is removed on build. Search is not possible on encrypted pages.
 
 You can set `search_index: '<mode_name>'` in your `mkdocs.yml` to change the search index encryption mode. Possible values are `clear`, `dynamically`, `encrypted`. The default mode is "**encrypted**".
 
@@ -424,22 +462,28 @@ plugins:
 ```
 
 This functionality modifies the search index created by the “search” plug-in.
-Some themes might override the default “search” plug-in provided by mkdocs, but so far the structure of the `search/search_index.json` file is consistent.
+Some themes might override the default search plug-in provided by mkdocs, 
+but so far the structure of the `search/search_index.json` file is consistent.
 
 > The modification of the search index is carried out last (if `encryptcontent` is also last in `plugins`).
 > But always double-check the generated index after `mkdocs build` to see if your information is protected.
 
-When the configuration mode is set to "**dynamically**", the [javascripts contribution files](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/master/encryptcontent/contrib/templates/search)
-are used to override the default search plugin files provided by MkDocs. They include a process of decrypting and keeping the search index in a SessionStorage.
+When the configuration mode is set to "**dynamically**", the 
+[javascripts contribution files](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/master/encryptcontent/contrib/templates/search)
+are used to override the default search plugin files provided by MkDocs. 
+They include a process of decrypting and keeping the search index in a SessionStorage.
 
 ### Search index encryption for mkdocs-material
 
-[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) uses a different search plugin that cannot "easily" be overridden like the default search plugin.
-However this Plugin will still remove encrypted pages (`encrypted`) or encrypt the search entries (`dynamically`) for `mkdocs-material`.
+[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) uses a different search plugin that
+cannot "easily" be overridden like the default search plugin.
+However this Plugin will still remove encrypted pages (`encrypted`) or encrypt the search entries (`dynamically`)
+for `mkdocs-material`.
 
 In order to be able to decrypt the search index (`dynamically`) `mkdocs-material` needs to be customized (patched).
 
-You'll need some [prerequisites](https://squidfunk.github.io/mkdocs-material/customization/#environment-setup) and also execute these commands:
+You'll need some [prerequisites](https://squidfunk.github.io/mkdocs-material/customization/#environment-setup)
+and also execute these commands:
 
 ```bash
 git clone https://github.com/squidfunk/mkdocs-material
@@ -461,16 +505,25 @@ pip install --force-reinstall .
 
 Related to [issue #32](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/32)
 
-You can override the default templates with your own templates by providing an actual replacement path in the `html_template_path` *(HTML)* and `js_template_path` *(JS)* directives. Overridden templates **completely** replace the default templates. You **must** therefore copy the default templates to keep this module working.
+You can override the default templates with your own templates by providing an actual replacement
+path in the `html_template_path` *(HTML)* and `js_template_path` *(JS)* directives. 
+Overridden templates **completely** replace the default templates. You **must** therefore copy the
+default templates to keep this module working.
 
 ```yaml
 plugins:
     - encryptcontent:
         html_template_path: "/root/real/path/mkdocs_poc/my_html_template.html"
         js_template_path: "/root/real/path/mkdocs_poc/my_js_template.js"
+        input_class: 'md-search__form md-search__input'
+        button_class: 'md-search__icon'
 ```
 
-When you overriding the default templates, you can add and use your own Jinja variables to condition and enrich your template, by defining `html_extra_vars` and `js_extra_vars` directives in key/value format. Added values can be used in your Jinja templates via the variable `extra`.
+Use `input_class` and `button_class` to optionally set a CSS class for the password input field and the button.
+
+When you overriding the default templates, you can add and use your own Jinja variables to condition
+and enrich your template, by defining `html_extra_vars` and `js_extra_vars` directives in key/value format.
+Added values can be used in your Jinja templates via the variable `extra`.
 
 ```yaml
 plugins:
@@ -491,7 +544,9 @@ For example, you can modify your HTML template, to add a new title with your own
 [ ... ]
 ```
 
-> **NOTE** You must avoid replacing/overwriting the variables used by default by this module. The limitations are the same as those of the jinja models. Issues related to template override will not be addressed.
+> **NOTE** You must avoid replacing/overwriting the variables used by default by this module.
+> The limitations are the same as those of the jinja models.
+> Issues related to template override will not be addressed.
 
 ### Add button
 
@@ -539,24 +594,6 @@ plugins:
         selfhost: true
         selfhost_download: false
 ```
-
-### Translations
-
-If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/) plugin you can provide `translations` for the used `i18n_page_file_locale`.
-
-```yaml
-    - encryptcontent:
-        #...
-        translations:
-          de:
-            title_prefix: '[Verschlüsselt] '
-            summary: 'Der Inhalt dieser Seite ist mit AES verschlüsselt. '
-            placeholder: 'Mit Strg+Enter wird das Passwort global gesetzt'
-            password_button_text: 'Entschlüsseln'
-            decryption_failure_message: 'Falsches passwort.'
-            encryption_info_message: 'Bitte wenden Sie sich an den Systemadministrator um auf diese Seite zuzugreifen.'
-```
-
 
 # Contributing
 
