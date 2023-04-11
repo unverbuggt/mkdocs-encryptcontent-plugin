@@ -593,9 +593,8 @@ class encryptContentPlugin(BasePlugin):
             output_content = str(soup)
 
         if hasattr(page, 'encryptcontent'):
-            if self.setup['search_plugin_found']:
-                location = page.url.lstrip('/')
-                self.setup['locations'][location] = page.encryptcontent['password']
+            location = page.url.lstrip('/')
+            self.setup['locations'][location] = [page.encryptcontent['password'], page.encryptcontent.get('obfuscate')]
             delattr(page, 'encryptcontent')
 
         return output_content
@@ -622,7 +621,7 @@ class encryptContentPlugin(BasePlugin):
             for entry in search_entries['docs'].copy(): #iterate through all entries of search_index
                 for location in self.setup['locations'].keys():
                     if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
-                        page_password = self.setup['locations'][location]
+                        page_password = self.setup['locations'][location][0]
                         if self.config['search_index'] == 'encrypted':
                             search_entries.remove(entry)
                         elif self.config['search_index'] == 'dynamically' and page_password is not None:
@@ -658,7 +657,9 @@ class encryptContentPlugin(BasePlugin):
 
         passwords = set() #get all unique passwords
         for location in self.setup['locations'].keys():
-            passwords.add(self.setup['locations'][location])
+            if not self.setup['locations'][location][1]:
+                passwords.add(self.setup['locations'][location][0])
+        self.setup['locations'].clear()
         min_enttropy_spied_on, min_enttropy_secret = 0, 0
         for password in passwords:
             enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
@@ -666,8 +667,8 @@ class encryptContentPlugin(BasePlugin):
                 min_enttropy_spied_on = enttropy_spied_on
             if min_enttropy_secret == 0 or enttropy_secret < min_enttropy_secret:
                 min_enttropy_secret = enttropy_secret
-        if min_enttropy_spied_on < 100:
+        if min_enttropy_spied_on < 100 and min_enttropy_spied_on > 0:
             logger.warning('mkdocs-encryptcontent-plugin will always be vulnerable to brute-force attacks!'
-                           ' If someone watched you while typing your weakest password only got {spied_on} bits of entropy'
+                           ' Your weakest password only got {spied_on} bits of entropy, if someone watched you while typing'
                            ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(enttropy_spied_on), secret = math.ceil(min_enttropy_secret))
                     )
