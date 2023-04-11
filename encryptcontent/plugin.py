@@ -572,8 +572,7 @@ class encryptContentPlugin(BasePlugin):
                         cipher_bundle = self.__encrypt_text_aes__(merge_item, str(page.encryptcontent['password']))
                         encrypted_content = b';'.join(cipher_bundle).decode('ascii')
                         # Replace initial content with encrypted one
-                        bs4_encrypted_content = BeautifulSoup(encrypted_content, 'html.parser')
-                        item.contents = [bs4_encrypted_content]
+                        item.string = encrypted_content
                         if item.has_attr('style'):
                             if isinstance(item['style'], list):
                                 item['style'].append("display:none")
@@ -590,6 +589,7 @@ class encryptContentPlugin(BasePlugin):
                 something_search.insert_before(injector)
                 injector.append(BeautifulSoup(page.encryptcontent['decrypt_form'], 'html.parser'))
                 page.encryptcontent['decrypt_form'] = None
+
             output_content = str(soup)
 
         if hasattr(page, 'encryptcontent'):
