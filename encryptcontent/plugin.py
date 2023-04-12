@@ -614,9 +614,12 @@ class encryptContentPlugin(BasePlugin):
         #modify search_index in the style of mkdocs-exclude-search
         if self.setup['search_plugin_found'] and self.config['search_index'] != 'clear':
             search_index_filename = Path(config.data["site_dir"] + "/search/search_index.json")
-            #TODO: Check if search_index.json exists and error if not found (moved its location)
-            with open(search_index_filename, "r") as f:
-                search_entries = json.load(f)
+            try:
+                with open(search_index_filename, "r") as f:
+                    search_entries = json.load(f)
+            except:
+                logger.error('Search index needs modification, but could not read "search_index.json"!')
+                os._exit(1)
 
             for entry in search_entries['docs'].copy(): #iterate through all entries of search_index
                 for location in self.setup['locations'].keys():
@@ -637,8 +640,12 @@ class encryptContentPlugin(BasePlugin):
                             entry['location'] = location + ';' + b';'.join(code).decode('ascii')
                         break
 
-            with open(search_index_filename, "w") as f:
-                json.dump(search_entries, f)
+            try:
+                with open(search_index_filename, "w") as f:
+                    json.dump(search_entries, f)
+            except:
+                logger.error('Search index needs modification, but could not write "search_index.json"!')
+                os._exit(1)
             logger.info('Modified search_index.')
 
         # optionally download cryptojs
