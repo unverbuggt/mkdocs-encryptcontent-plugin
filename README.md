@@ -69,7 +69,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-2.5.0-py3-none-any.whl
+pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-2.5.1-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -600,7 +600,7 @@ and would be able to download them despite not having the password to the page.
 
 This feature should make it impossible or at least way harder for an external attacker to guess the file names.
 Please also check and disable directory listing for that matter.
-Keep in mind that you hosting provider is still able to see all your images and files.
+Keep in mind that your hosting provider is still able to see all your images and files.
 
 To counter file name guessing you could active the feature like this:
 
@@ -630,7 +630,7 @@ Otherwise, you'd need to change these file names to the obfuscated ones.
 
 The file names are obfuscated in a way that the corresponding file is hashed with MD5
 and the hash is added to the file name
-(If the file content is not changed the file name also not changes), like this:
+(If the file content is not changed the file name remains the same), like this:
 
 some_image_1_bb80db433751833b8f8b4ad23767c0fc.jpg
 ("bb80db433751833b8f8b4ad23767c0fc" being the MD5 hash of said image.)

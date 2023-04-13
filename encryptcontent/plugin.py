@@ -626,7 +626,7 @@ class encryptContentPlugin(BasePlugin):
                     if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
                         page_password = self.setup['locations'][location][0]
                         if self.config['search_index'] == 'encrypted':
-                            search_entries.remove(entry)
+                            search_entries['docs'].remove(entry)
                         elif self.config['search_index'] == 'dynamically' and page_password is not None:
                             #encrypt text/title/location(anchor only)
                             text = entry['text']
