@@ -147,7 +147,7 @@ class encryptContentPlugin(BasePlugin):
             if self.config["selfhost"]:
                 js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
             else:
-                js_libraries = jsurl[0]
+                js_libraries.append(jsurl[0])
 
         obfuscate = encryptcontent.get('obfuscate')
         if obfuscate:
