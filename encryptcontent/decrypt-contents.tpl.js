@@ -1,8 +1,9 @@
 /* encryptcontent/decrypt-contents.tpl.js */
 
 /* Decrypts the content from the ciphertext bundle. */
-function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {
-    var key = CryptoJS.MD5(password),
+function decrypt_content(password, iv_b64, ciphertext_b64, salt_b64) {
+    var salt = CryptoJS.enc.Base64.parse(salt_b64),
+        key = CryptoJS.PBKDF2(password, salt,{keySize: 256 / 32,hasher: CryptoJS.algo.MD5,iterations: Math.pow(10, 4)}),
         iv = CryptoJS.enc.Base64.parse(iv_b64),
         ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64),
         bundle = {
