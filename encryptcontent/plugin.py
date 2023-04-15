@@ -353,6 +353,20 @@ class encryptContentPlugin(BasePlugin):
         except Exception as exp:
             logger.exception(exp)
 
+        # optionally download cryptojs
+        if self.config['selfhost'] and self.config['selfhost_download']:
+            logger.info('Downloading cryptojs for self-hosting (if needed)...')
+            if self.config['selfhost_dir']:
+                configpath = Path(config['config_file_path']).parents[0]
+                dlpath = configpath.joinpath(self.config['selfhost_dir'] + '/assets/javascripts/cryptojs/')
+            else:
+                dlpath = Path(config.data['docs_dir'] + '/assets/javascripts/cryptojs/')
+            dlpath.mkdir(parents=True, exist_ok=True)
+            for jsurl in JS_LIBRARIES:
+                dlurl = "https:" + jsurl[0]
+                filepath = dlpath.joinpath(jsurl[0].rsplit('/',1)[1])
+                self.__download_and_check__(filepath, dlurl, jsurl[1])
+
     def on_files(self, files, config, **kwargs):
         """
         The files event is called after the files collection is populated from the docs_dir.
@@ -647,20 +661,6 @@ class encryptContentPlugin(BasePlugin):
                 logger.error('Search index needs modification, but could not write "search_index.json"!')
                 os._exit(1)
             logger.info('Modified search_index.')
-
-        # optionally download cryptojs
-        if self.config['selfhost'] and self.config['selfhost_download']:
-            logger.info('Downloading cryptojs for self-hosting (if needed)...')
-            if self.config['selfhost_dir']:
-                configpath = Path(config['config_file_path']).parents[0]
-                dlpath = configpath.joinpath(self.config['selfhost_dir'] + '/assets/javascripts/cryptojs/')
-            else:
-                dlpath = Path(config.data['docs_dir'] + '/assets/javascripts/cryptojs/')
-            dlpath.mkdir(parents=True, exist_ok=True)
-            for jsurl in JS_LIBRARIES:
-                dlurl = "https:" + jsurl[0]
-                filepath = dlpath.joinpath(jsurl[0].rsplit('/',1)[1])
-                self.__download_and_check__(filepath, dlurl, jsurl[1])
 
         passwords = set() #get all unique passwords
         for location in self.setup['locations'].keys():
