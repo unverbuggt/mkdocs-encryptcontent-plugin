@@ -1,15 +1,5 @@
 /* encryptcontent/decrypt-contents.tpl.js */
 
-/* Strips the padding character from decrypted content. */
-function strip_padding(padded_content, padding_char) {
-    for (var i = padded_content.length; i > 0; i--) {
-        if (padded_content[i - 1] !== padding_char) {
-            return padded_content.slice(0, i);
-        }
-    }
-    return '';
-};
-
 /* Decrypts the content from the ciphertext bundle. */
 function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {
     var key = CryptoJS.MD5(password),
@@ -22,10 +12,10 @@ function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {
         };
     var plaintext = CryptoJS.AES.decrypt(bundle, key, {
         iv: iv,
-        padding: CryptoJS.pad.NoPadding
+        padding: CryptoJS.pad.Pkcs7
     });
     try {
-        return strip_padding(plaintext.toString(CryptoJS.enc.Utf8), padding_char);
+        return plaintext.toString(CryptoJS.enc.Utf8)
     } catch (err) {
         // encoding failed; wrong password
         return false;
