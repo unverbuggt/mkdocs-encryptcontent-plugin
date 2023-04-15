@@ -8,9 +8,10 @@ import json
 import math
 from pathlib import Path
 from os.path import exists
-from Crypto import Random
 from jinja2 import Template
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad
 from bs4 import BeautifulSoup
 from mkdocs.plugins import BasePlugin
 from mkdocs.config import config_options
@@ -26,7 +27,6 @@ JS_LIBRARIES = [
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.js','b55ae8027253d4d54c4f1ef3b6254646'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.js','f551ce1340a86e5edbfef4a6aefa798f'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/cipher-core.js','dfddc0e33faf7a794e0c3c140544490e'],
-    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/pad-nopadding.js','e288e14e2cd299c3247120114e1178e6'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/md5.js','349498f298a6e6e6a85789d637e89109'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.js','da81b91b1b57c279c29b3469649d9b86'],
 ]
@@ -124,12 +124,12 @@ class encryptContentPlugin(BasePlugin):
         """ Encrypts text with AES-256. """
         BLOCK_SIZE = 32
         PADDING_CHAR = b'^'
-        iv = Random.new().read(16)
+        iv = get_random_bytes(16)
         # key must be 32 bytes for AES-256, so the password is hashed with md5 first
         cipher = AES.new(self.__hash_md5__(password), AES.MODE_CBC, iv)
         plaintext = text.encode('utf-8')
         # plaintext must be padded to be a multiple of BLOCK_SIZE
-        plaintext_padded = plaintext + (BLOCK_SIZE - len(plaintext) % BLOCK_SIZE) * PADDING_CHAR
+        plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
         return (
             base64.b64encode(iv),
