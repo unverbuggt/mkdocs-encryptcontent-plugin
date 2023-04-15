@@ -9,6 +9,8 @@ import math
 from pathlib import Path
 from os.path import exists
 from jinja2 import Template
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Hash import MD5
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad
@@ -28,6 +30,8 @@ JS_LIBRARIES = [
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.js','f551ce1340a86e5edbfef4a6aefa798f'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/cipher-core.js','dfddc0e33faf7a794e0c3c140544490e'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/md5.js','349498f298a6e6e6a85789d637e89109'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/hmac.js','ee162ca0ed3b55dd9b2fe74a3464bb74'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/pbkdf2.js','b9511c07dfe692c2fd7a9ecd3f27650e'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.js','da81b91b1b57c279c29b3469649d9b86'],
 ]
 
@@ -92,12 +96,6 @@ class encryptContentPlugin(BasePlugin):
 
     setup = {}
 
-    def __hash_md5__(self, text):
-        """ Creates an md5 hash from text. """
-        key = hashlib.md5()
-        key.update(text.encode('utf-8'))
-        return key.digest()
-
     def __hash_md5_file__(self, fname):
         hash_md5 = hashlib.md5()
         with open(fname, "rb") as f:
@@ -123,10 +121,11 @@ class encryptContentPlugin(BasePlugin):
     def __encrypt_text_aes__(self, text, password):
         """ Encrypts text with AES-256. """
         BLOCK_SIZE = 32
-        PADDING_CHAR = b'^'
+        salt = get_random_bytes(16)
         iv = get_random_bytes(16)
         # key must be 32 bytes for AES-256, so the password is hashed with md5 first
-        cipher = AES.new(self.__hash_md5__(password), AES.MODE_CBC, iv)
+        key = PBKDF2(password, salt, 32, count=pow(10,4), hmac_hash_module=MD5)
+        cipher = AES.new(key, AES.MODE_CBC, iv)
         plaintext = text.encode('utf-8')
         # plaintext must be padded to be a multiple of BLOCK_SIZE
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
@@ -134,7 +133,7 @@ class encryptContentPlugin(BasePlugin):
         return (
             base64.b64encode(iv),
             base64.b64encode(ciphertext),
-            PADDING_CHAR
+            base64.b64encode(salt)
         )
 
     def __encrypt_content__(self, content, base_path, encryptcontent_path, encryptcontent):
