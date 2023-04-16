@@ -1,34 +1,55 @@
 /* encryptcontent/decrypt-contents.tpl.js */
 
+/* Decrypts the key from the key bundle. */
+function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
+    let salt = CryptoJS.enc.Base64.parse(salt_b64),
+        kdfkey = CryptoJS.PBKDF2(password, salt,{keySize: 256 / 32,hasher: CryptoJS.algo.SHA256,iterations: {{ kdf_iterations }}});
+    let iv = CryptoJS.enc.Base64.parse(iv_b64),
+        ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64);
+    let encrypted = {ciphertext: ciphertext},
+        cfg = {iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7};
+    let key = CryptoJS.AES.decrypt(encrypted, kdfkey, cfg);
+    if (key.sigBytes == 32) {
+        return key.toString(CryptoJS.enc.Hex);
+    } else {
+        return false;
+    }
+};
+
+/* Split key bundle and try to decrypt it */
+function decrypt_key_from_bundle(password, ciphertext_bundle) {
+    // grab the ciphertext bundle and try to decrypt it
+    if (ciphertext_bundle) {
+        let parts = ciphertext_bundle.split(';');
+        if (parts.length == 3) {
+            return decrypt_key(password, parts[0], parts[1], parts[2]);
+        }
+    }
+    return false;
+};
+
 /* Decrypts the content from the ciphertext bundle. */
-function decrypt_content(password, iv_b64, ciphertext_b64, padding_char) {
-    var key = CryptoJS.MD5(password),
-        iv = CryptoJS.enc.Base64.parse(iv_b64),
-        ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64),
-        bundle = {
-            key: key,
-            iv: iv,
-            ciphertext: ciphertext
-        };
-    var plaintext = CryptoJS.AES.decrypt(bundle, key, {
-        iv: iv,
-        padding: CryptoJS.pad.Pkcs7
-    });
-    try {
+function decrypt_content(key, iv_b64, ciphertext_b64) {
+    let iv = CryptoJS.enc.Base64.parse(iv_b64),
+        ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64);
+    let encrypted = {ciphertext: ciphertext},
+        cfg = {iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7};
+    let plaintext = CryptoJS.AES.decrypt(encrypted, CryptoJS.enc.Hex.parse(key), cfg);
+    if(plaintext.sigBytes >= 0) {
         return plaintext.toString(CryptoJS.enc.Utf8)
-    } catch (err) {
-        // encoding failed; wrong password
+    } else {
+        // wrong key
         return false;
     }
 };
 
 /* Split cyphertext bundle and try to decrypt it */
-function decrypt_content_from_bundle(password, ciphertext_bundle) {
+function decrypt_content_from_bundle(key, ciphertext_bundle) {
     // grab the ciphertext bundle and try to decrypt it
     if (ciphertext_bundle) {
         let parts = ciphertext_bundle.split(';');
-        if (parts.length == 3) {
-            return decrypt_content(password, parts[0], parts[1], parts[2]);
+        if (parts.length == 2) {
+            return decrypt_content(key, parts[0], parts[1]);
         }
     }
     return false;
@@ -154,7 +175,7 @@ function reload_js(src) {
 
 {% if experimental -%}
 /* Decrypt part of the search index and refresh it for search engine */
-function decrypt_search(password_value, path_location) {
+function decrypt_search(key, path_location) {
     sessionIndex = sessionStorage.getItem('encryptcontent-index');
     let could_decrypt = false;
     if (sessionIndex) {
@@ -163,12 +184,12 @@ function decrypt_search(password_value, path_location) {
             var doc = sessionIndex.docs[i];
             if (doc.location.indexOf(path_location.replace('{{ site_path }}', '')) !== -1) {
                 // grab the ciphertext bundle and try to decrypt it
-                let title = decrypt_content_from_bundle(password_value, doc.title);
+                let title = decrypt_content_from_bundle(key, doc.title);
                 if (title !== false) {
                     could_decrypt = true;
                     doc.title = title;
                     // any post processing on the decrypted search index should be done here
-                    let content = decrypt_content_from_bundle(password_value, doc.text);
+                    let content = decrypt_content_from_bundle(key, doc.text);
                     if (content !== false) {
                         doc.text = content;
                         let location_bundle = doc.location;
@@ -176,7 +197,7 @@ function decrypt_search(password_value, path_location) {
                         if (location_sep !== -1) {
                             let toc_bundle = location_bundle.substring(location_sep+1)
                             let location_doc = location_bundle.substring(0,location_sep)
-                            let toc_url = decrypt_content_from_bundle(password_value, toc_bundle);
+                            let toc_url = decrypt_content_from_bundle(key, toc_bundle);
                             if (toc_url !== false) {
                                 doc.location = location_doc + toc_url;
                             }
@@ -201,7 +222,7 @@ function decrypt_search(password_value, path_location) {
 {%- endif %}
 
 /* Decrypt speficique html entry from mkdocs configuration */
-function decrypt_somethings(password_value, encrypted_something) {
+function decrypt_somethings(key, encrypted_something) {
     var html_item = '';
     for (const [name, tag] of Object.entries(encrypted_something)) {
         if (tag[1] == 'id') {
@@ -214,7 +235,7 @@ function decrypt_somethings(password_value, encrypted_something) {
         if (html_item[0]) {
             for (i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
-                let content = decrypt_content_from_bundle(password_value, html_item[i].innerHTML);
+                let content = decrypt_content_from_bundle(key, html_item[i].innerHTML);
                 if (content !== false) {
                     // success; display the decrypted content
                     html_item[i].innerHTML = content;
@@ -230,7 +251,11 @@ function decrypt_somethings(password_value, encrypted_something) {
 function decrypt_action(password_input, encrypted_content, decrypted_content) {
     // grab the ciphertext bundle
     // and decrypt it
-    let content = decrypt_content_from_bundle(password_input.value, encrypted_content.innerHTML);
+    let key = decrypt_key_from_bundle(password_input.value, encryptcontent_keystore);
+    let content = false;
+    if (key) {
+        content = decrypt_content_from_bundle(key, encrypted_content.innerHTML);
+    }
     if (content !== false) {
         // success; display the decrypted content
         decrypted_content.innerHTML = content;
@@ -253,20 +278,20 @@ function decrypt_action(password_input, encrypted_content, decrypted_content) {
             reload_js(reload_scripts[i]);
         }
         {%- endif %}
-        return true
+        return key
     } else {
         return false
     }
 };
 
-function decryptor_reaction(content_decrypted, password_input, fallback_used, set_global, save_cookie) {
+function decryptor_reaction(key, password_input, fallback_used, set_global, save_cookie) {
     let location_path;
     if (set_global) {
         location_path = "/{{ site_path}}"; //global password decrypts at "/{site_path}"
     } else {
         location_path = encryptcontent_path;
     }
-    if (content_decrypted) {
+    if (key) {
         {% if remember_password -%}
         // keep password value on sessionStorage/localStorage with specific path (relative)
         if (set_global) {
@@ -278,11 +303,11 @@ function decryptor_reaction(content_decrypted, password_input, fallback_used, se
         {%- endif %}
         // continue to decrypt others parts
         {% if experimental -%}
-        decrypt_search(password_input.value, location_path);
+        decrypt_search(key, location_path);
         {%- endif %}
         {% if encrypted_something -%}
         let encrypted_something = {{ encrypted_something }};
-        decrypt_somethings(password_input.value, encrypted_something);
+        decrypt_somethings(key, encrypted_something);
         {%- endif %}
     } else {
         // remove item on sessionStorage/localStorage if decryption process fail (Invalid item)

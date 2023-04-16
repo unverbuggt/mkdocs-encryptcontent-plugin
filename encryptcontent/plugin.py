@@ -9,6 +9,8 @@ import math
 from pathlib import Path
 from os.path import exists
 from jinja2 import Template
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Hash import SHA256
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad
@@ -27,7 +29,9 @@ JS_LIBRARIES = [
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.js','b55ae8027253d4d54c4f1ef3b6254646'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.js','f551ce1340a86e5edbfef4a6aefa798f'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/cipher-core.js','dfddc0e33faf7a794e0c3c140544490e'],
-    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/md5.js','349498f298a6e6e6a85789d637e89109'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/sha256.js','561d24c90633fb34c13537a330d12786'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/hmac.js','ee162ca0ed3b55dd9b2fe74a3464bb74'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/pbkdf2.js','b9511c07dfe692c2fd7a9ecd3f27650e'],
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.js','da81b91b1b57c279c29b3469649d9b86'],
 ]
 
@@ -87,16 +91,11 @@ class encryptContentPlugin(BasePlugin):
         ('selfhost_dir', config_options.Type(string_types, default='')),
         ('translations', config_options.Type(dict, default={}, required=False)),
         ('hash_filenames', config_options.Type(dict, default={}, required=False)),
+        ('kdf_pow', config_options.Type(int, default=int(4))),
         # legacy features, doesn't exist anymore
     )
 
     setup = {}
-
-    def __hash_md5__(self, text):
-        """ Creates an md5 hash from text. """
-        key = hashlib.md5()
-        key.update(text.encode('utf-8'))
-        return key.digest()
 
     def __hash_md5_file__(self, fname):
         hash_md5 = hashlib.md5()
@@ -120,13 +119,29 @@ class encryptContentPlugin(BasePlugin):
                     logger.error('Error downloading asset "' + filename.name + '" hash mismatch!')
                     os._exit(1)
 
-    def __encrypt_text_aes__(self, text, password):
-        """ Encrypts text with AES-256. """
-        BLOCK_SIZE = 32
-        PADDING_CHAR = b'^'
+    def __encrypt_key__(self, key, password):
+        """ Encrypts key with PBKDF2 and AES-256. """
+        salt = get_random_bytes(16)
         iv = get_random_bytes(16)
         # key must be 32 bytes for AES-256, so the password is hashed with md5 first
-        cipher = AES.new(self.__hash_md5__(password), AES.MODE_CBC, iv)
+        kdfkey = PBKDF2(password, salt, 32, count=self.setup['kdf_iterations'], hmac_hash_module=SHA256)
+        cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
+        plaintext = key
+        # plaintext must be padded to be a multiple of BLOCK_SIZE
+        plaintext_padded = pad(plaintext, 16, style='pkcs7')
+        ciphertext = cipher.encrypt(plaintext_padded)
+        return (
+            base64.b64encode(iv),
+            base64.b64encode(ciphertext),
+            base64.b64encode(salt)
+        )
+
+    def __encrypt_text__(self, text, password):
+        """ Encrypts text with AES-256. """
+        iv = get_random_bytes(16)
+        key = self.setup['keystore'][password]
+        # key must be 32 bytes for AES-256, so the password is hashed with md5 first
+        cipher = AES.new(key, AES.MODE_CBC, iv)
         plaintext = text.encode('utf-8')
         # plaintext must be padded to be a multiple of BLOCK_SIZE
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
@@ -134,12 +149,11 @@ class encryptContentPlugin(BasePlugin):
         return (
             base64.b64encode(iv),
             base64.b64encode(ciphertext),
-            PADDING_CHAR
         )
 
     def __encrypt_content__(self, content, base_path, encryptcontent_path, encryptcontent):
         """ Replaces page or article content with decrypt form. """
-        ciphertext_bundle = self.__encrypt_text_aes__(content, encryptcontent['password'])
+        ciphertext_bundle = self.__encrypt_text__(content, encryptcontent['password'])
 
         # optionally selfhost cryptojs
         js_libraries = []
@@ -154,6 +168,8 @@ class encryptContentPlugin(BasePlugin):
             obfuscate_password = encryptcontent['password']
         else:
             obfuscate_password = None
+
+        encryptcontent_keystore = self.__encrypt_key__(self.setup['keystore'][encryptcontent['password']], encryptcontent['password'])
 
         decrypt_form = Template(self.setup['html_template']).render({
             # custom message and template rendering
@@ -173,6 +189,7 @@ class encryptContentPlugin(BasePlugin):
             'js_libraries': js_libraries,
             'base_path': base_path,
             'encryptcontent_path': encryptcontent_path,
+            'encryptcontent_keystore': b';'.join(encryptcontent_keystore).decode('ascii'),
             # add extra vars
             'extra': self.config['html_extra_vars']
         })
@@ -194,6 +211,7 @@ class encryptContentPlugin(BasePlugin):
             'reload_scripts': self.config['reload_scripts'],
             'experimental': self.config['search_index'] == 'dynamically',
             'site_path': self.setup['site_path'],
+            'kdf_iterations' : self.setup['kdf_iterations'],
             # add extra vars
             'extra': self.config['js_extra_vars']
         })
@@ -323,6 +341,10 @@ class encryptContentPlugin(BasePlugin):
 
         self.setup['locations'] = {}
 
+        self.setup['kdf_iterations'] = pow(10,self.config['kdf_pow'])
+
+        self.setup['keystore'] = {}
+
     def on_pre_build(self, config, **kwargs):
         """
         The pre_build event does not alter any variables. Use this event to call pre-build scripts.
@@ -450,6 +472,9 @@ class encryptContentPlugin(BasePlugin):
             if 'encryption_info_message' in page.meta.keys():
                 encryptcontent['encryption_info_message'] = str(page.meta.get('encryption_info_message'))
                 del page.meta['encryption_info_message']
+
+            if encryptcontent['password'] not in self.setup['keystore']:
+                self.setup['keystore'][encryptcontent['password']] = get_random_bytes(32)
 
             setattr(page, 'encryptcontent', encryptcontent)
 
@@ -583,7 +608,7 @@ class encryptContentPlugin(BasePlugin):
                         else:
                             merge_item = ""
                         # Encrypt child items on target tags with page password
-                        cipher_bundle = self.__encrypt_text_aes__(merge_item, str(page.encryptcontent['password']))
+                        cipher_bundle = self.__encrypt_text__(merge_item, str(page.encryptcontent['password']))
                         encrypted_content = b';'.join(cipher_bundle).decode('ascii')
                         # Replace initial content with encrypted one
                         item.string = encrypted_content
@@ -646,11 +671,11 @@ class encryptContentPlugin(BasePlugin):
                             text = entry['text']
                             title = entry['title']
                             toc_anchor = entry['location'].replace(location, '')
-                            code = self.__encrypt_text_aes__(text, page_password )
+                            code = self.__encrypt_text__(text, page_password )
                             entry['text'] = b';'.join(code).decode('ascii')
-                            code = self.__encrypt_text_aes__(title, page_password)
+                            code = self.__encrypt_text__(title, page_password)
                             entry['title'] = b';'.join(code).decode('ascii')
-                            code = self.__encrypt_text_aes__(toc_anchor, page_password)
+                            code = self.__encrypt_text__(toc_anchor, page_password)
                             entry['location'] = location + ';' + b';'.join(code).decode('ascii')
                         break
 
