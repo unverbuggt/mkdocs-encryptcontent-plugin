@@ -24,9 +24,10 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 
 ![encryptcontent_demo](https://user-images.githubusercontent.com/12155947/177001700-f0920d4b-0c41-4d11-8164-9f63d29d8a6a.gif)
 
-# Todo for 2.6.x
+# Todo for 3.x
 
 * Rework password handling or inventory of some sort
+* Rework crypto
 * ...to be defined
 
 # Table of Contents
@@ -69,7 +70,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-2.5.3-py3-none-any.whl
+pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
