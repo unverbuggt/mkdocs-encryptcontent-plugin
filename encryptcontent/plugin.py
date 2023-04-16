@@ -70,7 +70,6 @@ class encryptContentPlugin(BasePlugin):
         ('ignore_missing_secret', config_options.Type(bool, default=False)),
         ('remember_password', config_options.Type(bool, default=False)),
         ('session_storage', config_options.Type(bool, default=True)),
-        ('default_expire_delay', config_options.Type(int, default=int(24))),
         # default features enabled
         ('arithmatex', config_options.Type(bool, default=True)),
         ('hljs', config_options.Type(bool, default=True)),
@@ -91,7 +90,7 @@ class encryptContentPlugin(BasePlugin):
         ('selfhost_dir', config_options.Type(string_types, default='')),
         ('translations', config_options.Type(dict, default={}, required=False)),
         ('hash_filenames', config_options.Type(dict, default={}, required=False)),
-        ('kdf_pow', config_options.Type(int, default=int(4))),
+        ('kdf_pow', config_options.Type(int, default=int(5))),
         # legacy features, doesn't exist anymore
     )
 
@@ -207,7 +206,6 @@ class encryptContentPlugin(BasePlugin):
             'mermaid2': self.config['mermaid2'],
             'remember_password': self.config['remember_password'],
             'session_storage': self.config['session_storage'],
-            'default_expire_delay': int(self.config['default_expire_delay']),
             'encrypted_something': self.setup['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
             'experimental': self.config['search_index'] == 'dynamically',

@@ -37,9 +37,14 @@ function decrypt_content(key, iv_b64, ciphertext_b64) {
         cfg = {iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7};
     let plaintext = CryptoJS.AES.decrypt(encrypted, CryptoJS.enc.Hex.parse(key), cfg);
     if(plaintext.sigBytes >= 0) {
-        return plaintext.toString(CryptoJS.enc.Utf8)
+        try {
+            return plaintext.toString(CryptoJS.enc.Utf8)
+        } catch (err) {
+            // encoding failed; wrong key
+            return false;
+        }
     } else {
-        // wrong key
+        // negative sigBytes; wrong key
         return false;
     }
 };
@@ -57,17 +62,12 @@ function decrypt_content_from_bundle(key, ciphertext_bundle) {
 };
 
 {% if remember_password -%}
-/* Set key:value with expire time in sessionStorage/localStorage */
-function setItemExpiry(key, value, ttl) {
-    const now = new Date()
-    const item = {
-        value: encodeURIComponent(value),
-        expiry: now.getTime() + ttl,
-    }
+/* Set key:value in sessionStorage/localStorage */
+function setItem(key, value) {
     {% if session_storage -%}
-    sessionStorage.setItem('encryptcontent_' + encodeURIComponent(key), JSON.stringify(item))
+    sessionStorage.setItem('encryptcontent_' + encodeURIComponent(key), encodeURIComponent(value))
     {%- else %}
-    localStorage.setItem('encryptcontent_' + encodeURIComponent(key), JSON.stringify(item))
+    localStorage.setItem('encryptcontent_' + encodeURIComponent(key), encodeURIComponent(value))
     {%- endif %}
 };
 
@@ -80,61 +80,44 @@ function delItemName(key) {
     {%- endif %}
 };
 
+function getItem(key) {
+    {% if session_storage -%}
+    return sessionStorage.getItem(key);
+    {%- else %}
+    return localStorage.getItem(key);
+    {%- endif %}
+};
+
 /* Get key:value from sessionStorage/localStorage */
-function getItemExpiry(key) {
+function getItemFallback(key) {
     let ret = {
         value: null,
         fallback: false
     };
-    let remember_password;
-    {% if session_storage -%}
-    remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent(key));
-    {%- else %}
-    remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent(key));
-    {%- endif %}
-    if (!remember_password) {
+    let item_value;
+    item_value = getItem('encryptcontent_' + encodeURIComponent(key));
+    if (!item_value) {
         ret.fallback = true; //fallback is set to not display a "decryption failed" message
         // fallback one level up
         let last_slash = key.slice(0, -1).lastIndexOf('/')
         if (last_slash !== -1 && last_slash > 0) {
             let keyup = key.substring(0,last_slash+1);
-            {% if session_storage -%}
-            remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent(keyup));
-            {%- else %}
-            remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent(keyup));
-            {%- endif %}
+            item_value = getItem('encryptcontent_' + encodeURIComponent(keyup));
         }
-        if (!remember_password) {
+        if (!item_value) {
             // fallback site_path
-            {% if session_storage -%}
-            remember_password = sessionStorage.getItem('encryptcontent_' + encodeURIComponent("{{ site_path }}"));
-            {%- else %}
-            remember_password = localStorage.getItem('encryptcontent_' + encodeURIComponent("{{ site_path }}"));
-            {%- endif %}
-            if (!remember_password) {
+            item_value = getItem('encryptcontent_' + encodeURIComponent("{{ site_path }}"));
+            if (!item_value) {
                 // fallback global
-                {% if session_storage -%}
-                remember_password = sessionStorage.getItem('encryptcontent_');
-                {%- else %}
-                remember_password = localStorage.getItem('encryptcontent_');
-                {%- endif %}
-                if (!remember_password) {
+                item_value = getItem('encryptcontent_');
+                if (!item_value) {
                     //no password saved and no fallback found
                     return null;
                 }
             }
         }
     }
-    const item = JSON.parse(remember_password)
-    if (!ret.fallback) { //no need to do this if fallback was used
-        const now = new Date()
-        if (now.getTime() > item.expiry) {
-            // if the item is expired, delete the item from storage and return null
-            delItemName(key);
-            return null;
-        }
-    }
-    ret.value = decodeURIComponent(item.value);
+    ret.value = decodeURIComponent(item_value);
     return ret;
 };
 {%- endif %}
@@ -249,10 +232,15 @@ function decrypt_somethings(key, encrypted_something) {
 };
 
 /* Decrypt content of a page */
-function decrypt_action(password_input, encrypted_content, decrypted_content) {
+function decrypt_action(password_input, encrypted_content, decrypted_content, key_from_storage) {
     // grab the ciphertext bundle
     // and decrypt it
-    let key = decrypt_key_from_bundle(password_input.value, encryptcontent_keystore);
+    let key;
+    if (key_from_storage !== false) {
+        key = key_from_storage;
+    } else {
+        key = decrypt_key_from_bundle(password_input.value, encryptcontent_keystore);
+    }
     let content = false;
     if (key) {
         content = decrypt_content_from_bundle(key, encrypted_content.innerHTML);
@@ -296,10 +284,10 @@ function decryptor_reaction(key, password_input, fallback_used, set_global, save
         {% if remember_password -%}
         // keep password value on sessionStorage/localStorage with specific path (relative)
         if (set_global) {
-            setItemExpiry("", password_input.value, 1000*3600*{{ default_expire_delay | int }});
+            setItem("", key);
         }
         else if (!fallback_used) {
-            setItemExpiry(location_path, password_input.value, 1000*3600*{{ default_expire_delay | int }});
+            setItem(location_path, key);
         }
         {%- endif %}
         // continue to decrypt others parts
@@ -336,13 +324,12 @@ function init_decryptor() {
     var decrypted_content = document.getElementById('mkdocs-decrypted-content');
     {% if remember_password -%}
     /* If remember_password is set, try to use sessionStorage/localstorage item to decrypt content when page is loaded */
-    let password_cookie = getItemExpiry(encryptcontent_path);
-    if (password_cookie) {
-        password_input.value = password_cookie.value;
+    let key_from_storage = getItemFallback(encryptcontent_path);
+    if (key_from_storage) {
         let content_decrypted = decrypt_action(
-            password_input, encrypted_content, decrypted_content
+            password_input, encrypted_content, decrypted_content, key_from_storage.value
         );
-        decryptor_reaction(content_decrypted, password_input, password_cookie.fallback, false, false); //dont save cookie as it was loaded from cookie
+        decryptor_reaction(content_decrypted, password_input, key_from_storage.fallback, false, false); //dont save cookie as it was loaded from cookie
     }
     {%- endif %}
     {% if password_button -%}
@@ -352,7 +339,7 @@ function init_decryptor() {
         decrypt_button.onclick = function(event) {
             event.preventDefault();
             let content_decrypted = decrypt_action(
-                password_input, encrypted_content, decrypted_content
+                password_input, encrypted_content, decrypted_content, false
             );
             decryptor_reaction(content_decrypted, password_input, false, false, true); //no fallback, save cookie
         };
@@ -367,7 +354,7 @@ function init_decryptor() {
             }
             event.preventDefault();
             let content_decrypted = decrypt_action(
-                password_input, encrypted_content, decrypted_content
+                password_input, encrypted_content, decrypted_content, false
             );
             decryptor_reaction(content_decrypted, password_input, false, set_global, true); //no fallback, set_global?, save cookie
         }
