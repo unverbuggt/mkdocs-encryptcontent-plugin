@@ -124,9 +124,10 @@ class encryptContentPlugin(BasePlugin):
         salt = get_random_bytes(16)
         iv = get_random_bytes(16)
         # key must be 32 bytes for AES-256, so the password is hashed with md5 first
-        kdfkey = PBKDF2(password, salt, 32, count=self.setup['kdf_iterations'], hmac_hash_module=SHA256)
+        iterations = self.setup['kdf_iterations'] if not key[1] else 1
+        kdfkey = PBKDF2(password, salt, 32, count=iterations, hmac_hash_module=SHA256)
         cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
-        plaintext = key
+        plaintext = key[0]
         # plaintext must be padded to be a multiple of BLOCK_SIZE
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
@@ -139,7 +140,7 @@ class encryptContentPlugin(BasePlugin):
     def __encrypt_text__(self, text, password):
         """ Encrypts text with AES-256. """
         iv = get_random_bytes(16)
-        key = self.setup['keystore'][password]
+        key = self.setup['keystore'][password][0]
         # key must be 32 bytes for AES-256, so the password is hashed with md5 first
         cipher = AES.new(key, AES.MODE_CBC, iv)
         plaintext = text.encode('utf-8')
@@ -163,7 +164,7 @@ class encryptContentPlugin(BasePlugin):
             else:
                 js_libraries.append(jsurl[0])
 
-        obfuscate = encryptcontent.get('obfuscate')
+        obfuscate = 1 if encryptcontent.get('obfuscate') else 0
         if obfuscate:
             obfuscate_password = encryptcontent['password']
         else:
@@ -474,7 +475,7 @@ class encryptContentPlugin(BasePlugin):
                 del page.meta['encryption_info_message']
 
             if encryptcontent['password'] not in self.setup['keystore']:
-                self.setup['keystore'][encryptcontent['password']] = get_random_bytes(32)
+                self.setup['keystore'][encryptcontent['password']] = [get_random_bytes(32), encryptcontent.get('obfuscate')]
 
             setattr(page, 'encryptcontent', encryptcontent)
 
@@ -633,7 +634,7 @@ class encryptContentPlugin(BasePlugin):
 
         if hasattr(page, 'encryptcontent'):
             location = page.url.lstrip('/')
-            self.setup['locations'][location] = [page.encryptcontent['password'], page.encryptcontent.get('obfuscate')]
+            self.setup['locations'][location] = page.encryptcontent['password']
             delattr(page, 'encryptcontent')
 
         return output_content
@@ -663,7 +664,7 @@ class encryptContentPlugin(BasePlugin):
             for entry in search_entries['docs'].copy(): #iterate through all entries of search_index
                 for location in self.setup['locations'].keys():
                     if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
-                        page_password = self.setup['locations'][location][0]
+                        page_password = self.setup['locations'][location]
                         if self.config['search_index'] == 'encrypted':
                             search_entries['docs'].remove(entry)
                         elif self.config['search_index'] == 'dynamically' and page_password is not None:
@@ -678,6 +679,7 @@ class encryptContentPlugin(BasePlugin):
                             code = self.__encrypt_text__(toc_anchor, page_password)
                             entry['location'] = location + ';' + b';'.join(code).decode('ascii')
                         break
+            self.setup['locations'].clear()
 
             try:
                 with open(search_index_filename, "w") as f:
@@ -687,18 +689,15 @@ class encryptContentPlugin(BasePlugin):
                 os._exit(1)
             logger.info('Modified search_index.')
 
-        passwords = set() #get all unique passwords
-        for location in self.setup['locations'].keys():
-            if not self.setup['locations'][location][1]:
-                passwords.add(self.setup['locations'][location][0])
-        self.setup['locations'].clear()
         min_enttropy_spied_on, min_enttropy_secret = 0, 0
-        for password in passwords:
-            enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
-            if min_enttropy_spied_on == 0 or enttropy_spied_on < min_enttropy_spied_on:
-                min_enttropy_spied_on = enttropy_spied_on
-            if min_enttropy_secret == 0 or enttropy_secret < min_enttropy_secret:
-                min_enttropy_secret = enttropy_secret
+        for password in self.setup['keystore'].keys():
+            if not self.setup['keystore'][password][1]:
+                enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
+                if min_enttropy_spied_on == 0 or enttropy_spied_on < min_enttropy_spied_on:
+                    min_enttropy_spied_on = enttropy_spied_on
+                if min_enttropy_secret == 0 or enttropy_secret < min_enttropy_secret:
+                    min_enttropy_secret = enttropy_secret
+        self.setup['keystore'].clear()
         if min_enttropy_spied_on < 100 and min_enttropy_spied_on > 0:
             logger.warning('mkdocs-encryptcontent-plugin will always be vulnerable to brute-force attacks!'
                            ' Your weakest password only got {spied_on} bits of entropy, if someone watched you while typing'

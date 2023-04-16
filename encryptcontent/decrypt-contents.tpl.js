@@ -1,9 +1,10 @@
 /* encryptcontent/decrypt-contents.tpl.js */
 
 /* Decrypts the key from the key bundle. */
-function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
+function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64, obfuscate) {
     let salt = CryptoJS.enc.Base64.parse(salt_b64),
-        kdfkey = CryptoJS.PBKDF2(password, salt,{keySize: 256 / 32,hasher: CryptoJS.algo.SHA256,iterations: {{ kdf_iterations }}});
+        kdfcfg = {keySize: 256 / 32,hasher: CryptoJS.algo.SHA256,iterations: obfuscate ? 1 : {{ kdf_iterations }}};
+    let kdfkey = CryptoJS.PBKDF2(password, salt,kdfcfg);
     let iv = CryptoJS.enc.Base64.parse(iv_b64),
         ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64);
     let encrypted = {ciphertext: ciphertext},
@@ -20,9 +21,9 @@ function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
 function decrypt_key_from_bundle(password, ciphertext_bundle) {
     // grab the ciphertext bundle and try to decrypt it
     if (ciphertext_bundle) {
-        let parts = ciphertext_bundle.split(';');
+        let parts = ciphertext_bundle[0].split(';');
         if (parts.length == 3) {
-            return decrypt_key(password, parts[0], parts[1], parts[2]);
+            return decrypt_key(password, parts[0], parts[1], parts[2], ciphertext_bundle[1]);
         }
     }
     return false;
