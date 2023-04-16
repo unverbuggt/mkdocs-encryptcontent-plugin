@@ -27,7 +27,8 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 # Todo for 3.x
 
 * Rework password handling or inventory of some sort
-* Rework crypto
+* Rework crypto (PBKDF2 + AES256)
+* Save the generated random keys instead of passwords to session( or local) storage
 * ...to be defined
 
 # Table of Contents
