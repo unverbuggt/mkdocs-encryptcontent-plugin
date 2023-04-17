@@ -16,7 +16,8 @@
 <script type="text/javascript">
 var encryptcontent_path = "{{ encryptcontent_path }}";
 var decryption_failure_message = {{ decryption_failure_message }};
-var encryptcontent_keystore = ["{{ encryptcontent_keystore }}",{{ obfuscate }}];
+var encryptcontent_keystore = {{ encryptcontent_keystore }};
+var encryptcontent_obfuscate = {{ obfuscate }};
 </script>
 {% for library in js_libraries %}
 <script type="text/javascript" src="{{ library }}"></script>

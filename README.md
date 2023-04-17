@@ -28,7 +28,8 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 
 * Rework password handling or inventory of some sort
 * Rework crypto (PBKDF2 + AES256)
-* Save the generated random keys instead of passwords to session( or local) storage
+* ~~Save the generated random keys instead of passwords to session( or local) storage~~
+* Sign generated generated and javascript files used in encrypted pages to make it more tamper proof
 * ...to be defined
 
 # Table of Contents

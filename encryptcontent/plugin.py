@@ -189,7 +189,7 @@ class encryptContentPlugin(BasePlugin):
             'js_libraries': js_libraries,
             'base_path': base_path,
             'encryptcontent_path': encryptcontent_path,
-            'encryptcontent_keystore': b';'.join(encryptcontent_keystore).decode('ascii'),
+            'encryptcontent_keystore': '"' + b';'.join(encryptcontent_keystore).decode('ascii') + '"',
             # add extra vars
             'extra': self.config['html_extra_vars']
         })
