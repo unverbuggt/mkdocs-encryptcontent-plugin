@@ -313,9 +313,11 @@ class encryptContentPlugin(BasePlugin):
         else:
             logger.info('"mermaid2" feature is disabled in your plugin configuration.')
             self.config['mermaid2'] = False
-        # Warn about deprecated features on Vervion 2.0.0
+        # Warn about deprecated features on Version 3.0.0
         deprecated_options_detected = False
-
+        if self.config.get('default_expire_delay'):
+            logger.warning('DEPRECATED: Feature "default_expire_delay" is no longer supported. Can be removed.')
+            deprecated_options_detected = True
         if deprecated_options_detected:
             logger.warning('DEPRECATED: Features marked as deprecated will be remove in next minor version !')
         # Enable experimental code .. :popcorn:
