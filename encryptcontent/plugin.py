@@ -66,8 +66,6 @@ class encryptContentPlugin(BasePlugin):
         ('button_class', config_options.Type(string_types, default=None)),
         # password feature
         ('global_password', config_options.Type(string_types, default=None)),
-        ('use_secret', config_options.Type(string_types, default=None)),
-        ('ignore_missing_secret', config_options.Type(bool, default=False)),
         ('remember_password', config_options.Type(bool, default=False)),
         ('session_storage', config_options.Type(bool, default=True)),
         # default features enabled
@@ -274,21 +272,6 @@ class encryptContentPlugin(BasePlugin):
         with open(self.config['js_template_path'], 'r') as template_js:
             self.setup['js_template'] = template_js.read()
 
-        # Optionnaly use Github secret
-        if self.config.get('use_secret'):
-            if os.environ.get(str(self.config['use_secret'])):
-                self.config['global_password'] = os.environ.get(str(self.config['use_secret']))
-            else:
-                if self.config['ignore_missing_secret'] and self.config['global_password']:
-                    logger.warning('Cannot get global password from environment variable: {var}. Using global_password as fallback!'.format(
-                        var=str(self.config['use_secret']))
-                    )
-                else:
-                    logger.error('Cannot get global password from environment variable: {var}. Abort !'.format(
-                        var=str(self.config['use_secret']))
-                    )
-                    os._exit(1)                                 # prevent build without password to avoid leak
-
         # Check if hljs feature need to be enabled, based on theme configuration
         if ('highlightjs' in config['theme']._vars
                 and config['theme']._vars['highlightjs']    # noqa: W503
@@ -316,10 +299,17 @@ class encryptContentPlugin(BasePlugin):
         # Warn about deprecated features on Version 3.0.0
         deprecated_options_detected = False
         if self.config.get('default_expire_delay'):
-            logger.warning('DEPRECATED: Feature "default_expire_delay" is no longer supported. Can be removed.')
+            logger.warning('DEPRECATED: Option "default_expire_delay" is no longer supported. Can be removed.')
+            deprecated_options_detected = True
+        if self.config.get('ignore_missing_secret'):
+            logger.warning('DEPRECATED: Option "ignore_missing_secret" is no longer supported. Can be removed.')
             deprecated_options_detected = True
         if deprecated_options_detected:
             logger.warning('DEPRECATED: Features marked as deprecated will be remove in next minor version !')
+        if self.config.get('use_secret'):
+            logger.error('DEPRECATED: Feature "use_secret" is no longer supported. Please use !ENV at password_inventory instead.')
+            os._exit(1)                                 # prevent build without password to avoid leak0
+
         # Enable experimental code .. :popcorn:
         if self.config['search_index'] == 'dynamically':
             logger.info("EXPERIMENTAL search index encryption enabled.")
@@ -445,18 +435,8 @@ class encryptContentPlugin(BasePlugin):
             del page.meta['password']
 
         if 'use_secret' in page.meta.keys():
-            if os.environ.get(str(page.meta.get('use_secret'))):
-                encryptcontent['password'] = os.environ.get(str(page.meta.get('use_secret')))
-            else:
-                if self.config['ignore_missing_secret'] and encryptcontent['password']:
-                    logger.warning('Cannot get password for "{page}" from environment variable: {var}. Using password from config or meta key as fallback!'.format(
-                        var=str(page.meta.get('use_secret')), page=page.title)
-                    )
-                else:
-                    logger.error('Cannot get password for "{page}" from environment variable: {var}. Abort !'.format(
-                        var=str(page.meta.get('use_secret')), page=page.title)
-                    )
-                    os._exit(1)                                 # prevent build without password to avoid leak0
+            logger.error('DEPRECATED: Feature "use_secret" is no longer supported. Please use !ENV at password_inventory instead.')
+            os._exit(1)                                 # prevent build without password to avoid leak0
 
         if 'obfuscate' in page.meta.keys():
             if encryptcontent['password'] is None: # Only allow obfuscation if no password defined
