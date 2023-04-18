@@ -319,7 +319,7 @@ class encryptContentPlugin(BasePlugin):
         if deprecated_options_detected:
             logger.warning('DEPRECATED: Features marked as deprecated will be remove in next minor version !')
         # Enable experimental code .. :popcorn:
-        elif self.config['search_index'] == 'dynamically':
+        if self.config['search_index'] == 'dynamically':
             logger.info("EXPERIMENTAL search index encryption enabled.")
         self.setup['encrypted_something'] = {**self.config['inject'], **self.config['encrypted_something']} #add inject to encrypted_something
         # Get path to site in case of subdir in site_url
