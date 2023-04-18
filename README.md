@@ -30,6 +30,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * Rework crypto (PBKDF2 + AES256)
 * ~~Save the generated random keys instead of passwords to session( or local) storage~~
 * Sign generated generated and javascript files used in encrypted pages to make it more tamper proof
+* Add check for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it
 * ...to be defined
 
 # Table of Contents
