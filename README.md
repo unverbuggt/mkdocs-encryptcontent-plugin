@@ -89,6 +89,12 @@ plugins:
 
 Add an meta tag `password: secret_password` in your markdown files to protect them.
 
+Alternatively add the meta tag `password_level: secret` to use one or more secrets defined at the plugin's `password_inventory` in your `mkdocs.yml`.
+
+
+# How does this work?
+
+INSERT DESCRIPTION HERE
 
 ### Global password protection
 
@@ -106,29 +112,44 @@ If a password is defined in an article, it will **ALWAYS** overwrite the global 
 > Use this to **disable** `global_password` on specific pages.
 
 
-### Secret from environment
+### Password inventory
 
-Instead of specifying a password in the mkdocs.yml file, you can use an environment variable to load your secret. 
+With the `password_inventory` you can define protection levels (assigned with the meta tag `password_level` in markdown files).
 
-This process is in two steps:
-
-1. First, you need to make an environment variable with your global password accessible at runtime (via any CI/CD pipeline or by setting it yourself in your environment).
-
-2. Then in the mkdocs.yml file, instead of specifying a global password, just set the `use_secret` field with your environment variable name, e.g. in case my secret is stored in the `ENCRYPTCONTENT_PASSWORD` variable:
-
-``` yaml
+```yaml
 plugins:
     - encryptcontent:
-        use_secret: 'ENCRYPTCONTENT_PASSWORD'
+        password_inventory:
+          classified: 'password1'
+          confidential:
+            - 'password2'
+            - 'password3'
+          secret:
+            user4: 'password4'
+            user5: 'password5'
 ```
 
-> **NOTE** Keep in mind that if the `use_secret:` configuration is set, it will always be used even if you have also set a global password with the `global_password` variable.
->
-> If this environment variable is empty or missing, then the build will fail to prevent the unwanted leak of information.
-> However this can be converted into a warning by setting `ignore_missing_secret: true`. 
-> Use this only if you use a secret environment variable for production and a plain password for testing. You have been warned.
+These levels may be only one password (classified), a list of multiple passwords (confidential) or multiple username/password pairs.
+It is possible to reuse credentials at different levels.
 
-> The meta tag `use_secret` can also be set to achieve the same functionality on page level.
+The plugin will generate one secret key for each level which is used to encrypt the protected the assigned sites.
+
+It is good practice to assign the same level to all pages within a navigation branch (INSERT EXAMPLE HERE).
+
+
+### Secret from environment
+
+It is possible to read values from environment variable (as discribed [here](https://www.mkdocs.org/user-guide/configuration/#environment-variables))
+
+```yaml
+plugins:
+    - encryptcontent:
+        password_inventory:
+            secret:
+                user1: !ENV PASSWORD1_FROM_ENV
+                user2: !ENV [PASSWORD2_FROM_ENV, 'Password if PASSWORD2_FROM_ENV undefined or empty']
+                user3: !ENV [PASSWORD3_FROM_ENV, FALLBACK_PASSWORD3_FROM_ENV, 'Password if neither PASSWORD3_FROM_ENV nor FALLBACK_PASSWORD3_FROM_ENV defined']
+```
 
 ### Default vars customization
 
