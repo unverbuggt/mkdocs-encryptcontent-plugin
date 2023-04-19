@@ -4,7 +4,7 @@
 function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
     let salt = CryptoJS.enc.Base64.parse(salt_b64),
         kdfcfg = {keySize: 256 / 32,hasher: CryptoJS.algo.SHA256,iterations: encryptcontent_obfuscate ? 1 : {{ kdf_iterations }}};
-    let kdfkey = CryptoJS.PBKDF2(password, salt,kdfcfg);
+    let kdfkey = CryptoJS.PBKDF2(encodeURIComponent(password), salt,kdfcfg);
     let iv = CryptoJS.enc.Base64.parse(iv_b64),
         ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64);
     let encrypted = {ciphertext: ciphertext},

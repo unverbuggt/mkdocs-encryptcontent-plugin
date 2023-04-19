@@ -17,7 +17,7 @@ from Crypto.Util.Padding import pad
 from bs4 import BeautifulSoup
 from mkdocs.plugins import BasePlugin
 from mkdocs.config import config_options
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, quote
 from urllib.request import urlopen
 
 try:
@@ -68,6 +68,8 @@ class encryptContentPlugin(BasePlugin):
         ('global_password', config_options.Type(string_types, default=None)),
         ('remember_password', config_options.Type(bool, default=False)),
         ('session_storage', config_options.Type(bool, default=True)),
+        ('password_inventory', config_options.Type(dict, default={})),
+        ('password_file', config_options.Type(string_types, default=None)),
         # default features enabled
         ('arithmatex', config_options.Type(bool, default=True)),
         ('hljs', config_options.Type(bool, default=True)),
@@ -88,7 +90,7 @@ class encryptContentPlugin(BasePlugin):
         ('selfhost_dir', config_options.Type(string_types, default='')),
         ('translations', config_options.Type(dict, default={}, required=False)),
         ('hash_filenames', config_options.Type(dict, default={}, required=False)),
-        ('kdf_pow', config_options.Type(int, default=int(5))),
+        ('kdf_pow', config_options.Type(int, default=int(4))),
         # legacy features, doesn't exist anymore
     )
 
@@ -119,13 +121,15 @@ class encryptContentPlugin(BasePlugin):
     def __encrypt_key__(self, key, password):
         """ Encrypts key with PBKDF2 and AES-256. """
         salt = get_random_bytes(16)
-        iv = get_random_bytes(16)
-        # key must be 32 bytes for AES-256, so the password is hashed with md5 first
         iterations = self.setup['kdf_iterations'] if not key[1] else 1
-        kdfkey = PBKDF2(password, salt, 32, count=iterations, hmac_hash_module=SHA256)
+        # generate PBKDF2 key from salt and password (password is URI encoded)
+        kdfkey = PBKDF2(quote(password), salt, 32, count=iterations, hmac_hash_module=SHA256)
+        # initialize AES-256
+        iv = get_random_bytes(16)
         cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
+        # use it to encrypt the AES-256 key
         plaintext = key[0]
-        # plaintext must be padded to be a multiple of BLOCK_SIZE
+        # plaintext must be padded to be a multiple of 16 bytes
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
         return (
@@ -136,12 +140,13 @@ class encryptContentPlugin(BasePlugin):
 
     def __encrypt_text__(self, text, password):
         """ Encrypts text with AES-256. """
-        iv = get_random_bytes(16)
+        # get 32-bit AES-256 key from keystore
         key = self.setup['keystore'][password][0]
-        # key must be 32 bytes for AES-256, so the password is hashed with md5 first
+        # initialize AES-256
+        iv = get_random_bytes(16)
         cipher = AES.new(key, AES.MODE_CBC, iv)
         plaintext = text.encode('utf-8')
-        # plaintext must be padded to be a multiple of BLOCK_SIZE
+        # plaintext must be padded to be a multiple of 16 bytes
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
         return (
