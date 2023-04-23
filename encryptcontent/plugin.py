@@ -118,17 +118,17 @@ class encryptContentPlugin(BasePlugin):
                     logger.error('Error downloading asset "' + filename.name + '" hash mismatch!')
                     os._exit(1)
 
-    def __encrypt_key__(self, key, password):
+    def __encrypt_key__(self, key, password, iterations):
+        print(quote(password) + ' ' + str(iterations) + ' ' + key.hex())
         """ Encrypts key with PBKDF2 and AES-256. """
         salt = get_random_bytes(16)
-        iterations = self.setup['kdf_iterations'] if not key[1] else 1
         # generate PBKDF2 key from salt and password (password is URI encoded)
         kdfkey = PBKDF2(quote(password), salt, 32, count=iterations, hmac_hash_module=SHA256)
         # initialize AES-256
         iv = get_random_bytes(16)
         cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
         # use it to encrypt the AES-256 key
-        plaintext = key[0]
+        plaintext = key
         # plaintext must be padded to be a multiple of 16 bytes
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
@@ -138,10 +138,8 @@ class encryptContentPlugin(BasePlugin):
             base64.b64encode(salt)
         )
 
-    def __encrypt_text__(self, text, password):
+    def __encrypt_text__(self, text, key):
         """ Encrypts text with AES-256. """
-        # get 32-bit AES-256 key from password_keystore
-        key = self.setup['password_keystore'][password][0]
         # initialize AES-256
         iv = get_random_bytes(16)
         cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -156,8 +154,7 @@ class encryptContentPlugin(BasePlugin):
 
     def __encrypt_content__(self, content, base_path, encryptcontent_path, encryptcontent):
         """ Replaces page or article content with decrypt form. """
-        ciphertext_bundle = self.__encrypt_text__(content, encryptcontent['password'])
-
+        
         # optionally selfhost cryptojs
         js_libraries = []
         for jsurl in JS_LIBRARIES:
@@ -166,13 +163,23 @@ class encryptContentPlugin(BasePlugin):
             else:
                 js_libraries.append(jsurl[0])
 
-        obfuscate = 1 if encryptcontent.get('obfuscate') else 0
-        if obfuscate:
-            obfuscate_password = encryptcontent['password']
-        else:
-            obfuscate_password = None
+        obfuscate = 0
+        obfuscate_password = None
 
-        encryptcontent_keystore = self.__encrypt_key__(self.setup['password_keystore'][encryptcontent['password']], encryptcontent['password'])
+        if encryptcontent['type'] == 'password':
+            # get 32-bit AES-256 key from password_keystore
+            key = encryptcontent['key']
+            iterations = self.setup['kdf_iterations']
+            encryptcontent_keystore = self.__encrypt_key__(key, encryptcontent['password'], iterations)
+        elif encryptcontent['type'] == 'obfuscate':
+            # get 32-bit AES-256 key from password_keystore
+            key = encryptcontent['key']
+            iterations = 1
+            encryptcontent_keystore = self.__encrypt_key__(key, encryptcontent['obfuscate'], iterations)
+            obfuscate = 1
+            obfuscate_password = encryptcontent['obfuscate']
+
+        ciphertext_bundle = self.__encrypt_text__(content, key)
 
         decrypt_form = Template(self.setup['html_template']).render({
             # custom message and template rendering
@@ -340,6 +347,7 @@ class encryptContentPlugin(BasePlugin):
         self.setup['kdf_iterations'] = pow(10,self.config['kdf_pow'])
 
         self.setup['password_keystore'] = {}
+        self.setup['obfuscate_keystore'] = {}
         self.setup['level_keystore'] = {}
         
         if 'password_inventory' in self.config:
@@ -347,7 +355,6 @@ class encryptContentPlugin(BasePlugin):
                 self.setup['level_keystore'][level] = {}
                 self.setup['level_keystore'][level]['credentials'] = self.config['password_inventory'][level]
                 self.setup['level_keystore'][level]['key'] = get_random_bytes(32)
-            print(self.setup['level_keystore'])
 
     def on_pre_build(self, config, **kwargs):
         """
@@ -452,24 +459,37 @@ class encryptContentPlugin(BasePlugin):
             os._exit(1)                                 # prevent build without password to avoid leak0
 
         if 'obfuscate' in page.meta.keys():
-            if encryptcontent['password'] is None: # Only allow obfuscation if no password defined
-                encryptcontent['obfuscate'] = True
-                encryptcontent['password'] = str(page.meta.get('obfuscate'))
+            encryptcontent['obfuscate'] = str(page.meta.get('obfuscate'))
             del page.meta['obfuscate']
 
+        if 'level' in page.meta.keys():
+            encryptcontent['level'] = str(page.meta.get('level'))
+            del page.meta['level']
+
+        # Custom per-page strings
+        if 'encryption_summary' in page.meta.keys():
+            encryptcontent['summary'] = str(page.meta.get('encryption_summary'))
+            del page.meta['encryption_summary']
+
+        if 'encryption_info_message' in page.meta.keys():
+            encryptcontent['encryption_info_message'] = str(page.meta.get('encryption_info_message'))
+            del page.meta['encryption_info_message']
+
         if encryptcontent.get('password'):
-            # Custom per-page strings
-            if 'encryption_summary' in page.meta.keys():
-                encryptcontent['summary'] = str(page.meta.get('encryption_summary'))
-                del page.meta['encryption_summary']
-
-            if 'encryption_info_message' in page.meta.keys():
-                encryptcontent['encryption_info_message'] = str(page.meta.get('encryption_info_message'))
-                del page.meta['encryption_info_message']
-
             if encryptcontent['password'] not in self.setup['password_keystore']:
-                self.setup['password_keystore'][encryptcontent['password']] = [get_random_bytes(32), encryptcontent.get('obfuscate')]
-
+                self.setup['password_keystore'][encryptcontent['password']] = get_random_bytes(32)
+            encryptcontent['type'] = 'password'
+            encryptcontent['key'] = self.setup['password_keystore'][encryptcontent['password']]
+            setattr(page, 'encryptcontent', encryptcontent)
+        elif encryptcontent.get('level'):
+            encryptcontent['type'] = 'level'
+            encryptcontent['key'] = self.setup['level_keystore'][encryptcontent['level']]
+            setattr(page, 'encryptcontent', encryptcontent)
+        elif encryptcontent.get('obfuscate'):
+            if encryptcontent['obfuscate'] not in self.setup['obfuscate_keystore']:
+                self.setup['obfuscate_keystore'][encryptcontent['obfuscate']] = get_random_bytes(32)
+            encryptcontent['type'] = 'obfuscate'
+            encryptcontent['key'] = self.setup['obfuscate_keystore'][encryptcontent['obfuscate']]
             setattr(page, 'encryptcontent', encryptcontent)
 
         return markdown
@@ -602,7 +622,7 @@ class encryptContentPlugin(BasePlugin):
                         else:
                             merge_item = ""
                         # Encrypt child items on target tags with page password
-                        cipher_bundle = self.__encrypt_text__(merge_item, str(page.encryptcontent['password']))
+                        cipher_bundle = self.__encrypt_text__(merge_item, page.encryptcontent['key'])
                         encrypted_content = b';'.join(cipher_bundle).decode('ascii')
                         # Replace initial content with encrypted one
                         item.string = encrypted_content
@@ -627,7 +647,7 @@ class encryptContentPlugin(BasePlugin):
 
         if hasattr(page, 'encryptcontent'):
             location = page.url.lstrip('/')
-            self.setup['locations'][location] = page.encryptcontent['password']
+            self.setup['locations'][location] = page.encryptcontent['key']
             delattr(page, 'encryptcontent')
 
         return output_content
@@ -657,19 +677,19 @@ class encryptContentPlugin(BasePlugin):
             for entry in search_entries['docs'].copy(): #iterate through all entries of search_index
                 for location in self.setup['locations'].keys():
                     if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
-                        page_password = self.setup['locations'][location]
+                        page_key = self.setup['locations'][location]
                         if self.config['search_index'] == 'encrypted':
                             search_entries['docs'].remove(entry)
-                        elif self.config['search_index'] == 'dynamically' and page_password is not None:
+                        elif self.config['search_index'] == 'dynamically' and page_key is not None:
                             #encrypt text/title/location(anchor only)
                             text = entry['text']
                             title = entry['title']
                             toc_anchor = entry['location'].replace(location, '')
-                            code = self.__encrypt_text__(text, page_password )
+                            code = self.__encrypt_text__(text, page_key )
                             entry['text'] = b';'.join(code).decode('ascii')
-                            code = self.__encrypt_text__(title, page_password)
+                            code = self.__encrypt_text__(title, page_key)
                             entry['title'] = b';'.join(code).decode('ascii')
-                            code = self.__encrypt_text__(toc_anchor, page_password)
+                            code = self.__encrypt_text__(toc_anchor, page_key)
                             entry['location'] = location + ';' + b';'.join(code).decode('ascii')
                         break
             self.setup['locations'].clear()
@@ -684,7 +704,7 @@ class encryptContentPlugin(BasePlugin):
 
         min_enttropy_spied_on, min_enttropy_secret = 0, 0
         for password in self.setup['password_keystore'].keys():
-            if not self.setup['password_keystore'][password][1]:
+            if not self.setup['password_keystore'][password]:
                 enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
                 if min_enttropy_spied_on == 0 or enttropy_spied_on < min_enttropy_spied_on:
                     min_enttropy_spied_on = enttropy_spied_on
