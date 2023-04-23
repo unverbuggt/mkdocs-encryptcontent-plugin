@@ -140,8 +140,8 @@ class encryptContentPlugin(BasePlugin):
 
     def __encrypt_text__(self, text, password):
         """ Encrypts text with AES-256. """
-        # get 32-bit AES-256 key from keystore
-        key = self.setup['keystore'][password][0]
+        # get 32-bit AES-256 key from password_keystore
+        key = self.setup['password_keystore'][password][0]
         # initialize AES-256
         iv = get_random_bytes(16)
         cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -172,7 +172,7 @@ class encryptContentPlugin(BasePlugin):
         else:
             obfuscate_password = None
 
-        encryptcontent_keystore = self.__encrypt_key__(self.setup['keystore'][encryptcontent['password']], encryptcontent['password'])
+        encryptcontent_keystore = self.__encrypt_key__(self.setup['password_keystore'][encryptcontent['password']], encryptcontent['password'])
 
         decrypt_form = Template(self.setup['html_template']).render({
             # custom message and template rendering
@@ -339,7 +339,15 @@ class encryptContentPlugin(BasePlugin):
 
         self.setup['kdf_iterations'] = pow(10,self.config['kdf_pow'])
 
-        self.setup['keystore'] = {}
+        self.setup['password_keystore'] = {}
+        self.setup['level_keystore'] = {}
+        
+        if 'password_inventory' in self.config:
+            for level in self.config['password_inventory'].keys():
+                self.setup['level_keystore'][level] = {}
+                self.setup['level_keystore'][level]['credentials'] = self.config['password_inventory'][level]
+                self.setup['level_keystore'][level]['key'] = get_random_bytes(32)
+            print(self.setup['level_keystore'])
 
     def on_pre_build(self, config, **kwargs):
         """
@@ -459,8 +467,8 @@ class encryptContentPlugin(BasePlugin):
                 encryptcontent['encryption_info_message'] = str(page.meta.get('encryption_info_message'))
                 del page.meta['encryption_info_message']
 
-            if encryptcontent['password'] not in self.setup['keystore']:
-                self.setup['keystore'][encryptcontent['password']] = [get_random_bytes(32), encryptcontent.get('obfuscate')]
+            if encryptcontent['password'] not in self.setup['password_keystore']:
+                self.setup['password_keystore'][encryptcontent['password']] = [get_random_bytes(32), encryptcontent.get('obfuscate')]
 
             setattr(page, 'encryptcontent', encryptcontent)
 
@@ -675,14 +683,14 @@ class encryptContentPlugin(BasePlugin):
             logger.info('Modified search_index.')
 
         min_enttropy_spied_on, min_enttropy_secret = 0, 0
-        for password in self.setup['keystore'].keys():
-            if not self.setup['keystore'][password][1]:
+        for password in self.setup['password_keystore'].keys():
+            if not self.setup['password_keystore'][password][1]:
                 enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
                 if min_enttropy_spied_on == 0 or enttropy_spied_on < min_enttropy_spied_on:
                     min_enttropy_spied_on = enttropy_spied_on
                 if min_enttropy_secret == 0 or enttropy_secret < min_enttropy_secret:
                     min_enttropy_secret = enttropy_secret
-        self.setup['keystore'].clear()
+        self.setup['password_keystore'].clear()
         if min_enttropy_spied_on < 100 and min_enttropy_spied_on > 0:
             logger.warning('mkdocs-encryptcontent-plugin will always be vulnerable to brute-force attacks!'
                            ' Your weakest password only got {spied_on} bits of entropy, if someone watched you while typing'
