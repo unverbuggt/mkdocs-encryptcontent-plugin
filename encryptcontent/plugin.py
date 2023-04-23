@@ -119,11 +119,10 @@ class encryptContentPlugin(BasePlugin):
                     os._exit(1)
 
     def __encrypt_key__(self, key, password, iterations):
-        print(quote(password) + ' ' + str(iterations) + ' ' + key.hex())
         """ Encrypts key with PBKDF2 and AES-256. """
         salt = get_random_bytes(16)
         # generate PBKDF2 key from salt and password (password is URI encoded)
-        kdfkey = PBKDF2(quote(password), salt, 32, count=iterations, hmac_hash_module=SHA256)
+        kdfkey = PBKDF2(quote(password, safe='~()*!\''), salt, 32, count=iterations, hmac_hash_module=SHA256)
         # initialize AES-256
         iv = get_random_bytes(16)
         cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
