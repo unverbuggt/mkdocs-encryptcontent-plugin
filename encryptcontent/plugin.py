@@ -132,9 +132,9 @@ class encryptContentPlugin(BasePlugin):
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
         return (
-            base64.b64encode(iv),
-            base64.b64encode(ciphertext),
-            base64.b64encode(salt)
+            base64.b64encode(iv).decode() ,
+            base64.b64encode(ciphertext).decode(),
+            base64.b64encode(salt).decode()
         )
 
     def __encrypt_text__(self, text, key):
@@ -147,8 +147,8 @@ class encryptContentPlugin(BasePlugin):
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
         return (
-            base64.b64encode(iv),
-            base64.b64encode(ciphertext),
+            base64.b64encode(iv).decode(),
+            base64.b64encode(ciphertext).decode(),
         )
 
     def __encrypt_content__(self, content, base_path, encryptcontent_path, encryptcontent):
@@ -168,13 +168,11 @@ class encryptContentPlugin(BasePlugin):
         if encryptcontent['type'] == 'password':
             # get 32-bit AES-256 key from password_keystore
             key = encryptcontent['key']
-            iterations = self.setup['kdf_iterations']
-            encryptcontent_keystore = self.__encrypt_key__(key, encryptcontent['password'], iterations)
+            encryptcontent_keystore = self.setup['password_keystore'][encryptcontent['password']]['store']
         elif encryptcontent['type'] == 'obfuscate':
             # get 32-bit AES-256 key from password_keystore
             key = encryptcontent['key']
-            iterations = 1
-            encryptcontent_keystore = self.__encrypt_key__(key, encryptcontent['obfuscate'], iterations)
+            encryptcontent_keystore = self.setup['obfuscate_keystore'][encryptcontent['obfuscate']]['store']
             obfuscate = 1
             obfuscate_password = encryptcontent['obfuscate']
 
@@ -192,13 +190,11 @@ class encryptContentPlugin(BasePlugin):
             'button_class': self.config['button_class'],
             'obfuscate': obfuscate,
             'obfuscate_password': obfuscate_password,
-            # this benign decoding is necessary before writing to the template,
-            # otherwise the output string will be wrapped with b''
-            'ciphertext_bundle': b';'.join(ciphertext_bundle).decode('ascii'),
+            'ciphertext_bundle': ';'.join(ciphertext_bundle),
             'js_libraries': js_libraries,
             'base_path': base_path,
             'encryptcontent_path': encryptcontent_path,
-            'encryptcontent_keystore': '"' + b';'.join(encryptcontent_keystore).decode('ascii') + '"',
+            'encryptcontent_keystore': json.dumps(encryptcontent_keystore),
             # add extra vars
             'extra': self.config['html_extra_vars']
         })
@@ -351,9 +347,26 @@ class encryptContentPlugin(BasePlugin):
         
         if 'password_inventory' in self.config:
             for level in self.config['password_inventory'].keys():
-                self.setup['level_keystore'][level] = {}
-                self.setup['level_keystore'][level]['credentials'] = self.config['password_inventory'][level]
-                self.setup['level_keystore'][level]['key'] = get_random_bytes(32)
+                new_entry = {}
+                new_entry['key'] = get_random_bytes(32)
+                credentials = self.config['password_inventory'][level]
+                if isinstance(credentials, list):
+                    new_entry['store'] = []
+                    for password in credentials:
+                        keystore = self.__encrypt_key__(new_entry['key'], password, self.setup['kdf_iterations'])
+                        new_entry['store'].append(';'.join(keystore))
+                elif isinstance(credentials, dict):
+                    new_entry['store'] = []
+                    for user in credentials:
+                        keystore = self.__encrypt_key__(new_entry['key'], credentials[user], self.setup['kdf_iterations'])
+                        userhash = quote(user, safe='~()*!\'').encode() # safe transform username analogous to encodeURIComponent
+                        userhash = SHA256.new(userhash).digest() # sha256 sum of username
+                        userhash = base64.b64encode(userhash).decode() # base64 encode username
+                        new_entry['store'].append(';'.join(keystore + (userhash,)))
+                else:
+                    keystore = self.__encrypt_key__(new_entry['key'], credentials, self.setup['kdf_iterations'])
+                    new_entry['store'] = ';'.join(keystore)
+                self.setup['level_keystore'][level] = new_entry
 
     def on_pre_build(self, config, **kwargs):
         """
@@ -476,9 +489,12 @@ class encryptContentPlugin(BasePlugin):
 
         if encryptcontent.get('password'):
             if encryptcontent['password'] not in self.setup['password_keystore']:
-                self.setup['password_keystore'][encryptcontent['password']] = get_random_bytes(32)
+                new_entry = {}
+                new_entry['key'] = get_random_bytes(32)
+                new_entry['store'] = ';'.join(self.__encrypt_key__(new_entry['key'], encryptcontent['password'], self.setup['kdf_iterations']))
+                self.setup['password_keystore'][encryptcontent['password']] = new_entry
             encryptcontent['type'] = 'password'
-            encryptcontent['key'] = self.setup['password_keystore'][encryptcontent['password']]
+            encryptcontent['key'] = self.setup['password_keystore'][encryptcontent['password']]['key']
             setattr(page, 'encryptcontent', encryptcontent)
         elif encryptcontent.get('level'):
             encryptcontent['type'] = 'level'
@@ -486,9 +502,12 @@ class encryptContentPlugin(BasePlugin):
             setattr(page, 'encryptcontent', encryptcontent)
         elif encryptcontent.get('obfuscate'):
             if encryptcontent['obfuscate'] not in self.setup['obfuscate_keystore']:
-                self.setup['obfuscate_keystore'][encryptcontent['obfuscate']] = get_random_bytes(32)
+                new_entry = {}
+                new_entry['key'] = get_random_bytes(32)
+                new_entry['store'] = ';'.join(self.__encrypt_key__(new_entry['key'], encryptcontent['obfuscate'], 1))
+                self.setup['obfuscate_keystore'][encryptcontent['obfuscate']] = new_entry
             encryptcontent['type'] = 'obfuscate'
-            encryptcontent['key'] = self.setup['obfuscate_keystore'][encryptcontent['obfuscate']]
+            encryptcontent['key'] = self.setup['obfuscate_keystore'][encryptcontent['obfuscate']]['key']
             setattr(page, 'encryptcontent', encryptcontent)
 
         return markdown
@@ -622,7 +641,7 @@ class encryptContentPlugin(BasePlugin):
                             merge_item = ""
                         # Encrypt child items on target tags with page password
                         cipher_bundle = self.__encrypt_text__(merge_item, page.encryptcontent['key'])
-                        encrypted_content = b';'.join(cipher_bundle).decode('ascii')
+                        encrypted_content = ';'.join(cipher_bundle)
                         # Replace initial content with encrypted one
                         item.string = encrypted_content
                         if item.has_attr('style'):
@@ -685,11 +704,11 @@ class encryptContentPlugin(BasePlugin):
                             title = entry['title']
                             toc_anchor = entry['location'].replace(location, '')
                             code = self.__encrypt_text__(text, page_key )
-                            entry['text'] = b';'.join(code).decode('ascii')
+                            entry['text'] = ';'.join(code)
                             code = self.__encrypt_text__(title, page_key)
-                            entry['title'] = b';'.join(code).decode('ascii')
+                            entry['title'] = ';'.join(code)
                             code = self.__encrypt_text__(toc_anchor, page_key)
-                            entry['location'] = location + ';' + b';'.join(code).decode('ascii')
+                            entry['location'] = location + ';' + ';'.join(code)
                         break
             self.setup['locations'].clear()
 
@@ -703,12 +722,11 @@ class encryptContentPlugin(BasePlugin):
 
         min_enttropy_spied_on, min_enttropy_secret = 0, 0
         for password in self.setup['password_keystore'].keys():
-            if not self.setup['password_keystore'][password]:
-                enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
-                if min_enttropy_spied_on == 0 or enttropy_spied_on < min_enttropy_spied_on:
-                    min_enttropy_spied_on = enttropy_spied_on
-                if min_enttropy_secret == 0 or enttropy_secret < min_enttropy_secret:
-                    min_enttropy_secret = enttropy_secret
+            enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
+            if min_enttropy_spied_on == 0 or enttropy_spied_on < min_enttropy_spied_on:
+                min_enttropy_spied_on = enttropy_spied_on
+            if min_enttropy_secret == 0 or enttropy_secret < min_enttropy_secret:
+                min_enttropy_secret = enttropy_secret
         self.setup['password_keystore'].clear()
         if min_enttropy_spied_on < 100 and min_enttropy_spied_on > 0:
             logger.warning('mkdocs-encryptcontent-plugin will always be vulnerable to brute-force attacks!'
