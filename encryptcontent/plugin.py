@@ -41,6 +41,7 @@ SETTINGS = {
     'title_prefix': '[Protected] ',
     'summary': 'This content is protected with AES encryption. ',
     'placeholder': 'Use CTRL+ENTER to provide global password',
+    'placeholder_user': 'User name',
     'password_button_text': 'Decrypt',
     'decryption_failure_message': 'Invalid password.',
     'encryption_info_message': 'Contact your administrator for access to this page.'
@@ -58,6 +59,7 @@ class encryptContentPlugin(BasePlugin):
         ('title_prefix', config_options.Type(string_types, default=str(SETTINGS['title_prefix']))),
         ('summary', config_options.Type(string_types, default=str(SETTINGS['summary']))),
         ('placeholder', config_options.Type(string_types, default=str(SETTINGS['placeholder']))),
+        ('placeholder_user', config_options.Type(string_types, default=str(SETTINGS['placeholder_user']))),
         ('decryption_failure_message', config_options.Type(string_types, default=str(SETTINGS['decryption_failure_message']))),
         ('encryption_info_message', config_options.Type(string_types, default=str(SETTINGS['encryption_info_message']))),
         ('password_button_text', config_options.Type(string_types, default=str(SETTINGS['password_button_text']))),
@@ -163,12 +165,18 @@ class encryptContentPlugin(BasePlugin):
                 js_libraries.append(jsurl[0])
 
         obfuscate = 0
+        uname = 0
         obfuscate_password = None
 
         if encryptcontent['type'] == 'password':
             # get 32-bit AES-256 key from password_keystore
             key = encryptcontent['key']
             encryptcontent_keystore = self.setup['password_keystore'][encryptcontent['password']]['store']
+        elif encryptcontent['type'] == 'level':
+            key = encryptcontent['key']
+            encryptcontent_keystore = self.setup['level_keystore'][encryptcontent['level']]['store']
+            if self.setup['level_keystore'][encryptcontent['level']].get('uname'):
+                uname = 1
         elif encryptcontent['type'] == 'obfuscate':
             # get 32-bit AES-256 key from password_keystore
             key = encryptcontent['key']
@@ -182,12 +190,14 @@ class encryptContentPlugin(BasePlugin):
             # custom message and template rendering
             'summary': encryptcontent['summary'],
             'placeholder': encryptcontent['placeholder'],
+            'placeholder_user': encryptcontent['placeholder_user'],
             'password_button': self.config['password_button'],
             'password_button_text': encryptcontent['password_button_text'],
             'encryption_info_message': encryptcontent['encryption_info_message'],
             'decryption_failure_message': json.dumps(encryptcontent['decryption_failure_message']),
             'input_class': self.config['input_class'],
             'button_class': self.config['button_class'],
+            'uname': uname,
             'obfuscate': obfuscate,
             'obfuscate_password': obfuscate_password,
             'ciphertext_bundle': ';'.join(ciphertext_bundle),
@@ -358,10 +368,11 @@ class encryptContentPlugin(BasePlugin):
                 elif isinstance(credentials, dict):
                     new_entry['store'] = []
                     for user in credentials:
+                        new_entry['uname'] = user
                         keystore = self.__encrypt_key__(new_entry['key'], credentials[user], self.setup['kdf_iterations'])
                         userhash = quote(user, safe='~()*!\'').encode() # safe transform username analogous to encodeURIComponent
                         userhash = SHA256.new(userhash).digest() # sha256 sum of username
-                        userhash = base64.b64encode(userhash).decode() # base64 encode username
+                        userhash = base64.b64encode(userhash).decode() # base64 encode userhash
                         new_entry['store'].append(';'.join(keystore + (userhash,)))
                 else:
                     keystore = self.__encrypt_key__(new_entry['key'], credentials, self.setup['kdf_iterations'])
@@ -498,7 +509,7 @@ class encryptContentPlugin(BasePlugin):
             setattr(page, 'encryptcontent', encryptcontent)
         elif encryptcontent.get('level'):
             encryptcontent['type'] = 'level'
-            encryptcontent['key'] = self.setup['level_keystore'][encryptcontent['level']]
+            encryptcontent['key'] = self.setup['level_keystore'][encryptcontent['level']]['key']
             setattr(page, 'encryptcontent', encryptcontent)
         elif encryptcontent.get('obfuscate'):
             if encryptcontent['obfuscate'] not in self.setup['obfuscate_keystore']:
@@ -563,6 +574,8 @@ class encryptContentPlugin(BasePlugin):
                         page.encryptcontent['summary'] = translations['summary']
                     if 'placeholder' in translations and 'placeholder' not in page.encryptcontent:
                         page.encryptcontent['placeholder'] = translations['placeholder']
+                    if 'placeholder_user' in translations and 'placeholder_user' not in page.encryptcontent:
+                        page.encryptcontent['placeholder_user'] = translations['placeholder_user']
                     if 'password_button_text' in translations and 'password_button_text' not in page.encryptcontent:
                         page.encryptcontent['password_button_text'] = translations['password_button_text']
                     if 'decryption_failure_message' in translations and 'decryption_failure_message' not in page.encryptcontent:
@@ -577,6 +590,8 @@ class encryptContentPlugin(BasePlugin):
                 page.encryptcontent['summary'] = self.config['summary']
             if 'placeholder' not in page.encryptcontent:
                 page.encryptcontent['placeholder'] = self.config['placeholder']
+            if 'placeholder_user' not in page.encryptcontent:
+                page.encryptcontent['placeholder_user'] = self.config['placeholder_user']
             if 'password_button_text' not in page.encryptcontent:
                 page.encryptcontent['password_button_text'] = self.config['password_button_text']
             if 'decryption_failure_message' not in page.encryptcontent:

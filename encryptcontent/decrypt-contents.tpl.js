@@ -18,12 +18,31 @@ function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
 };
 
 /* Split key bundle and try to decrypt it */
-function decrypt_key_from_bundle(password, ciphertext_bundle) {
+function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
     // grab the ciphertext bundle and try to decrypt it
     if (ciphertext_bundle) {
-        let parts = ciphertext_bundle.split(';');
-        if (parts.length == 3) {
-            return decrypt_key(password, parts[0], parts[1], parts[2]);
+        if (Array.isArray(ciphertext_bundle)) {
+            for (let i = 0; i < ciphertext_bundle.length; i++) {
+                let parts = ciphertext_bundle[i].split(';');
+                if (parts.length == 3) {
+                    let key = decrypt_key(password, parts[0], parts[1], parts[2]);
+                    if (key) {
+                        return key;
+                    }
+                } else if (parts.length == 4 && username) {
+                    let userhash = CryptoJS.SHA256(encodeURIComponent(username.value)).toString(CryptoJS.enc.Base64);
+                    if (parts[3] == userhash) {
+                        return decrypt_key(password, parts[0], parts[1], parts[2]);
+                    }
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            let parts = ciphertext_bundle.split(';');
+            if (parts.length == 3) {
+                return decrypt_key(password, parts[0], parts[1], parts[2]);
+            }
         }
     }
     return false;
@@ -232,14 +251,14 @@ function decrypt_somethings(key, encrypted_something) {
 };
 
 /* Decrypt content of a page */
-function decrypt_action(password_input, encrypted_content, decrypted_content, key_from_storage) {
+function decrypt_action(password_input, encrypted_content, decrypted_content, key_from_storage, username_input) {
     // grab the ciphertext bundle
     // and decrypt it
     let key;
     if (key_from_storage !== false) {
         key = key_from_storage;
     } else {
-        key = decrypt_key_from_bundle(password_input.value, encryptcontent_keystore);
+        key = decrypt_key_from_bundle(password_input.value, encryptcontent_keystore, username_input);
     }
     let content = false;
     if (key) {
@@ -317,6 +336,7 @@ function decryptor_reaction(key, password_input, fallback_used, set_global, save
 
 /* Trigger decryption process */
 function init_decryptor() {
+    var username_input = document.getElementById('mkdocs-content-user');
     var password_input = document.getElementById('mkdocs-content-password');
     // adjust password field width to placeholder length
     if (password_input.hasAttribute('placeholder')) {
@@ -329,7 +349,7 @@ function init_decryptor() {
     let key_from_storage = getItemFallback(encryptcontent_path);
     if (key_from_storage) {
         let content_decrypted = decrypt_action(
-            password_input, encrypted_content, decrypted_content, key_from_storage.value
+            password_input, encrypted_content, decrypted_content, key_from_storage.value, username_input
         );
         decryptor_reaction(content_decrypted, password_input, key_from_storage.fallback, false, false); //dont save cookie as it was loaded from cookie
     }
@@ -341,7 +361,7 @@ function init_decryptor() {
         decrypt_button.onclick = function(event) {
             event.preventDefault();
             let content_decrypted = decrypt_action(
-                password_input, encrypted_content, decrypted_content, false
+                password_input, encrypted_content, decrypted_content, false, username_input
             );
             decryptor_reaction(content_decrypted, password_input, false, false, true); //no fallback, save cookie
         };
@@ -356,7 +376,7 @@ function init_decryptor() {
             }
             event.preventDefault();
             let content_decrypted = decrypt_action(
-                password_input, encrypted_content, decrypted_content, false
+                password_input, encrypted_content, decrypted_content, false, username_input
             );
             decryptor_reaction(content_decrypted, password_input, false, set_global, true); //no fallback, set_global?, save cookie
         }

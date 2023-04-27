@@ -6,6 +6,9 @@
         {%- if obfuscate %}
         <input type="hidden" id="mkdocs-content-password" value="{{ obfuscate_password }}" />
         {%- else %}
+            {%- if uname %}
+        <input{% if input_class %} class="{{ input_class }}"{% endif %} type="text" id="mkdocs-content-user" placeholder="{{ placeholder_user }}" />
+            {%- endif %}
         <input{% if input_class %} class="{{ input_class }}"{% endif %} type="password" id="mkdocs-content-password" placeholder="{{ placeholder }}" />
         {%- endif %}
         {% if password_button %}<button{% if button_class %} class="{{ button_class }}"{% endif %} id="mkdocs-decrypt-button">{{ password_button_text }}</button>{% endif %}
