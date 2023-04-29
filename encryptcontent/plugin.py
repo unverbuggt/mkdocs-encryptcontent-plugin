@@ -2,7 +2,6 @@
 import os
 import re
 import base64
-import hashlib
 import logging
 import json
 import math
@@ -10,10 +9,12 @@ from pathlib import Path
 from os.path import exists
 from jinja2 import Template
 from Crypto.Protocol.KDF import PBKDF2
-from Crypto.Hash import SHA256
+from Crypto.Hash import SHA256, SHA512, MD5
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad
+from Crypto.PublicKey import ECC
+from Crypto.Signature import eddsa
 from bs4 import BeautifulSoup
 from mkdocs.plugins import BasePlugin
 from mkdocs.config import config_options
@@ -99,14 +100,14 @@ class encryptContentPlugin(BasePlugin):
     setup = {}
 
     def __hash_md5_file__(self, fname):
-        hash_md5 = hashlib.md5()
+        hash_md5 = MD5.new()
         with open(fname, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
     def __download_and_check__(self, filename, url, hash):
-        hash_md5 = hashlib.md5()
+        hash_md5 = MD5.new()
         if not exists(filename):
             with urlopen(url) as response:
                 filecontent = response.read()
