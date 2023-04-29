@@ -94,6 +94,8 @@ class encryptContentPlugin(BasePlugin):
         ('translations', config_options.Type(dict, default={}, required=False)),
         ('hash_filenames', config_options.Type(dict, default={}, required=False)),
         ('kdf_pow', config_options.Type(int, default=int(4))),
+        ('sign_files', config_options.Type(bool, default=False)),
+        ('sign_key', config_options.Type(string_types, default='encryptcontent.key')),
         # legacy features, doesn't exist anymore
     )
 
@@ -120,6 +122,14 @@ class encryptContentPlugin(BasePlugin):
                 else:
                     logger.error('Error downloading asset "' + filename.name + '" hash mismatch!')
                     os._exit(1)
+
+    def __sign_file__(self, fname, key):
+        h = SHA512.new()
+        with open(fname, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                h.update(chunk)
+        signer = eddsa.new(key, 'rfc8032')
+        return base64.b64encode(signer.sign(h)).decode()
 
     def __encrypt_key__(self, key, password, iterations):
         """ Encrypts key with PBKDF2 and AES-256. """
@@ -379,6 +389,19 @@ class encryptContentPlugin(BasePlugin):
                     keystore = self.__encrypt_key__(new_entry['key'], credentials, self.setup['kdf_iterations'])
                     new_entry['store'] = ';'.join(keystore)
                 self.setup['level_keystore'][level] = new_entry
+
+        if self.config['sign_files']:
+            if not exists(self.config['sign_key']):
+                logger.debug('Generating signing key and saving to "{file}".'.format(file=str(self.config['sign_key'])))
+                key = ECC.generate(curve='Ed25519')
+                self.setup['sign_key'] = key
+                with open(self.config['sign_key'],'wt') as f:
+                    f.write(key.export_key(format='PEM'))
+            else:
+                logger.debug('Reading signing key from "{file}".'.format(file=str(self.config['sign_key'])))
+                with open(self.config['sign_key'],'rt') as f:
+                    key = ECC.import_key(f.read())
+                    self.setup['sign_key'] = key
 
     def on_pre_build(self, config, **kwargs):
         """
