@@ -95,7 +95,7 @@ class encryptContentPlugin(BasePlugin):
         ('translations', config_options.Type(dict, default={}, required=False)),
         ('hash_filenames', config_options.Type(dict, default={}, required=False)),
         ('kdf_pow', config_options.Type(int, default=int(4))),
-        ('sign_files', config_options.Type(bool, default=False)),
+        ('sign_files', config_options.Type(string_types, default=None)),
         ('sign_key', config_options.Type(string_types, default='encryptcontent.key')),
         # legacy features, doesn't exist anymore
     )
@@ -124,13 +124,20 @@ class encryptContentPlugin(BasePlugin):
                     logger.error('Error downloading asset "' + filename.name + '" hash mismatch!')
                     os._exit(1)
 
-    def __sign_file__(self, fname, key):
+    def __sign_file__(self, fname, url, key):
         h = SHA512.new()
-        with open(fname, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                h.update(chunk)
+        if fname:
+            with open(fname, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    h.update(chunk)
+        else:
+            with urlopen(url) as response:
+                h.update(response.read())
         signer = eddsa.new(key, 'rfc8032')
-        return base64.b64encode(signer.sign(h)).decode()
+        return (
+            url,
+            base64.b64encode(signer.sign(h)).decode()
+        )
 
     def __encrypt_key__(self, key, password, iterations):
         """ Encrypts key with PBKDF2 and AES-256. """
@@ -414,17 +421,20 @@ class encryptContentPlugin(BasePlugin):
                 self.setup['level_keystore'][level] = new_entry
 
         if self.config['sign_files']:
-            if not exists(self.config['sign_key']):
-                logger.debug('Generating signing key and saving to "{file}".'.format(file=str(self.config['sign_key'])))
+            configpath = Path(config['config_file_path']).parents[0]
+            sign_key_path = configpath.joinpath(self.config['sign_key'])
+            if not exists(sign_key_path):
+                logger.info('Generating signing key and saving to "{file}".'.format(file=str(self.config['sign_key'])))
                 key = ECC.generate(curve='Ed25519')
                 self.setup['sign_key'] = key
-                with open(self.config['sign_key'],'wt') as f:
+                with open(sign_key_path,'wt') as f:
                     f.write(key.export_key(format='PEM'))
             else:
-                logger.debug('Reading signing key from "{file}".'.format(file=str(self.config['sign_key'])))
-                with open(self.config['sign_key'],'rt') as f:
+                logger.info('Reading signing key from "{file}".'.format(file=str(self.config['sign_key'])))
+                with open(sign_key_path,'rt') as f:
                     key = ECC.import_key(f.read())
                     self.setup['sign_key'] = key
+            self.setup['files_to_sign'] = []
 
     def on_pre_build(self, config, **kwargs):
         """
@@ -735,6 +745,12 @@ class encryptContentPlugin(BasePlugin):
             self.setup['locations'][location] = page.encryptcontent['key']
             delattr(page, 'encryptcontent')
 
+            if self.config['sign_files']:
+                new_entry = {}
+                new_entry['file'] = Path(config.data["site_dir"] + "/" + page.file.dest_uri)
+                new_entry['url'] = config.data["site_url"] + page.file.url
+                self.setup['files_to_sign'].append(new_entry)
+
         return output_content
 
     def on_post_build(self, config, **kwargs):
@@ -748,6 +764,21 @@ class encryptContentPlugin(BasePlugin):
         decrypt_js_path = Path(config.data["site_dir"] + '/assets/javascripts/decrypt-contents.js')
         with open(decrypt_js_path, "w") as file:
             file.write(self.__generate_decrypt_js__())
+
+        if self.config['sign_files']:
+            new_entry = {}
+            new_entry['file'] = decrypt_js_path
+            new_entry['url'] = config.data["site_url"] + '/assets/javascripts/decrypt-contents.js'
+            self.setup['files_to_sign'].append(new_entry)
+            for jsurl in JS_LIBRARIES:
+                new_entry = {}
+                if self.config['selfhost']:
+                    new_entry['file'] = Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
+                    new_entry['url'] = config.data["site_url"] + '/assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1]
+                else:
+                    new_entry['file'] =  ""
+                    new_entry['url'] = "https:" + jsurl[0]
+                self.setup['files_to_sign'].append(new_entry)
 
         self.setup['password_keystore'].clear()
         self.setup['obfuscate_keystore'].clear()
@@ -796,3 +827,14 @@ class encryptContentPlugin(BasePlugin):
                            ' Your weakest password only got {spied_on} bits of entropy, if someone watched you while typing'
                            ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(self.setup['min_enttropy_spied_on']), secret = math.ceil(self.setup['min_enttropy_secret']))
                     )
+
+        if self.config['sign_files']:
+            signatures = []
+            for file in self.setup['files_to_sign']:
+                signatures.append(
+                    self.__sign_file__(file['file'], file['url'], self.setup['sign_key'])
+                )
+            if signatures:
+                sign_file_path = Path(config.data["site_dir"] + '/' + self.config['sign_files'])
+                with open(sign_file_path, "w") as file:
+                    file.write(json.dumps(signatures))
