@@ -135,10 +135,7 @@ class encryptContentPlugin(BasePlugin):
             with urlopen(url) as response:
                 h.update(response.read())
         signer = eddsa.new(key, 'rfc8032')
-        return (
-            url,
-            base64.b64encode(signer.sign(h)).decode()
-        )
+        return base64.b64encode(signer.sign(h)).decode()
 
     def __encrypt_key__(self, key, password, iterations):
         """ Encrypts key with PBKDF2 and AES-256. """
@@ -833,21 +830,21 @@ class encryptContentPlugin(BasePlugin):
                     )
 
         if self.config['sign_files']:
-            signatures = []
+            signatures = {}
+            urls_to_verify = []
             for file in self.setup['files_to_sign']:
-                signatures.append(
-                    self.__sign_file__(file['file'], file['url'], self.setup['sign_key'])
-                )
+                signatures[file['url']] = self.__sign_file__(file['file'], file['url'], self.setup['sign_key'])
+                urls_to_verify.append(file['url'])
             if signatures:
                 sign_file_path = Path(config.data["site_dir"] + '/' + self.config['sign_files'])
                 with open(sign_file_path, "w") as file:
                     file.write(json.dumps(signatures))
 
             canary_file = self.setup['config_path'].joinpath('canary.py')
-            if not exists(canary_file):
-                canary_py = Template(self.setup['canary_template']).render({
-                    'public_key': self.setup['sign_key'].public_key().export_key(format='PEM'),
-                    'signature_url' : config.data["site_url"] + self.config['sign_files']
-                })
-                with open(canary_file, 'w') as file:
-                    file.write(canary_py)
+            canary_py = Template(self.setup['canary_template']).render({
+                'public_key': self.setup['sign_key'].public_key().export_key(format='PEM'),
+                'signature_url': config.data["site_url"] + self.config['sign_files'],
+                'urls_to_verify': json.dumps(urls_to_verify),
+            })
+            with open(canary_file, 'w') as file:
+                file.write(canary_py)
