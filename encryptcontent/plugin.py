@@ -5,6 +5,7 @@ import base64
 import logging
 import json
 import math
+import yaml
 from pathlib import Path
 from os.path import exists
 from jinja2 import Template
@@ -376,8 +377,16 @@ class encryptContentPlugin(BasePlugin):
         self.setup['password_keystore'] = {}
         self.setup['obfuscate_keystore'] = {}
         self.setup['level_keystore'] = {}
-        
-        if 'password_inventory' in self.config:
+
+        if self.config['password_file']:
+            if self.config['password_inventory']:
+                print(self.config['password_inventory'])
+                logger.error("Please define either 'password_file' or 'password_inventory' in mkdocs.yml and not both.")
+                os._exit(1)
+            with open(self.config['password_file'], 'r') as stream:
+                self.config['password_inventory'] = yaml.safe_load(stream)
+
+        if self.config['password_inventory']:
             for level in self.config['password_inventory'].keys():
                 new_entry = {}
                 new_entry['key'] = get_random_bytes(32)

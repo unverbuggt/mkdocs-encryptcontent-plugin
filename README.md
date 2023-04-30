@@ -32,7 +32,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * Sign generated generated and javascript files used in encrypted pages to make it more tamper proof
 * ~~Add check for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it~~
 * ~~find an equivalent way to define multiple passwords in the password inventory as global password~~
-* make it possible to define passwords in external yaml file(s)
+* ~~make it possible to define passwords in external yaml file(s)~~
 * ...to be defined
 
 # Table of Contents
@@ -142,6 +142,28 @@ It is possible to reuse credentials at different levels.
 The plugin will generate one secret key for each level which is used to encrypt the protected the assigned sites.
 
 It is good practice to assign the same level to all pages within a navigation branch (INSERT EXAMPLE HERE).
+
+#### Password inventory in external file
+
+You can define password levels in an external yaml file and use it with `password_file`.
+
+```yaml
+plugins:
+    - encryptcontent:
+        password_file: 'passwords.yml'
+```
+
+passwords.yml:
+```yaml
+classified: 'password1'
+confidential:
+    - 'password2'
+    - 'password3'
+secret:
+    user4: 'password4'
+    user5: 'password5'
+```
+
 
 #### Global password(s) in inventory
 
