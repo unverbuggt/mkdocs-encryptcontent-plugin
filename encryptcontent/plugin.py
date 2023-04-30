@@ -677,5 +677,5 @@ class encryptContentPlugin(BasePlugin):
         if min_enttropy_spied_on < 100 and min_enttropy_spied_on > 0:
             logger.warning('mkdocs-encryptcontent-plugin will always be vulnerable to brute-force attacks!'
                            ' Your weakest password only got {spied_on} bits of entropy, if someone watched you while typing'
-                           ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(enttropy_spied_on), secret = math.ceil(min_enttropy_secret))
+                           ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(min_enttropy_spied_on), secret = math.ceil(min_enttropy_secret))
                     )
