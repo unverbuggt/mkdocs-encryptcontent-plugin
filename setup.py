@@ -49,6 +49,7 @@ setup(
     package_data={'encryptcontent': [
         '*.tpl.js',
         '*.tpl.html',
+        '*.tpl.py',
         'contrib/templates/search/*.js'
     ]},
     include_package_data=True

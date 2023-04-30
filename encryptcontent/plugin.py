@@ -84,6 +84,7 @@ class encryptContentPlugin(BasePlugin):
         ('html_extra_vars', config_options.Type(dict, default={})),
         ('js_template_path', config_options.Type(string_types, default=str(os.path.join(PLUGIN_DIR, 'decrypt-contents.tpl.js')))),
         ('js_extra_vars', config_options.Type(dict, default={})),
+        ('canary_template_path', config_options.Type(string_types, default=str(os.path.join(PLUGIN_DIR, 'canary.tpl.py')))),
         # others features
         ('encrypted_something', config_options.Type(dict, default={})),
         ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
@@ -315,6 +316,9 @@ class encryptContentPlugin(BasePlugin):
         logger.debug('Load JS template from file: "{file}".'.format(file=str(self.config['js_template_path'])))
         with open(self.config['js_template_path'], 'r') as template_js:
             self.setup['js_template'] = template_js.read()
+        logger.debug('Load canary template from file: "{file}".'.format(file=str(self.config['canary_template_path'])))
+        with open(self.config['canary_template_path'], 'r') as template_html:
+            self.setup['canary_template'] = template_html.read()
 
         # Check if hljs feature need to be enabled, based on theme configuration
         if ('highlightjs' in config['theme']._vars
@@ -360,6 +364,8 @@ class encryptContentPlugin(BasePlugin):
         self.setup['encrypted_something'] = {**self.config['inject'], **self.config['encrypted_something']} #add inject to encrypted_something
         # Get path to site in case of subdir in site_url
         self.setup['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
+
+        self.setup['config_path'] = Path(config['config_file_path']).parents[0]
 
         self.setup['search_plugin_found'] = False
         encryptcontent_plugin_found = False
@@ -421,8 +427,7 @@ class encryptContentPlugin(BasePlugin):
                 self.setup['level_keystore'][level] = new_entry
 
         if self.config['sign_files']:
-            configpath = Path(config['config_file_path']).parents[0]
-            sign_key_path = configpath.joinpath(self.config['sign_key'])
+            sign_key_path = self.setup['config_path'].joinpath(self.config['sign_key'])
             if not exists(sign_key_path):
                 logger.info('Generating signing key and saving to "{file}".'.format(file=str(self.config['sign_key'])))
                 key = ECC.generate(curve='Ed25519')
@@ -470,8 +475,7 @@ class encryptContentPlugin(BasePlugin):
         if self.config['selfhost'] and self.config['selfhost_download']:
             logger.info('Downloading cryptojs for self-hosting (if needed)...')
             if self.config['selfhost_dir']:
-                configpath = Path(config['config_file_path']).parents[0]
-                dlpath = configpath.joinpath(self.config['selfhost_dir'] + '/assets/javascripts/cryptojs/')
+                dlpath = self.setup['config_path'].joinpath(self.config['selfhost_dir'] + '/assets/javascripts/cryptojs/')
             else:
                 dlpath = Path(config.data['docs_dir'] + '/assets/javascripts/cryptojs/')
             dlpath.mkdir(parents=True, exist_ok=True)
@@ -774,7 +778,7 @@ class encryptContentPlugin(BasePlugin):
                 new_entry = {}
                 if self.config['selfhost']:
                     new_entry['file'] = Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
-                    new_entry['url'] = config.data["site_url"] + '/assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1]
+                    new_entry['url'] = config.data["site_url"] + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1]
                 else:
                     new_entry['file'] =  ""
                     new_entry['url'] = "https:" + jsurl[0]
@@ -838,3 +842,12 @@ class encryptContentPlugin(BasePlugin):
                 sign_file_path = Path(config.data["site_dir"] + '/' + self.config['sign_files'])
                 with open(sign_file_path, "w") as file:
                     file.write(json.dumps(signatures))
+
+            canary_file = self.setup['config_path'].joinpath('canary.py')
+            if not exists(canary_file):
+                canary_py = Template(self.setup['canary_template']).render({
+                    'public_key': self.setup['sign_key'].public_key().export_key(format='PEM'),
+                    'signature_url' : config.data["site_url"] + self.config['sign_files']
+                })
+                with open(canary_file, 'w') as file:
+                    file.write(canary_py)

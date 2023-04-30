@@ -29,7 +29,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * ~~Rework password handling or inventory of some sort~~
 * ~~Rework crypto (PBKDF2 + AES256)~~
 * ~~Save the generated random keys instead of passwords to session( or local) storage~~
-* Sign generated generated and javascript files used in encrypted pages to make it more tamper proof
+* ~~Sign generated generated and javascript files used in encrypted pages to make it more tamper proof~~
 * ~~Add check for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it~~
 * ~~find an equivalent way to define multiple passwords in the password inventory as global password~~
 * ~~make it possible to define passwords in external yaml file(s)~~
@@ -705,6 +705,37 @@ some_image_1_bb80db433751833b8f8b4ad23767c0fc.jpg
 ("bb80db433751833b8f8b4ad23767c0fc" being the MD5 hash of said image.)
 
 > The file name obfuscation is currently applied to the whole site - not just the encrypted pages...
+
+### Signing of generated files
+
+An attacker would most likely have a hard time brute forcing your encrypted content, given a good
+password entropy. It would be much easier for him to fish for passwords by modifying the
+generated pages, if he is able to hack your web space.
+
+This feature will sign all encrypted pages and used javascript files with Ed25519. It will also generate
+an example [canary script](https://en.wikipedia.org/wiki/Domestic_canary#Miner's_canary), which can be
+customized to alert if files were modified.
+
+> **NOTE** If Mkdocs is running with `mkdocs serve`, then signature verification of encrypted pages
+> will most likely fail, because the files are modified by Mkdocs to enable live reload.
+
+```yaml
+      sign_files: 'signatures.json'
+      sign_key: 'encryptcontent.key' #optional
+      canary_template_path: '/path/to/canary.tpl.py' #optional
+```
+
+First an Ed25519 private key is generated at "encryptcontent.key" (besides `mkdocs.yml`), however you can supply an
+existing private key as long as it's in PEM format.
+
+After generation the signatures are saved to "signatures.json" in `site_dir`, so this file also needs to be uploaded
+to the web space. The canary script will download this file and compare the URLs to its own list and then download
+all files and verify the signatures.
+
+As long as the private key used for signing remains secret, the canary script will be able to determine
+if someone tampered with the files on the server. But you should run the canary script from another machine
+that is not related to the server, otherwise the attacker could also modify the canary script or sign with his
+private key instead.
 
 # Contributing
 
