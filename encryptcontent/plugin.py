@@ -144,6 +144,14 @@ class encryptContentPlugin(BasePlugin):
         # plaintext must be padded to be a multiple of 16 bytes
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
+
+        if iterations > 1: #don't calculate entropy for obfuscate passwords
+            enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
+            if self.setup['min_enttropy_spied_on'] == 0 or enttropy_spied_on < self.setup['min_enttropy_spied_on']:
+                self.setup['min_enttropy_spied_on'] = enttropy_spied_on
+            if self.setup['min_enttropy_secret'] == 0 or enttropy_secret < self.setup['min_enttropy_secret']:
+                self.setup['min_enttropy_secret'] = enttropy_secret
+
         return (
             base64.b64encode(iv).decode() ,
             base64.b64encode(ciphertext).decode(),
@@ -359,6 +367,9 @@ class encryptContentPlugin(BasePlugin):
             logger.warning('"search" plugin wasn\'t enabled. Search index isn\'t generated or modified.')
 
         self.setup['locations'] = {}
+
+        self.setup['min_enttropy_spied_on'] = 0
+        self.setup['min_enttropy_secret'] = 0
 
         self.setup['kdf_iterations'] = pow(10,self.config['kdf_pow'])
 
@@ -721,6 +732,10 @@ class encryptContentPlugin(BasePlugin):
         with open(decrypt_js_path, "w") as file:
             file.write(self.__generate_decrypt_js__())
 
+        self.setup['password_keystore'].clear()
+        self.setup['obfuscate_keystore'].clear()
+        self.setup['level_keystore'].clear()
+
         #modify search_index in the style of mkdocs-exclude-search
         if self.setup['search_plugin_found'] and self.config['search_index'] != 'clear':
             search_index_filename = Path(config.data["site_dir"] + "/search/search_index.json")
@@ -759,16 +774,8 @@ class encryptContentPlugin(BasePlugin):
                 os._exit(1)
             logger.info('Modified search_index.')
 
-        min_enttropy_spied_on, min_enttropy_secret = 0, 0
-        for password in self.setup['password_keystore'].keys():
-            enttropy_spied_on, enttropy_secret = self.__get_entropy_from_password__(password)
-            if min_enttropy_spied_on == 0 or enttropy_spied_on < min_enttropy_spied_on:
-                min_enttropy_spied_on = enttropy_spied_on
-            if min_enttropy_secret == 0 or enttropy_secret < min_enttropy_secret:
-                min_enttropy_secret = enttropy_secret
-        self.setup['password_keystore'].clear()
-        if min_enttropy_spied_on < 100 and min_enttropy_spied_on > 0:
+        if self.setup['min_enttropy_spied_on'] < 100 and self.setup['min_enttropy_spied_on'] > 0:
             logger.warning('mkdocs-encryptcontent-plugin will always be vulnerable to brute-force attacks!'
                            ' Your weakest password only got {spied_on} bits of entropy, if someone watched you while typing'
-                           ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(enttropy_spied_on), secret = math.ceil(min_enttropy_secret))
+                           ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(self.setup['min_enttropy_spied_on']), secret = math.ceil(self.setup['min_enttropy_secret']))
                     )
