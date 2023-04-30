@@ -24,10 +24,20 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 
 ![encryptcontent_demo](https://user-images.githubusercontent.com/12155947/177001700-f0920d4b-0c41-4d11-8164-9f63d29d8a6a.gif)
 
-# Todo for 2.6.x
+# Version 3
 
-* Rework password handling or inventory of some sort
-* ...to be defined
+Please check out the [pre-releases](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/releases) of version3:
+
+-  Introduce password inventory in mkdocs.yml or external yaml file, usable by `level` meta tag or `_global` #44.
+   - Allow multiple passwords per page #36.
+   - Allow username/password credentials
+   - Deprecation of `use_secret` as environment variables can be read by `!ENV` in password inventory
+- The password is now hashed by PBKDF2 instead of MD5 #47.
+- Allow special characters to be used in passwords (passwords are URLencoded).
+- Allow signing of generated pages and files
+   - Check Ed25519 signatures with external canary script
+
+Please test and report issues. Thanks.
 
 # Table of Contents
 
