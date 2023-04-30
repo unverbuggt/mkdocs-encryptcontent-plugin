@@ -507,6 +507,9 @@ class encryptContentPlugin(BasePlugin):
 
         # Set global password as default password for each page
         encryptcontent['password'] = self.config['global_password']
+        # level '_global' will be set as global level
+        if '_global' in self.setup['level_keystore']:
+            encryptcontent['level'] = '_global'
 
         if 'password' in page.meta.keys():
             # If global_password is set, but you don't want to encrypt content
@@ -524,7 +527,9 @@ class encryptContentPlugin(BasePlugin):
             del page.meta['obfuscate']
 
         if 'level' in page.meta.keys():
-            encryptcontent['level'] = str(page.meta.get('level'))
+            # If '_global' level is set, but you don't want to encrypt content
+            page_level = str(page.meta.get('level'))
+            encryptcontent['level'] = None if page_level == '' else page_level
             del page.meta['level']
 
         # Custom per-page strings

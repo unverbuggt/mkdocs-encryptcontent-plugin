@@ -31,7 +31,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * ~~Save the generated random keys instead of passwords to session( or local) storage~~
 * Sign generated generated and javascript files used in encrypted pages to make it more tamper proof
 * ~~Add check for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it~~
-* find an equivalent way to define multiple passwords in the password inventory as global password
+* ~~find an equivalent way to define multiple passwords in the password inventory as global password~~
 * make it possible to define passwords in external yaml file(s)
 * ...to be defined
 
@@ -143,6 +143,25 @@ The plugin will generate one secret key for each level which is used to encrypt 
 
 It is good practice to assign the same level to all pages within a navigation branch (INSERT EXAMPLE HERE).
 
+#### Global password(s) in inventory
+
+You can add the special level `_global`, which will be applied globally on all sites like this:
+
+```yam
+plugins:
+    - encryptcontent:
+        password_inventory:
+            _global: 'either define one password'
+            _global:
+                - 'or define'
+                - 'multiple passwords'
+            _global:
+                user1: 'or use user'
+                user2: 'and password pairs'
+```
+
+> **NOTE** Add the meta tag `level:` (without a value) to pages which should be excluded from global password level.
+> Also note that it is always possible to set the page to a different level than the global one with the `level` meta tag.
 
 ### Secret from environment
 
