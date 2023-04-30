@@ -26,11 +26,12 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 
 # Todo for 3.x
 
-* Rework password handling or inventory of some sort
-* Rework crypto (PBKDF2 + AES256)
+* ~~Rework password handling or inventory of some sort~~
+* ~~Rework crypto (PBKDF2 + AES256)~~
 * ~~Save the generated random keys instead of passwords to session( or local) storage~~
 * Sign generated generated and javascript files used in encrypted pages to make it more tamper proof
-* Add check for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it
+* ~~Add check for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it~~
+* 
 * ...to be defined
 
 # Table of Contents
@@ -132,6 +133,10 @@ plugins:
 
 These levels may be only one password (classified), a list of multiple passwords (confidential) or multiple username/password pairs.
 It is possible to reuse credentials at different levels.
+
+>Note that a "list of multiple passwords" comes with a downside: All entries are tried because unlike "user/password pairs"
+>there is no hint to determine the right entry to try (At least I found no hint that wouldn't make it easier for a brute force attacker).
+>This means, that a high `kdf_pow` could cause long waiting time even if the right password was entered.
 
 The plugin will generate one secret key for each level which is used to encrypt the protected the assigned sites.
 
