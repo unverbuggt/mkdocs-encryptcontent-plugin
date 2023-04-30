@@ -117,7 +117,7 @@ If a password is defined in an article, it will **ALWAYS** overwrite the global 
 
 ### Password inventory
 
-With the `password_inventory` you can define protection levels (assigned with the meta tag `password_level` in markdown files).
+With the `password_inventory` you can define protection levels (assigned with the meta tag `level` in markdown files).
 
 ```yaml
 plugins:
@@ -132,7 +132,7 @@ plugins:
             user5: 'password5'
 ```
 
-These levels may be only one password (classified), a list of multiple passwords (confidential) or multiple username/password pairs.
+These levels may be only one password (f.ex. classified), a list of multiple passwords (f.ex. confidential) or multiple username/password pairs (f.ex. secret).
 It is possible to reuse credentials at different levels.
 
 >Note that a "list of multiple passwords" comes with a downside: All entries are tried because unlike "user/password pairs"
@@ -169,7 +169,7 @@ secret:
 
 You can add the special level `_global`, which will be applied globally on all sites like this:
 
-```yam
+```yaml
 plugins:
     - encryptcontent:
         password_inventory:
