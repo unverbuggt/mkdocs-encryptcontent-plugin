@@ -385,6 +385,9 @@ class encryptContentPlugin(BasePlugin):
                 if isinstance(credentials, list):
                     new_entry['store'] = []
                     for password in credentials:
+                        if isinstance(password, dict):
+                            logger.error("Configuration error in yaml syntax of 'password_inventory': expected string at level '{level}', but found dict!".format(level=level))
+                            os._exit(1)
                         keystore = self.__encrypt_key__(new_entry['key'], password, self.setup['kdf_iterations'])
                         new_entry['store'].append(';'.join(keystore))
                 elif isinstance(credentials, dict):

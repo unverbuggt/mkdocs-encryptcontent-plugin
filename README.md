@@ -31,7 +31,8 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * ~~Save the generated random keys instead of passwords to session( or local) storage~~
 * Sign generated generated and javascript files used in encrypted pages to make it more tamper proof
 * ~~Add check for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it~~
-* 
+* find an equivalent way to define multiple passwords in the password inventory as global password
+* make it possible to define passwords in external yaml file(s)
 * ...to be defined
 
 # Table of Contents
