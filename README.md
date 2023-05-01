@@ -92,7 +92,7 @@ plugins:
 
 Add an meta tag `password: secret_password` in your markdown files to protect them.
 
-Alternatively add the meta tag `password_level: secret` to use one or more secrets defined at the plugin's `password_inventory` in your `mkdocs.yml`.
+Alternatively add the meta tag `level: secret` to use one or more secrets defined at the plugin's `password_inventory` in your `mkdocs.yml`.
 
 
 # How does this work?
@@ -135,11 +135,11 @@ plugins:
 These levels may be only one password (f.ex. classified), a list of multiple passwords (f.ex. confidential) or multiple username/password pairs (f.ex. secret).
 It is possible to reuse credentials at different levels.
 
->Note that a "list of multiple passwords" comes with a downside: All entries are tried because unlike "user/password pairs"
->there is no hint to determine the right entry to try (At least I found no hint that wouldn't make it easier for a brute force attacker).
+>Note that a "list of multiple passwords" comes with a downside: All entries may be tested because unlike "user/password pairs"
+>there is no hint to determine the distinct entry to try (At least I found no hint that wouldn't make it easier for a brute force attacker).
 >This means, that a high `kdf_pow` could cause long waiting time even if the right password was entered.
 
-The plugin will generate one secret key for each level which is used to encrypt the protected the assigned sites.
+The plugin will generate one secret key for each level, which is then used to encrypt the assigned sites.
 
 It is good practice to assign the same level to all pages within a navigation branch (INSERT EXAMPLE HERE).
 
@@ -253,12 +253,12 @@ You can set the  meta tag `encryption_summary` to customize `summary` and `encry
 If you want to make it harder for search engines to scrape you pages content,
 you can set `obfuscate: SomeNotSoSecretPassword` meta tag in markdown.
 
-The page than will display `summary` and `encryption_info_message` together with a button labeled with.
+The page than will display `summary` and `encryption_info_message` together with a button labeled with
 `password_button_text`. In order to view the pages content one hast to press the button first.
 
-If a `password` or `use_secret` is set, then the `obfuscate` feature will be disabled.
-If you want to use `obfuscate` in a configuration where `global_password` is defined, 
-you'll need to set `password:` meta tag (with no password defined) to undefine the password on this page.
+If a `password` or `level` is set, then the `obfuscate` feature will be disabled.
+If you want to use `obfuscate` in a configuration where `global_password` or `_global` level is defined, 
+you'll need to set the `password:` or rather `level:` meta tag (with no password/level defined) to undefine the password on this page.
 
 # Features
 
