@@ -26,7 +26,8 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 
 # Version 3
 
-Please check out the [pre-releases](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/releases) of version3:
+Please check out the [pre-releases](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/releases) 
+of [version3](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/version3):
 
 -  Introduce password inventory in mkdocs.yml or external yaml file, usable by `level` meta tag or `_global` #44.
    - Allow multiple passwords per page #36.
