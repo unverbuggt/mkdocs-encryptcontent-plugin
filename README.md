@@ -40,10 +40,11 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
   * [Installation](#installation)
   * [Usage](#usage)
     * [Global password protection](#global-password-protection)
+    * [Password inventory](#password-inventory) **NEW**
     * [Secret from environment](#secret-from-environment)
     * [Customization](#default-vars-customization)
     * [Translations](#translations)
-    * [Obfuscate pages](#obfuscate-pages) **NEW**
+    * [Obfuscate pages](#obfuscate-pages)
   * [Features](#features)
     * [HighlightJS support](#highlightjs-support) *(default)*
     * [Arithmatex support](#arithmatex-support) *(default)*
@@ -57,8 +58,9 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
     * [Override default templates](#override-default-templates)
     * [Add button](#add-button)
     * [Reload scripts](#reload-scripts)
-    * [Self-host crypto-js](#self-host-crypto-js) *UPDATE*
-    * [File name obfuscation](#file-name-obfuscation) **NEW**
+    * [Self-host crypto-js](#self-host-crypto-js)
+    * [File name obfuscation](#file-name-obfuscation)
+    * [Signing of generated files](#signing-of-generated-files) **NEW**
   * [Contributing](#contributing)
 
 
@@ -95,7 +97,7 @@ Add an meta tag `password: secret_password` in your markdown files to protect th
 Alternatively add the meta tag `level: secret` to use one or more secrets defined at the plugin's `password_inventory` in your `mkdocs.yml`.
 
 
-# How does this work?
+## How does this work?
 
 For every unique `password` and for every `level` we generate a random 256 bit key.
 This key will be used for AES-256 encryption on every page with the same `password` or same `level`.
@@ -134,7 +136,7 @@ or f.ex. use captchas after the third failed try. Although there were and most l
 
 This Mkdocs plugin can currently only take counter-measures to brute force attacks in form of PBKDF2,
 so you should really be interested in choosing a strong password
-(read [example1](https://en.wikipedia.org/wiki/Diceware) or [example2](https://xkcd.com/936/).
+(read [example1](https://en.wikipedia.org/wiki/Diceware) or [example2](https://xkcd.com/936/)).
 
 ### Global password protection
 
