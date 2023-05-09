@@ -102,15 +102,15 @@ Add an meta tag `password: secret_password` in your markdown files to protect th
 
 The strength of a password can be measured in entropy or "possibilities to try" (for a brute force attacker).
 
-For example take a tree letter password with just lower case characters like "abc".  
-The number of lower case characters is 26, so a three letter password leads to 26 * 26 * 26 = 17 576 possibilities to try.
+For example take a tree character password with just lower case letters like "abc".  
+The number of lower case letters is 26, so a three character password leads to 26 * 26 * 26 = 17 576 possibilities to try.
 
-Now take a three letter password which also includes upper case characters like "aBc".  
-The number of possibilities per letter doubles to 52, so the three letter password leads to 52 * 52 * 52 = 140 608 possibilities.
+Now take a three character password which also includes upper case letters like "aBc".  
+The number of possibilities per character doubles to 52, so the three character password leads to 52 * 52 * 52 = 140 608 possibilities.
 So compared to "abc" we got **eight times** more entropy in this case.
 
-So what happens if we double the letters and still only use lower case characters, like "abcdef"?  
-It's 26^6 = 308 915 776 with a six letter password, that's **17 576 times** more entropy compared to only using three letters.
+So what happens if we add one character and still only use lower case letters, like "abcd"?  
+It's 26^4 = 456 976 with a four character password, that's **26 times** more entropy compared to only using three lower case characters.
 
 A brute force attacker will find a password after trying half the possibilities on average.
 So the more entropy (possibilities to try) the better.
@@ -126,7 +126,7 @@ or f.ex. use captchas after the third failed try. Although there were and most l
 
 This Mkdocs plugin can currently only take counter-measures to brute force attacks in form of PBKDF2 (which will be introduces in version 3 of this plugin),
 so you should really be interested in choosing a strong password
-(read [example1](https://en.wikipedia.org/wiki/Diceware) or [example2](https://xkcd.com/936/).
+(read [example1](https://en.wikipedia.org/wiki/Diceware) or [example2](https://xkcd.com/936/)).
 
 
 ### Global password protection
