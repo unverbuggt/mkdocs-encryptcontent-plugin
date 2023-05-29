@@ -316,6 +316,15 @@ function decryptor_reaction(key, password_input, fallback_used, set_global, save
         {% if encrypted_something -%}
         let encrypted_something = {{ encrypted_something }};
         decrypt_somethings(key, encrypted_something);
+        if (inject_something) {
+            decrypt_somethings(key, inject_something);
+        }
+        if (delete_something) {
+            let el = document.getElementById(delete_something)
+            if (el) {
+                el.remove();
+            }
+        }
         {%- endif %}
     } else {
         // remove item on sessionStorage/localStorage if decryption process fail (Invalid item)

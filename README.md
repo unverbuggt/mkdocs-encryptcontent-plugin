@@ -53,6 +53,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
     * [Remember password](#remember-password)
     * [Encrypt something](#encrypt-something)
     * [Inject decrypt-form.tpl to theme](#inject-decrypt-formtpl-to-theme)
+    * [Mix encrypted and normal content](#mix-encrypted-and-normal-content) **NEW**
     * [Search index encryption](#search-index-encryption)
     * [Search index encryption for mkdocs-material](#search-index-encryption-for-mkdocs-material)
     * [Override default templates](#override-default-templates)
@@ -550,6 +551,44 @@ plugins:
 ```
 
 > This feature overrides the normal practice of replacing the rendered content of a page.
+
+### Mix encrypted and normal content
+
+It is possible to only encrypt parts of the page and also to remove parts on successful decryption.
+
+First install PyMdown Extensions by entering `pip install --upgrade pymdown-extensions`,
+then enable them in your `mkdocs.yml`:
+```yaml
+markdown_extensions:
+    - pymdownx.blocks.html
+```
+
+This is an example of a mixed markdown page:
+
+```
+title: This page mixes encrypted and normal content
+level: secret
+inject_id: protected
+delete_id: teaser
+
+/// html | div#teaser
+## Teaser
+
+You won't believe which secrets this page will unveil.
+Find out more after you enter the correct password...
+///
+
+/// html | div#protected
+## Secret
+
+Well, the princess is another castle.
+///
+```
+
+The markdown externion enables us to wrap a div tag around content by `/// html | div#some-id`.
+It ends with `///`. The meta tag `inject_id` defines which div id we would like to encrypt
+(it also injects the decryption form here). And the div id found at `delete_id` will be deleted
+on successfull decryption.
 
 ### Search index encryption
 

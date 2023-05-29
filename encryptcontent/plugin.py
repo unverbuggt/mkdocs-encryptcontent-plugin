@@ -209,6 +209,9 @@ class encryptContentPlugin(BasePlugin):
             obfuscate = 1
             obfuscate_password = encryptcontent['obfuscate']
 
+        inject_something = encryptcontent['inject'] if 'inject' in encryptcontent else None
+        delete_something = encryptcontent['delete_id'] if 'delete_id' in encryptcontent else None
+
         ciphertext_bundle = self.__encrypt_text__(content, key)
 
         decrypt_form = Template(self.setup['html_template']).render({
@@ -230,6 +233,8 @@ class encryptContentPlugin(BasePlugin):
             'base_path': base_path,
             'encryptcontent_path': encryptcontent_path,
             'encryptcontent_keystore': json.dumps(encryptcontent_keystore),
+            'inject_something': inject_something,
+            'delete_something': delete_something,
             # add extra vars
             'extra': self.config['html_extra_vars']
         })
@@ -246,7 +251,7 @@ class encryptContentPlugin(BasePlugin):
             'mermaid2': self.config['mermaid2'],
             'remember_password': self.config['remember_password'],
             'session_storage': self.config['session_storage'],
-            'encrypted_something': self.setup['encrypted_something'],
+            'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
             'experimental': self.config['search_index'] == 'dynamically',
             'site_path': self.setup['site_path'],
@@ -358,7 +363,7 @@ class encryptContentPlugin(BasePlugin):
         # Enable experimental code .. :popcorn:
         if self.config['search_index'] == 'dynamically':
             logger.info("EXPERIMENTAL search index encryption enabled.")
-        self.setup['encrypted_something'] = {**self.config['inject'], **self.config['encrypted_something']} #add inject to encrypted_something
+        
         # Get path to site in case of subdir in site_url
         self.setup['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
 
@@ -552,6 +557,18 @@ class encryptContentPlugin(BasePlugin):
             encryptcontent['level'] = None if page_level == '' else page_level
             del page.meta['level']
 
+        if 'inject_id' in page.meta.keys():
+            id = page.meta.get('inject_id')
+            encryptcontent['inject'] = {}
+            encryptcontent['inject'][id] = ['div', 'id']
+            del page.meta['inject_id']
+        elif self.config['inject']:
+            encryptcontent['inject'] = self.config['inject']
+
+        if 'delete_id' in page.meta.keys():
+            encryptcontent['delete_id'] = page.meta.get('delete_id')
+            del page.meta['delete_id']
+
         # Custom per-page strings
         if 'encryption_summary' in page.meta.keys():
             encryptcontent['summary'] = str(page.meta.get('encryption_summary'))
@@ -606,7 +623,7 @@ class encryptContentPlugin(BasePlugin):
                 setattr(page, 'encrypted', True)
 
             # Keep encrypted html to encrypt as temporary variable on page
-            if not self.config['inject']:
+            if not 'inject' in page.encryptcontent:
                 page.encryptcontent['html_to_encrypt'] = html
 
         return html
@@ -674,7 +691,7 @@ class encryptContentPlugin(BasePlugin):
                 )
                 page.encryptcontent['html_to_encrypt'] = None
 
-            if self.config['inject']:
+            if 'inject' in page.encryptcontent:
                 page.encryptcontent['decrypt_form'] = self.__encrypt_content__(
                     '<!-- dummy -->', 
                     context['base_url']+'/',
@@ -697,10 +714,15 @@ class encryptContentPlugin(BasePlugin):
         :return: output of rendered template as string
         """
         # Limit this process only if encrypted_something feature is enable *(speedup)*
-        if (self.setup['encrypted_something'] and hasattr(page, 'encryptcontent')
-                and len(self.setup['encrypted_something']) > 0):  # noqa: W503
+        if hasattr(page, 'encryptcontent') and 'inject' in page.encryptcontent:
+            encrypted_something = {**page.encryptcontent['inject'], **self.config['encrypted_something']}
+        else:
+            encrypted_something = self.config['encrypted_something']
+        
+        if (encrypted_something and hasattr(page, 'encryptcontent')
+                and len(encrypted_something) > 0):  # noqa: W503
             soup = BeautifulSoup(output_content, 'html.parser')
-            for name, tag in self.setup['encrypted_something'].items():
+            for name, tag in encrypted_something.items():
                 # logger.debug({'name': name, 'html tag': tag[0], 'type': tag[1]})
                 something_search = soup.findAll(tag[0], {tag[1]: name})
                 if something_search is not None and len(something_search) > 0:
@@ -731,8 +753,8 @@ class encryptContentPlugin(BasePlugin):
                         else:
                             item['style'] = "display:none"
 
-            if self.config['inject'] and len(self.config['inject']) == 1:
-                name, tag = list(self.config['inject'].items())[0]
+            if 'inject' in page.encryptcontent:
+                name, tag = list(page.encryptcontent['inject'].items())[0]
                 injector = soup.new_tag("div")
                 something_search = soup.find(tag[0], {tag[1]: name})
                 something_search.insert_before(injector)
