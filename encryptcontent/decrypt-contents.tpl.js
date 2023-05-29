@@ -316,10 +316,10 @@ function decryptor_reaction(key, password_input, fallback_used, set_global, save
         {% if encrypted_something -%}
         let encrypted_something = {{ encrypted_something }};
         decrypt_somethings(key, encrypted_something);
-        if (inject_something) {
+        if (typeof inject_something !== 'undefined') {
             decrypt_somethings(key, inject_something);
         }
-        if (delete_something) {
+        if (typeof delete_something !== 'undefined') {
             let el = document.getElementById(delete_something)
             if (el) {
                 el.remove();
