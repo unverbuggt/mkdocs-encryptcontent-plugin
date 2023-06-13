@@ -71,6 +71,7 @@ class encryptContentPlugin(BasePlugin):
         # password feature
         ('global_password', config_options.Type(string_types, default=None)),
         ('remember_password', config_options.Type(bool, default=False)),
+        ('remember_suffix', config_options.Type(string_types, default='encryptcontent_')),
         ('session_storage', config_options.Type(bool, default=True)),
         ('password_inventory', config_options.Type(dict, default={})),
         ('password_file', config_options.Type(string_types, default=None)),
@@ -102,6 +103,8 @@ class encryptContentPlugin(BasePlugin):
     )
 
     setup = {}
+
+    keystore_id = 0
 
     def __hash_md5_file__(self, fname):
         hash_md5 = MD5.new()
@@ -137,16 +140,16 @@ class encryptContentPlugin(BasePlugin):
         signer = eddsa.new(key, 'rfc8032')
         return base64.b64encode(signer.sign(h)).decode()
 
-    def __encrypt_key__(self, key, password, iterations):
+    def __encrypt_key__(self, key, password, iterations, id, user=''):
         """ Encrypts key with PBKDF2 and AES-256. """
         salt = get_random_bytes(16)
         # generate PBKDF2 key from salt and password (password is URI encoded)
-        kdfkey = PBKDF2(quote(password, safe='~()*!\''), salt, 32, count=iterations, hmac_hash_module=SHA256)
+        kdfkey = PBKDF2(quote(user+password, safe='~()*!\''), salt, 32, count=iterations, hmac_hash_module=SHA256)
         # initialize AES-256
         iv = get_random_bytes(16)
         cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
         # use it to encrypt the AES-256 key
-        plaintext = key
+        plaintext = key + quote(self.config['remember_suffix'] + str(id), safe='~()*!\'').encode()
         # plaintext must be padded to be a multiple of 16 bytes
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
@@ -404,6 +407,7 @@ class encryptContentPlugin(BasePlugin):
         if self.config['password_inventory']:
             for level in self.config['password_inventory'].keys():
                 new_entry = {}
+                self.keystore_id += 1
                 new_entry['key'] = get_random_bytes(32)
                 credentials = self.config['password_inventory'][level]
                 if isinstance(credentials, list):
@@ -412,19 +416,19 @@ class encryptContentPlugin(BasePlugin):
                         if isinstance(password, dict):
                             logger.error("Configuration error in yaml syntax of 'password_inventory': expected string at level '{level}', but found dict!".format(level=level))
                             os._exit(1)
-                        keystore = self.__encrypt_key__(new_entry['key'], password, self.setup['kdf_iterations'])
+                        keystore = self.__encrypt_key__(new_entry['key'], password, self.setup['kdf_iterations'], self.keystore_id)
                         new_entry['store'].append(';'.join(keystore))
                 elif isinstance(credentials, dict):
                     new_entry['store'] = []
                     for user in credentials:
                         new_entry['uname'] = user
-                        keystore = self.__encrypt_key__(new_entry['key'], credentials[user], self.setup['kdf_iterations'])
+                        keystore = self.__encrypt_key__(new_entry['key'], credentials[user], self.setup['kdf_iterations'], self.keystore_id, user) # add username to password
                         userhash = quote(user, safe='~()*!\'').encode() # safe transform username analogous to encodeURIComponent
                         userhash = SHA256.new(userhash).digest() # sha256 sum of username
                         userhash = base64.b64encode(userhash).decode() # base64 encode userhash
                         new_entry['store'].append(';'.join(keystore + (userhash,)))
                 else:
-                    keystore = self.__encrypt_key__(new_entry['key'], credentials, self.setup['kdf_iterations'])
+                    keystore = self.__encrypt_key__(new_entry['key'], credentials, self.setup['kdf_iterations'], self.keystore_id)
                     new_entry['store'] = ';'.join(keystore)
                 self.setup['level_keystore'][level] = new_entry
 
@@ -581,8 +585,9 @@ class encryptContentPlugin(BasePlugin):
         if encryptcontent.get('password'):
             if encryptcontent['password'] not in self.setup['password_keystore']:
                 new_entry = {}
+                self.keystore_id += 1
                 new_entry['key'] = get_random_bytes(32)
-                new_entry['store'] = ';'.join(self.__encrypt_key__(new_entry['key'], encryptcontent['password'], self.setup['kdf_iterations']))
+                new_entry['store'] = ';'.join(self.__encrypt_key__(new_entry['key'], encryptcontent['password'], self.setup['kdf_iterations'], self.keystore_id))
                 self.setup['password_keystore'][encryptcontent['password']] = new_entry
             encryptcontent['type'] = 'password'
             encryptcontent['key'] = self.setup['password_keystore'][encryptcontent['password']]['key']
@@ -595,7 +600,7 @@ class encryptContentPlugin(BasePlugin):
             if encryptcontent['obfuscate'] not in self.setup['obfuscate_keystore']:
                 new_entry = {}
                 new_entry['key'] = get_random_bytes(32)
-                new_entry['store'] = ';'.join(self.__encrypt_key__(new_entry['key'], encryptcontent['obfuscate'], 1))
+                new_entry['store'] = ';'.join(self.__encrypt_key__(new_entry['key'], encryptcontent['obfuscate'], 1, 0))
                 self.setup['obfuscate_keystore'][encryptcontent['obfuscate']] = new_entry
             encryptcontent['type'] = 'obfuscate'
             encryptcontent['key'] = self.setup['obfuscate_keystore'][encryptcontent['obfuscate']]['key']
