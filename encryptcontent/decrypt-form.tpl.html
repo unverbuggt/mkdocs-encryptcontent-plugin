@@ -17,14 +17,13 @@
 </div>
 
 <script type="text/javascript">
+var encryptcontent_id = "{{ encryptcontent_id }}";
 var encryptcontent_path = "{{ encryptcontent_path }}";
 var decryption_failure_message = {{ decryption_failure_message }};
 var encryptcontent_keystore = {{ encryptcontent_keystore }};
 var encryptcontent_obfuscate = {{ obfuscate }};
-{%- if inject_something %}
-var inject_something = {{ inject_something }};{% endif %}
-{%- if delete_something %}
-var delete_something = "{{ delete_something }}";{% endif %}
+{%- if inject_something %}var inject_something = {{ inject_something }};{% endif %}
+{%- if delete_something %}var delete_something = "{{ delete_something }}";{% endif %}
 </script>
 {% for library in js_libraries %}
 <script type="text/javascript" src="{{ library }}"></script>

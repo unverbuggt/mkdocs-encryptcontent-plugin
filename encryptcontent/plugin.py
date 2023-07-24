@@ -149,7 +149,7 @@ class encryptContentPlugin(BasePlugin):
         iv = get_random_bytes(16)
         cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
         # use it to encrypt the AES-256 key
-        plaintext = key + quote(self.config['remember_suffix'] + str(id), safe='~()*!\'').encode()
+        plaintext = key + '#'.encode() + quote(self.config['remember_suffix'] + str(id), safe='~()*!\'').encode()
         # plaintext must be padded to be a multiple of 16 bytes
         plaintext_padded = pad(plaintext, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
@@ -195,20 +195,28 @@ class encryptContentPlugin(BasePlugin):
         obfuscate = 0
         uname = 0
         obfuscate_password = None
+        encryptcontent_id = ''
 
         if encryptcontent['type'] == 'password':
             # get 32-bit AES-256 key from password_keystore
             key = encryptcontent['key']
-            encryptcontent_keystore = self.setup['password_keystore'][encryptcontent['password']]['store']
+            keystore = self.setup['password_keystore'][encryptcontent['password']]
+            encryptcontent_id = quote(self.config['remember_suffix'] + str(keystore['id']), safe='~()*!\'')
+            encryptcontent_keystore = keystore['store']
         elif encryptcontent['type'] == 'level':
+            # get 32-bit AES-256 key from password_keystore
             key = encryptcontent['key']
-            encryptcontent_keystore = self.setup['level_keystore'][encryptcontent['level']]['store']
-            if self.setup['level_keystore'][encryptcontent['level']].get('uname'):
+            keystore = self.setup['level_keystore'][encryptcontent['level']]
+            encryptcontent_id = quote(self.config['remember_suffix'] + str(keystore['id']), safe='~()*!\'')
+            encryptcontent_keystore = keystore['store']
+            if keystore.get('uname'):
                 uname = 1
         elif encryptcontent['type'] == 'obfuscate':
             # get 32-bit AES-256 key from password_keystore
             key = encryptcontent['key']
-            encryptcontent_keystore = self.setup['obfuscate_keystore'][encryptcontent['obfuscate']]['store']
+            keystore = self.setup['obfuscate_keystore'][encryptcontent['obfuscate']]
+            encryptcontent_id = quote(self.config['remember_suffix'] + str(keystore['id']), safe='~()*!\'')
+            encryptcontent_keystore = keystore['store']
             obfuscate = 1
             obfuscate_password = encryptcontent['obfuscate']
 
@@ -234,6 +242,7 @@ class encryptContentPlugin(BasePlugin):
             'ciphertext_bundle': ';'.join(ciphertext_bundle),
             'js_libraries': js_libraries,
             'base_path': base_path,
+            'encryptcontent_id': encryptcontent_id,
             'encryptcontent_path': encryptcontent_path,
             'encryptcontent_keystore': json.dumps(encryptcontent_keystore),
             'inject_something': inject_something,
@@ -408,6 +417,7 @@ class encryptContentPlugin(BasePlugin):
             for level in self.config['password_inventory'].keys():
                 new_entry = {}
                 self.keystore_id += 1
+                new_entry['id'] = self.keystore_id
                 new_entry['key'] = get_random_bytes(32)
                 credentials = self.config['password_inventory'][level]
                 if isinstance(credentials, list):
@@ -429,7 +439,8 @@ class encryptContentPlugin(BasePlugin):
                         new_entry['store'].append(';'.join(keystore + (userhash,)))
                 else:
                     keystore = self.__encrypt_key__(new_entry['key'], credentials, self.setup['kdf_iterations'], self.keystore_id)
-                    new_entry['store'] = ';'.join(keystore)
+                    new_entry['store'] = []
+                    new_entry['store'].append(';'.join(keystore))
                 self.setup['level_keystore'][level] = new_entry
 
         if self.config['sign_files']:
@@ -586,8 +597,11 @@ class encryptContentPlugin(BasePlugin):
             if encryptcontent['password'] not in self.setup['password_keystore']:
                 new_entry = {}
                 self.keystore_id += 1
+                new_entry['id'] = self.keystore_id
                 new_entry['key'] = get_random_bytes(32)
-                new_entry['store'] = ';'.join(self.__encrypt_key__(new_entry['key'], encryptcontent['password'], self.setup['kdf_iterations'], self.keystore_id))
+                keystore = self.__encrypt_key__(new_entry['key'], encryptcontent['password'], self.setup['kdf_iterations'], self.keystore_id)
+                new_entry['store'] = []
+                new_entry['store'].append(';'.join(keystore))
                 self.setup['password_keystore'][encryptcontent['password']] = new_entry
             encryptcontent['type'] = 'password'
             encryptcontent['key'] = self.setup['password_keystore'][encryptcontent['password']]['key']
@@ -599,8 +613,12 @@ class encryptContentPlugin(BasePlugin):
         elif encryptcontent.get('obfuscate'):
             if encryptcontent['obfuscate'] not in self.setup['obfuscate_keystore']:
                 new_entry = {}
+                self.keystore_id += 1
+                new_entry['id'] = self.keystore_id
                 new_entry['key'] = get_random_bytes(32)
-                new_entry['store'] = ';'.join(self.__encrypt_key__(new_entry['key'], encryptcontent['obfuscate'], 1, 0))
+                keystore = self.__encrypt_key__(new_entry['key'], encryptcontent['obfuscate'], 1, self.keystore_id)
+                new_entry['store'] = []
+                new_entry['store'].append(';'.join(keystore))
                 self.setup['obfuscate_keystore'][encryptcontent['obfuscate']] = new_entry
             encryptcontent['type'] = 'obfuscate'
             encryptcontent['key'] = self.setup['obfuscate_keystore'][encryptcontent['obfuscate']]['key']
