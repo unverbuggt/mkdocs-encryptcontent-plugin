@@ -10,10 +10,15 @@ function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
     let encrypted = {ciphertext: ciphertext},
         cfg = {iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7};
     let key = CryptoJS.AES.decrypt(encrypted, kdfkey, cfg);
-    if (key.sigBytes >= 32) {
-        console.log(key.toString(CryptoJS.enc.Latin1).substr(32)); //remember_suffix + keystore_id after the AES key
-        return key.toString(CryptoJS.enc.Hex).substr(0,64); //first 32 bytes contain the AES key
-    } else {
+
+    try {
+        let plaintext = key.toString(CryptoJS.enc.Latin1)
+        if (plaintext.substr(32,1) == '#') {
+            console.log(plaintext.substr(33)); //remember_suffix + keystore_id after the AES key
+            return key.toString(CryptoJS.enc.Hex).substr(0,64); //first 32 bytes contain the AES key
+        }
+    } catch (err) {
+        // encoding failed; wrong password
         return false;
     }
 };
