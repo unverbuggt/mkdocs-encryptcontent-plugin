@@ -12,10 +12,12 @@ function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
     let key = CryptoJS.AES.decrypt(encrypted, kdfkey, cfg);
 
     try {
-        let plaintext = key.toString(CryptoJS.enc.Latin1)
-        if (plaintext.substr(32,1) == '#') {
-            console.log(plaintext.substr(33)); //remember_suffix + keystore_id after the AES key
-            return key.toString(CryptoJS.enc.Hex).substr(0,64); //first 32 bytes contain the AES key
+        keystore = JSON.parse(key.toString(CryptoJS.enc.Utf8));
+        if (encryptcontent_id in keystore) {
+            return keystore[encryptcontent_id];
+        } else {
+            //id not found in keystore
+            return false;
         }
     } catch (err) {
         // encoding failed; wrong password
@@ -38,7 +40,7 @@ function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
                 } else if (parts.length == 4 && username) {
                     let userhash = CryptoJS.SHA256(encodeURIComponent(username.value)).toString(CryptoJS.enc.Base64);
                     if (parts[3] == userhash) {
-                        return decrypt_key(username.value+password, parts[0], parts[1], parts[2]);
+                        return decrypt_key(password, parts[0], parts[1], parts[2]);
                     }
                 } else {
                     return false;
