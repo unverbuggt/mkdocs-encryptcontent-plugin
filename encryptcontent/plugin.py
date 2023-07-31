@@ -143,7 +143,7 @@ class encryptContentPlugin(BasePlugin):
         signer = eddsa.new(key, 'rfc8032')
         return base64.b64encode(signer.sign(h)).decode()
 
-    def __add_to_keystore__(self, index, key, id, password, user=''):
+    def __add_to_keystore__(self, index, key, id):
         keystore = self.setup['keystore']
         store_id = id
 
@@ -466,13 +466,13 @@ class encryptContentPlugin(BasePlugin):
                         if isinstance(password, dict):
                             logger.error("Configuration error in yaml syntax of 'password_inventory': expected string at level '{level}', but found dict!".format(level=level))
                             os._exit(1)
-                        self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'], password)
+                        self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'])
                 elif isinstance(credentials, dict):
                     for user in credentials:
                         new_entry['uname'] = user
-                        self.__add_to_keystore__((user,credentials[user]), new_entry['key'], new_entry['id'], credentials[user], user)
+                        self.__add_to_keystore__((user,credentials[user]), new_entry['key'], new_entry['id'])
                 else:
-                    self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'], credentials)
+                    self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'])
                 self.setup['level_keys'][level] = new_entry
 
         if self.config['sign_files']:
@@ -632,7 +632,7 @@ class encryptContentPlugin(BasePlugin):
                 self.keystore_id += 1
                 new_entry['id'] = quote(self.config['remember_suffix'] + str(self.keystore_id), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
-                self.__add_to_keystore__((KS_PASSWORD,index), new_entry['key'], new_entry['id'], index)
+                self.__add_to_keystore__((KS_PASSWORD,index), new_entry['key'], new_entry['id'])
                 self.setup['password_keys'][index] = new_entry
             encryptcontent['type'] = 'password'
             encryptcontent['key'] = self.setup['password_keys'][index]['key']
@@ -651,7 +651,7 @@ class encryptContentPlugin(BasePlugin):
                 self.keystore_id += 1
                 new_entry['id'] = quote(self.config['remember_suffix'] + str(self.keystore_id), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
-                self.__add_to_keystore__((KS_OBFUSCATE,index), new_entry['key'], new_entry['id'], index)
+                self.__add_to_keystore__((KS_OBFUSCATE,index), new_entry['key'], new_entry['id'])
                 self.setup['obfuscate_keys'][index] = new_entry
             encryptcontent['type'] = 'obfuscate'
             encryptcontent['key'] = self.setup['obfuscate_keys'][index]['key']
@@ -699,12 +699,25 @@ class encryptContentPlugin(BasePlugin):
         :return: dict of template context variables
         """
 
+        # Add obfuscate keys to all other keystores
+        keystore = self.setup['keystore'] # make a copy()
+        for index in keystore:
+            if index[0] == KS_OBFUSCATE:
+                if index not in self.setup['keystore_obfuscate']:
+                    self.setup['keystore_obfuscate'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index))
+                    obfuscate_id = list(keystore[index].keys())[0]
+                    for index2 in keystore:
+                        if index2[0] == KS_OBFUSCATE:
+                            pass
+                        else:
+                            if obfuscate_id not in self.setup['keystore'][index2].keys():
+                                self.setup['keystore'][index2][obfuscate_id] = keystore[index][obfuscate_id]
+
         # Encrypt all keys to keystore
         # It just encrypts once, but needs to run on every page
         for index in self.setup['keystore']:
             if index[0] == KS_OBFUSCATE:
-                if index not in self.setup['keystore_obfuscate']:
-                    self.setup['keystore_obfuscate'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index))
+                pass
             elif index[0] == KS_PASSWORD:
                 if index not in self.setup['keystore_password']:
                     self.setup['keystore_password'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index))
