@@ -74,7 +74,7 @@ class encryptContentPlugin(BasePlugin):
         # password feature
         ('global_password', config_options.Type(string_types, default=None)),
         ('remember_password', config_options.Type(bool, default=False)),
-        ('remember_suffix', config_options.Type(string_types, default='encryptcontent_')),
+        ('remember_prefix', config_options.Type(string_types, default='encryptcontent_')),
         ('session_storage', config_options.Type(bool, default=True)),
         ('password_inventory', config_options.Type(dict, default={})),
         ('password_file', config_options.Type(string_types, default=None)),
@@ -458,7 +458,7 @@ class encryptContentPlugin(BasePlugin):
             for level in self.config['password_inventory'].keys():
                 new_entry = {}
                 self.keystore_id += 1
-                new_entry['id'] = quote(self.config['remember_suffix'] + str(self.keystore_id), safe='~()*!\'')
+                new_entry['id'] = quote(self.config['remember_prefix'] + str(self.keystore_id), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
                 credentials = self.config['password_inventory'][level]
                 if isinstance(credentials, list):
@@ -630,7 +630,7 @@ class encryptContentPlugin(BasePlugin):
             if index not in self.setup['password_keys']:
                 new_entry = {}
                 self.keystore_id += 1
-                new_entry['id'] = quote(self.config['remember_suffix'] + str(self.keystore_id), safe='~()*!\'')
+                new_entry['id'] = quote(self.config['remember_prefix'] + str(self.keystore_id), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
                 self.__add_to_keystore__((KS_PASSWORD,index), new_entry['key'], new_entry['id'])
                 self.setup['password_keys'][index] = new_entry
@@ -649,7 +649,7 @@ class encryptContentPlugin(BasePlugin):
             if index not in self.setup['obfuscate_keys']:
                 new_entry = {}
                 self.keystore_id += 1
-                new_entry['id'] = quote(self.config['remember_suffix'] + str(self.keystore_id), safe='~()*!\'')
+                new_entry['id'] = quote(self.config['remember_prefix'] + str(self.keystore_id), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
                 self.__add_to_keystore__((KS_OBFUSCATE,index), new_entry['key'], new_entry['id'])
                 self.setup['obfuscate_keys'][index] = new_entry
