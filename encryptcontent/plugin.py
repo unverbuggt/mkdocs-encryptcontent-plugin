@@ -626,30 +626,36 @@ class encryptContentPlugin(BasePlugin):
             del page.meta['encryption_info_message']
 
         if encryptcontent.get('password'):
-            if encryptcontent['password'] not in self.setup['password_keys']:
+            index = encryptcontent['password']
+            if index not in self.setup['password_keys']:
                 new_entry = {}
                 self.keystore_id += 1
                 new_entry['id'] = quote(self.config['remember_suffix'] + str(self.keystore_id), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
-                self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'], encryptcontent['password'])
-                self.setup['password_keys'][encryptcontent['password']] = new_entry
+                self.__add_to_keystore__((KS_PASSWORD,index), new_entry['key'], new_entry['id'], index)
+                self.setup['password_keys'][index] = new_entry
             encryptcontent['type'] = 'password'
-            encryptcontent['key'] = self.setup['password_keys'][encryptcontent['password']]['key']
+            encryptcontent['key'] = self.setup['password_keys'][index]['key']
+            encryptcontent['id'] = self.setup['password_keys'][index]['id']
             setattr(page, 'encryptcontent', encryptcontent)
         elif encryptcontent.get('level'):
+            index = encryptcontent['level']
             encryptcontent['type'] = 'level'
-            encryptcontent['key'] = self.setup['level_keys'][encryptcontent['level']]['key']
+            encryptcontent['key'] = self.setup['level_keys'][index]['key']
+            encryptcontent['id'] = self.setup['level_keys'][index]['id']
             setattr(page, 'encryptcontent', encryptcontent)
         elif encryptcontent.get('obfuscate'):
-            if encryptcontent['obfuscate'] not in self.setup['obfuscate_keys']:
+            index = encryptcontent['obfuscate']
+            if index not in self.setup['obfuscate_keys']:
                 new_entry = {}
                 self.keystore_id += 1
                 new_entry['id'] = quote(self.config['remember_suffix'] + str(self.keystore_id), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
-                self.__add_to_keystore__((KS_OBFUSCATE,encryptcontent['obfuscate']), new_entry['key'], new_entry['id'], encryptcontent['obfuscate'])
-                self.setup['obfuscate_keys'][encryptcontent['obfuscate']] = new_entry
+                self.__add_to_keystore__((KS_OBFUSCATE,index), new_entry['key'], new_entry['id'], index)
+                self.setup['obfuscate_keys'][index] = new_entry
             encryptcontent['type'] = 'obfuscate'
-            encryptcontent['key'] = self.setup['obfuscate_keys'][encryptcontent['obfuscate']]['key']
+            encryptcontent['key'] = self.setup['obfuscate_keys'][index]['key']
+            encryptcontent['id'] = self.setup['obfuscate_keys'][index]['id']
             setattr(page, 'encryptcontent', encryptcontent)
 
         return markdown
@@ -830,7 +836,7 @@ class encryptContentPlugin(BasePlugin):
 
         if hasattr(page, 'encryptcontent'):
             location = page.url.lstrip('/')
-            self.setup['locations'][location] = page.encryptcontent['key']
+            self.setup['locations'][location] = (page.encryptcontent['key'], page.encryptcontent['id'])
             delattr(page, 'encryptcontent')
 
             if self.config['sign_files']:
@@ -891,20 +897,21 @@ class encryptContentPlugin(BasePlugin):
             for entry in search_entries['docs'].copy(): #iterate through all entries of search_index
                 for location in self.setup['locations'].keys():
                     if entry['location'] == location or entry['location'].startswith(location+"#"): #find the ones located at encrypted pages
-                        page_key = self.setup['locations'][location]
+                        page_key = self.setup['locations'][location][0]
+                        page_id = self.setup['locations'][location][1]
                         if self.config['search_index'] == 'encrypted':
                             search_entries['docs'].remove(entry)
                         elif self.config['search_index'] == 'dynamically' and page_key is not None:
-                            #encrypt text/title/location(anchor only)
+                            #encrypt text/title/location
                             text = entry['text']
                             title = entry['title']
-                            toc_anchor = entry['location'].replace(location, '')
+                            location = entry['location']
+                            code = self.__encrypt_text__(location, page_key)
+                            entry['location'] = page_id + ';' + ';'.join(code) # add encryptcontent_id
                             code = self.__encrypt_text__(text, page_key )
                             entry['text'] = ';'.join(code)
                             code = self.__encrypt_text__(title, page_key)
                             entry['title'] = ';'.join(code)
-                            code = self.__encrypt_text__(toc_anchor, page_key)
-                            entry['location'] = location + ';' + ';'.join(code)
                         break
             self.setup['locations'].clear()
 

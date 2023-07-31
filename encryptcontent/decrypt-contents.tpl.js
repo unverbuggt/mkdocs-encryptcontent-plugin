@@ -147,33 +147,24 @@ function reload_js(src) {
 
 {% if experimental -%}
 /* Decrypt part of the search index and refresh it for search engine */
-function decrypt_search(key, path_location) {
+function decrypt_search(keys) {
     sessionIndex = sessionStorage.getItem('encryptcontent-index');
     let could_decrypt = false;
     if (sessionIndex) {
         sessionIndex = JSON.parse(sessionIndex);
         for (var i=0; i < sessionIndex.docs.length; i++) {
-            var doc = sessionIndex.docs[i];
-            if (doc.location.indexOf(path_location.replace('{{ site_path }}', '')) !== -1) {
-                // grab the ciphertext bundle and try to decrypt it
-                let title = decrypt_content_from_bundle(key, doc.title);
-                if (title !== false) {
-                    could_decrypt = true;
-                    doc.title = title;
-                    // any post processing on the decrypted search index should be done here
-                    let content = decrypt_content_from_bundle(key, doc.text);
-                    if (content !== false) {
-                        doc.text = content;
-                        let location_bundle = doc.location;
-                        let location_sep = location_bundle.indexOf(';')
-                        if (location_sep !== -1) {
-                            let toc_bundle = location_bundle.substring(location_sep+1)
-                            let location_doc = location_bundle.substring(0,location_sep)
-                            let toc_url = decrypt_content_from_bundle(key, toc_bundle);
-                            if (toc_url !== false) {
-                                doc.location = location_doc + toc_url;
-                            }
-                        }
+            let doc = sessionIndex.docs[i];
+            let location_sep = doc.location.indexOf(';');
+            if (location_sep !== -1) {
+                let location_id = doc.location.substring(0,location_sep);
+                let location_bundle = doc.location.substring(location_sep+1);
+                if (location_id in keys) {
+                    let key = keys[location_id];
+                    doc.location = decrypt_content_from_bundle(key, location_bundle);
+                    doc.text = decrypt_content_from_bundle(key, doc.text);
+                    doc.title = decrypt_content_from_bundle(key, doc.title);
+                    if (doc.title !== false) {
+                        could_decrypt = true;
                     }
                 }
             }
@@ -278,14 +269,14 @@ function decryptor_reaction(key_or_keys, password_input, fallback_used=false) {
             {% if remember_password -%}
             setKeys(key_or_keys);
             {%- endif %}
+            {% if experimental -%}
+            decrypt_search(key_or_keys);
+            {%- endif %}
         } else {
             key = key_or_keys;
         }
 
         // continue to decrypt others parts
-        {% if experimental -%}
-        //decrypt_search(key, location_path);
-        {%- endif %}
         {% if encrypted_something -%}
         let encrypted_something = {{ encrypted_something }};
         decrypt_somethings(key, encrypted_something);
