@@ -33,7 +33,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * ~~Add check for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it~~
 * ~~find an equivalent way to define multiple passwords in the password inventory as global password~~
 * ~~make it possible to define passwords in external yaml file(s)~~
-* decrypt all possible keys by one login (replace path fallback)
+* ~~decrypt all possible keys by one login (replace path fallback)~~
 * optional server side keystore (allows throtteling)
 * optional replace crypto-js by webcrypto functions
 * ...to be defined
@@ -81,7 +81,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0.dev1-py3-none-any.whl
+pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0.dev2-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
