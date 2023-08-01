@@ -28,19 +28,19 @@ function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
 /* Split key bundle and try to decrypt it */
 function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
     // grab the ciphertext bundle and try to decrypt it
+    let parts, keys;
     if (ciphertext_bundle) {
-        if (Array.isArray(ciphertext_bundle)) {
-            for (let i = 0; i < ciphertext_bundle.length; i++) {
-                let parts = ciphertext_bundle[i].split(';');
-                if (parts.length == 3) {
+        for (let i = 0; i < ciphertext_bundle.length; i++) {
+            parts = ciphertext_bundle[i].split(';');
+            if (parts.length == 3) {
+                keys = decrypt_key(password, parts[0], parts[1], parts[2]);
+                if (keys) {
+                    return keys;
+                }
+            } else if (parts.length == 4 && username) {
+                let userhash = CryptoJS.SHA256(encodeURIComponent(username.value.toLowerCase())).toString(CryptoJS.enc.Base64);
+                if (parts[3] == userhash) {
                     return decrypt_key(password, parts[0], parts[1], parts[2]);
-                } else if (parts.length == 4 && username) {
-                    let userhash = CryptoJS.SHA256(encodeURIComponent(username.value)).toString(CryptoJS.enc.Base64);
-                    if (parts[3] == userhash) {
-                        return decrypt_key(password, parts[0], parts[1], parts[2]);
-                    }
-                } else {
-                    return false;
                 }
             }
         }
@@ -160,10 +160,11 @@ function decrypt_search(keys) {
                 let location_bundle = doc.location.substring(location_sep+1);
                 if (location_id in keys) {
                     let key = keys[location_id];
-                    doc.location = decrypt_content_from_bundle(key, location_bundle);
-                    doc.text = decrypt_content_from_bundle(key, doc.text);
-                    doc.title = decrypt_content_from_bundle(key, doc.title);
-                    if (doc.title !== false) {
+                    let location_decrypted = decrypt_content_from_bundle(key, location_bundle);
+                    if (location_decrypted) {
+                        doc.location = location_decrypted;
+                        doc.text = decrypt_content_from_bundle(key, doc.text);
+                        doc.title = decrypt_content_from_bundle(key, doc.title);
                         could_decrypt = true;
                     }
                 }
