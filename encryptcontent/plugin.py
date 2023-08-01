@@ -182,7 +182,7 @@ class encryptContentPlugin(BasePlugin):
                 self.setup['min_enttropy_secret'] = enttropy_secret
 
         if isinstance(index[0], str):
-            userhash = quote(index[0], safe='~()*!\'').encode() # safe transform username analogous to encodeURIComponent
+            userhash = quote(index[0].lower(), safe='~()*!\'').encode() # safe transform username analogous to encodeURIComponent
             userhash = SHA256.new(userhash).digest() # sha256 sum of username
             return (
                 base64.b64encode(iv).decode() ,
@@ -472,7 +472,7 @@ class encryptContentPlugin(BasePlugin):
                         new_entry['uname'] = user
                         self.__add_to_keystore__((user,credentials[user]), new_entry['key'], new_entry['id'])
                 else:
-                    self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'])
+                    self.__add_to_keystore__((KS_PASSWORD,credentials), new_entry['key'], new_entry['id'])
                 self.setup['level_keys'][level] = new_entry
 
         if self.config['sign_files']:
