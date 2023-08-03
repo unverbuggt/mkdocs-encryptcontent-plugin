@@ -50,8 +50,6 @@ SETTINGS = {
 }
 
 logger = logging.getLogger("mkdocs.plugins.encryptcontent")
-base_path = os.path.dirname(os.path.abspath(__file__))
-
 
 KS_OBFUSCATE = -1
 KS_PASSWORD = 0
@@ -84,11 +82,11 @@ class encryptContentPlugin(BasePlugin):
         ('mermaid2', config_options.Type(bool, default=True)),
         ('tag_encrypted_page', config_options.Type(bool, default=True)),
         # override feature
-        ('html_template_path', config_options.Type(string_types, default=str(os.path.join(PLUGIN_DIR, 'decrypt-form.tpl.html')))),
+        ('html_template_path', config_options.Type(string_types, default=None)),
         ('html_extra_vars', config_options.Type(dict, default={})),
-        ('js_template_path', config_options.Type(string_types, default=str(os.path.join(PLUGIN_DIR, 'decrypt-contents.tpl.js')))),
+        ('js_template_path', config_options.Type(string_types, default=None)),
         ('js_extra_vars', config_options.Type(dict, default={})),
-        ('canary_template_path', config_options.Type(string_types, default=str(os.path.join(PLUGIN_DIR, 'canary.tpl.py')))),
+        ('canary_template_path', config_options.Type(string_types, default=None)),
         # others features
         ('encrypted_something', config_options.Type(dict, default={})),
         ('search_index', config_options.Choice(('clear', 'dynamically', 'encrypted'), default='encrypted')),
@@ -359,15 +357,32 @@ class encryptContentPlugin(BasePlugin):
         :param config: global configuration object (mkdocs.yml)
         :return: global configuration object modified to include templates files
         """
-        # Override default template
-        logger.debug('Load HTML template from file: "{file}".'.format(file=str(self.config['html_template_path'])))
-        with open(self.config['html_template_path'], 'r') as template_html:
+        config_path = os.path.dirname(config.data['config_file_path']) # convert everything to Pathlib later...
+
+        # set default templates or override relative to mkdocs.yml
+        if not self.config['html_template_path']:
+            html_template_path = str(os.path.join(PLUGIN_DIR, 'decrypt-form.tpl.html'))
+        else:
+            html_template_path = os.path.join(config_path, self.config['html_template_path'])
+
+        if not self.config['js_template_path']:
+            js_template_path = str(os.path.join(PLUGIN_DIR, 'decrypt-contents.tpl.js'))
+        else:
+            js_template_path = os.path.join(config_path, self.config['js_template_path'])
+
+        if not self.config['canary_template_path']:
+            canary_template_path = str(os.path.join(PLUGIN_DIR, 'canary.tpl.py'))
+        else:
+            canary_template_path = os.path.join(config_path, self.config['canary_template_path'])
+
+        logger.debug('Load HTML template from file: "{file}".'.format(file=html_template_path))
+        with open(html_template_path, 'r') as template_html:
             self.setup['html_template'] = template_html.read()
-        logger.debug('Load JS template from file: "{file}".'.format(file=str(self.config['js_template_path'])))
-        with open(self.config['js_template_path'], 'r') as template_js:
+        logger.debug('Load JS template from file: "{file}".'.format(file=js_template_path))
+        with open(js_template_path, 'r') as template_js:
             self.setup['js_template'] = template_js.read()
-        logger.debug('Load canary template from file: "{file}".'.format(file=str(self.config['canary_template_path'])))
-        with open(self.config['canary_template_path'], 'r') as template_html:
+        logger.debug('Load canary template from file: "{file}".'.format(file=canary_template_path))
+        with open(canary_template_path, 'r') as template_html:
             self.setup['canary_template'] = template_html.read()
 
         # Check if hljs feature need to be enabled, based on theme configuration
@@ -451,7 +466,8 @@ class encryptContentPlugin(BasePlugin):
                 print(self.config['password_inventory'])
                 logger.error("Please define either 'password_file' or 'password_inventory' in mkdocs.yml and not both.")
                 os._exit(1)
-            with open(self.config['password_file'], 'r') as stream:
+            password_file = os.path.join(config_path, self.config['password_file'])
+            with open(password_file, 'r') as stream:
                 self.config['password_inventory'] = yaml.safe_load(stream)
 
         if self.config['password_inventory']:
@@ -512,7 +528,7 @@ class encryptContentPlugin(BasePlugin):
                     for dir in config['theme'].dirs.copy():
                         if re.compile(r".*[/\\]contrib[/\\]search[/\\]templates$").match(dir):
                             config['theme'].dirs.remove(dir)
-                            path = os.path.join(base_path, 'contrib/templates')
+                            path = os.path.join(PLUGIN_DIR, 'contrib/templates')
                             config['theme'].dirs.append(path)
                             if 'search/main.js' not in config['extra_javascript']:
                                 config['extra_javascript'].append('search/main.js')
