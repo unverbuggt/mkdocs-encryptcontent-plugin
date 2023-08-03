@@ -3,3 +3,8 @@ build/
 mkdocs_encryptcontent_plugin.egg-info/
 install.cmd
 *.bak
+documentation/site/
+deploy.cmd
+documentation/encryptcontent.key
+documentation/canary.py
+documentation/theme_override/assets/
