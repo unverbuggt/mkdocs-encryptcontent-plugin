@@ -1,7 +1,7 @@
 /* encryptcontent/decrypt-contents.tpl.js */
 
 /* Decrypts the key from the key bundle. */
-function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
+{% if webcrypto %}async {% endif %}function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
     let salt = CryptoJS.enc.Base64.parse(salt_b64),
         kdfcfg = {keySize: 256 / 32,hasher: CryptoJS.algo.SHA256,iterations: encryptcontent_obfuscate ? 1 : {{ kdf_iterations }}};
     let kdfkey = CryptoJS.PBKDF2(encodeURIComponent(password), salt,kdfcfg);
@@ -26,7 +26,7 @@ function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
 };
 
 /* Split key bundle and try to decrypt it */
-function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
+{% if webcrypto %}async {% endif %}function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
     // grab the ciphertext bundle and try to decrypt it
     let parts, keys, userhash;
     if (ciphertext_bundle) {
@@ -36,13 +36,13 @@ function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
         for (let i = 0; i < ciphertext_bundle.length; i++) {
             parts = ciphertext_bundle[i].split(';');
             if (parts.length == 3) {
-                keys = decrypt_key(password, parts[0], parts[1], parts[2]);
+                keys = {% if webcrypto %}await {% endif %}decrypt_key(password, parts[0], parts[1], parts[2]);
                 if (keys) {
                     return keys;
                 }
             } else if (parts.length == 4 && username) {
                 if (parts[3] == userhash) {
-                    return decrypt_key(password, parts[0], parts[1], parts[2]);
+                    return {% if webcrypto %}await {% endif %}decrypt_key(password, parts[0], parts[1], parts[2]);
                 }
             }
         }
@@ -51,7 +51,7 @@ function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
 };
 
 /* Decrypts the content from the ciphertext bundle. */
-function decrypt_content(key, iv_b64, ciphertext_b64) {
+{% if webcrypto %}async {% endif %}function decrypt_content(key, iv_b64, ciphertext_b64) {
     let iv = CryptoJS.enc.Base64.parse(iv_b64),
         ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64);
     let encrypted = {ciphertext: ciphertext},
@@ -71,12 +71,12 @@ function decrypt_content(key, iv_b64, ciphertext_b64) {
 };
 
 /* Split cyphertext bundle and try to decrypt it */
-function decrypt_content_from_bundle(key, ciphertext_bundle) {
+{% if webcrypto %}async {% endif %}function decrypt_content_from_bundle(key, ciphertext_bundle) {
     // grab the ciphertext bundle and try to decrypt it
     if (ciphertext_bundle) {
         let parts = ciphertext_bundle.split(';');
         if (parts.length == 2) {
-            return decrypt_content(key, parts[0], parts[1]);
+            return {% if webcrypto %}await {% endif %}decrypt_content(key, parts[0], parts[1]);
         }
     }
     return false;
@@ -84,7 +84,7 @@ function decrypt_content_from_bundle(key, ciphertext_bundle) {
 
 {% if remember_password -%}
 /* Save decrypted keystore to sessionStorage/localStorage */
-function setKeys(keys_from_keystore) {
+{% if webcrypto %}async {% endif %}function setKeys(keys_from_keystore) {
     for (const id in keys_from_keystore) {
     {% if session_storage -%}
         sessionStorage.setItem(id, keys_from_keystore[id]);
@@ -95,7 +95,7 @@ function setKeys(keys_from_keystore) {
 };
 
 /* Delete key with specific name in sessionStorage/localStorage */
-function delItemName(key) {
+{% if webcrypto %}async {% endif %}function delItemName(key) {
     {% if session_storage -%}
     sessionStorage.removeItem(key);
     {%- else %}
@@ -103,7 +103,7 @@ function delItemName(key) {
     {%- endif %}
 };
 
-function getItemName(key) {
+{% if webcrypto %}async {% endif %}function getItemName(key) {
     {% if session_storage -%}
     return sessionStorage.getItem(key);
     {%- else %}
@@ -113,7 +113,7 @@ function getItemName(key) {
 {%- endif %}
 
 /* Reload scripts src after decryption process */
-function reload_js(src) {
+{% if webcrypto %}async {% endif %}function reload_js(src) {
     let script_src, script_tag, new_script_tag;
     let head = document.getElementsByTagName('head')[0];
 
@@ -149,7 +149,7 @@ function reload_js(src) {
 
 {% if experimental -%}
 /* Decrypt part of the search index and refresh it for search engine */
-function decrypt_search(keys) {
+{% if webcrypto %}async {% endif %}function decrypt_search(keys) {
     sessionIndex = sessionStorage.getItem('encryptcontent-index');
     let could_decrypt = false;
     if (sessionIndex) {
@@ -162,11 +162,11 @@ function decrypt_search(keys) {
                 let location_bundle = doc.location.substring(location_sep+1);
                 if (location_id in keys) {
                     let key = keys[location_id];
-                    let location_decrypted = decrypt_content_from_bundle(key, location_bundle);
+                    let location_decrypted = {% if webcrypto %}await {% endif %}decrypt_content_from_bundle(key, location_bundle);
                     if (location_decrypted) {
                         doc.location = location_decrypted;
-                        doc.text = decrypt_content_from_bundle(key, doc.text);
-                        doc.title = decrypt_content_from_bundle(key, doc.title);
+                        doc.text = {% if webcrypto %}await {% endif %}decrypt_content_from_bundle(key, doc.text);
+                        doc.title = {% if webcrypto %}await {% endif %}decrypt_content_from_bundle(key, doc.title);
                         could_decrypt = true;
                     }
                 }
@@ -188,7 +188,7 @@ function decrypt_search(keys) {
 {%- endif %}
 
 /* Decrypt speficique html entry from mkdocs configuration */
-function decrypt_somethings(key, encrypted_something) {
+{% if webcrypto %}async {% endif %}function decrypt_somethings(key, encrypted_something) {
     var html_item = '';
     for (const [name, tag] of Object.entries(encrypted_something)) {
         if (tag[1] == 'id') {
@@ -201,7 +201,7 @@ function decrypt_somethings(key, encrypted_something) {
         if (html_item[0]) {
             for (i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
-                let content = decrypt_content_from_bundle(key, html_item[i].innerHTML);
+                let content = {% if webcrypto %}await {% endif %}decrypt_content_from_bundle(key, html_item[i].innerHTML);
                 if (content !== false) {
                     // success; display the decrypted content
                     html_item[i].innerHTML = content;
@@ -214,14 +214,14 @@ function decrypt_somethings(key, encrypted_something) {
 };
 
 /* Decrypt content of a page */
-function decrypt_action(password_input, encrypted_content, decrypted_content, key_from_storage, username_input) {
+{% if webcrypto %}async {% endif %}function decrypt_action(password_input, encrypted_content, decrypted_content, key_from_storage, username_input) {
     let key=false;
     let keys_from_keystore=false;
 
     if (key_from_storage !== false) {
         key = key_from_storage;
     } else {
-        keys_from_keystore = decrypt_key_from_bundle(password_input.value, encryptcontent_keystore, username_input);
+        keys_from_keystore = {% if webcrypto %}await {% endif %}decrypt_key_from_bundle(password_input.value, encryptcontent_keystore, username_input);
         if (keys_from_keystore) {
             key = keys_from_keystore[encryptcontent_id];
         }
@@ -229,7 +229,7 @@ function decrypt_action(password_input, encrypted_content, decrypted_content, ke
 
     let content = false;
     if (key) {
-        content = decrypt_content_from_bundle(key, encrypted_content.innerHTML);
+        content = {% if webcrypto %}await {% endif %}decrypt_content_from_bundle(key, encrypted_content.innerHTML);
     }
     if (content !== false) {
         // success; display the decrypted content
@@ -250,7 +250,7 @@ function decrypt_action(password_input, encrypted_content, decrypted_content, ke
         {% if reload_scripts | length > 0 -%}
         let reload_scripts = {{ reload_scripts }};
         for (i = 0; i < reload_scripts.length; i++) { 
-            reload_js(reload_scripts[i]);
+            {% if webcrypto %}await {% endif %}reload_js(reload_scripts[i]);
         }
         {%- endif %}
         if (keys_from_keystore !== false) {
@@ -263,17 +263,17 @@ function decrypt_action(password_input, encrypted_content, decrypted_content, ke
     }
 };
 
-function decryptor_reaction(key_or_keys, password_input, fallback_used=false) {
+{% if webcrypto %}async {% endif %}function decryptor_reaction(key_or_keys, password_input, fallback_used=false) {
 
     if (key_or_keys) {
         let key;
         if (typeof key_or_keys === "object") {
             key = key_or_keys[encryptcontent_id];
             {% if remember_password -%}
-            setKeys(key_or_keys);
+            {% if webcrypto %}await {% endif %}setKeys(key_or_keys);
             {%- endif %}
             {% if experimental -%}
-            decrypt_search(key_or_keys);
+            {% if webcrypto %}await {% endif %}decrypt_search(key_or_keys);
             {%- endif %}
         } else {
             key = key_or_keys;
@@ -282,9 +282,9 @@ function decryptor_reaction(key_or_keys, password_input, fallback_used=false) {
         // continue to decrypt others parts
         {% if encrypted_something -%}
         let encrypted_something = {{ encrypted_something }};
-        decrypt_somethings(key, encrypted_something);
+        {% if webcrypto %}await {% endif %}decrypt_somethings(key, encrypted_something);
         if (typeof inject_something !== 'undefined') {
-            decrypt_somethings(key, inject_something);
+            {% if webcrypto %}await {% endif %}decrypt_somethings(key, inject_something);
         }
         if (typeof delete_something !== 'undefined') {
             let el = document.getElementById(delete_something)
@@ -305,13 +305,13 @@ function decryptor_reaction(key_or_keys, password_input, fallback_used=false) {
             }
         }
         {% if remember_password -%}
-        delItemName(encryptcontent_id);
+        {% if webcrypto %}await {% endif %}delItemName(encryptcontent_id);
         {%- endif %}
     }
 }
 
 /* Trigger decryption process */
-function init_decryptor() {
+{% if webcrypto %}async {% endif %}function init_decryptor() {
     var username_input = document.getElementById('mkdocs-content-user');
     var password_input = document.getElementById('mkdocs-content-password');
     // adjust password field width to placeholder length
@@ -322,37 +322,41 @@ function init_decryptor() {
     var decrypted_content = document.getElementById('mkdocs-decrypted-content');
     {% if remember_password -%}
     /* If remember_password is set, try to use sessionStorage/localstorage item to decrypt content when page is loaded */
-    let key_from_storage = getItemName(encryptcontent_id);
+    let key_from_storage = {% if webcrypto %}await {% endif %}getItemName(encryptcontent_id);
     if (key_from_storage) {
-        let content_decrypted = decrypt_action(
+        let content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
             password_input, encrypted_content, decrypted_content, key_from_storage, username_input
         );
-        decryptor_reaction(content_decrypted, password_input, true);
+        {% if webcrypto %}await {% endif %}decryptor_reaction(content_decrypted, password_input, true);
     }
     {%- endif %}
     {% if password_button -%}
     /* If password_button is set, try decrypt content when button is press */
     let decrypt_button = document.getElementById("mkdocs-decrypt-button");
     if (decrypt_button) {
-        decrypt_button.onclick = function(event) {
+        decrypt_button.onclick = {% if webcrypto %}async {% endif %}function(event) {
             event.preventDefault();
-            let content_decrypted = decrypt_action(
+            let content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
                 password_input, encrypted_content, decrypted_content, false, username_input
             );
-            decryptor_reaction(content_decrypted, password_input);
+            {% if webcrypto %}await {% endif %}decryptor_reaction(content_decrypted, password_input);
         };
     }
     {%- endif %}
     /* Default, try decrypt content when key (ctrl) enter is press */
-    password_input.addEventListener('keypress', function(event) {
+    password_input.addEventListener('keypress', {% if webcrypto %}async {% endif %}function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            let content_decrypted = decrypt_action(
+            let content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
                 password_input, encrypted_content, decrypted_content, false, username_input
             );
-            decryptor_reaction(content_decrypted, password_input);
+            {% if webcrypto %}await {% endif %}decryptor_reaction(content_decrypted, password_input);
         }
     });
 }
 
+{%- if webcrypto %}
+document.addEventListener('DOMContentLoaded', () => init_decryptor());
+{%- else %}
 document.addEventListener('DOMContentLoaded', init_decryptor());
+{%- endif %}

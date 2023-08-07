@@ -100,6 +100,7 @@ class encryptContentPlugin(BasePlugin):
         ('kdf_pow', config_options.Type(int, default=int(4))),
         ('sign_files', config_options.Type(string_types, default=None)),
         ('sign_key', config_options.Type(string_types, default='encryptcontent.key')),
+        ('webcrypto', config_options.Type(bool, default=False)),
         # legacy features, doesn't exist anymore
     )
 
@@ -302,6 +303,7 @@ class encryptContentPlugin(BasePlugin):
             'experimental': self.config['search_index'] == 'dynamically',
             'site_path': self.setup['site_path'],
             'kdf_iterations' : self.setup['kdf_iterations'],
+            'webcrypto' : self.config['webcrypto'],
             # add extra vars
             'extra': self.config['js_extra_vars']
         })
