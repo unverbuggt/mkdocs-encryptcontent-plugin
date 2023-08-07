@@ -28,8 +28,11 @@ function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
 /* Split key bundle and try to decrypt it */
 function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
     // grab the ciphertext bundle and try to decrypt it
-    let parts, keys;
+    let parts, keys, userhash;
     if (ciphertext_bundle) {
+        if (username) {
+            userhash = CryptoJS.SHA256(encodeURIComponent(username.value.toLowerCase())).toString(CryptoJS.enc.Base64);
+        }
         for (let i = 0; i < ciphertext_bundle.length; i++) {
             parts = ciphertext_bundle[i].split(';');
             if (parts.length == 3) {
@@ -38,7 +41,6 @@ function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
                     return keys;
                 }
             } else if (parts.length == 4 && username) {
-                let userhash = CryptoJS.SHA256(encodeURIComponent(username.value.toLowerCase())).toString(CryptoJS.enc.Base64);
                 if (parts[3] == userhash) {
                     return decrypt_key(password, parts[0], parts[1], parts[2]);
                 }
