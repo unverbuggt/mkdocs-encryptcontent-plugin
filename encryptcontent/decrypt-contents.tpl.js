@@ -1,4 +1,18 @@
 /* encryptcontent/decrypt-contents.tpl.js */
+{%- if webcrypto %}
+// https://stackoverflow.com/a/50868276
+const fromHex = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+// https://stackoverflow.com/a/41106346
+const fromBase64 = base64String => Uint8Array.from(atob(base64String), c => c.charCodeAt(0));
+
+async function digestSHA256toBase64(message) {
+  const data = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = new Uint8Array(hashBuffer);
+  const hashString = String.fromCharCode.apply(null, hashArray);
+  return btoa(hashString);
+};
+{%- endif %}
 
 /* Decrypts the key from the key bundle. */
 {% if webcrypto %}async {% endif %}function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
@@ -31,7 +45,11 @@
     let parts, keys, userhash;
     if (ciphertext_bundle) {
         if (username) {
+            {%- if webcrypto %}
+            userhash = await digestSHA256toBase64(encodeURIComponent(username.value.toLowerCase()));
+            {%- else %}
             userhash = CryptoJS.SHA256(encodeURIComponent(username.value.toLowerCase())).toString(CryptoJS.enc.Base64);
+            {%- endif %}
         }
         for (let i = 0; i < ciphertext_bundle.length; i++) {
             parts = ciphertext_bundle[i].split(';');
