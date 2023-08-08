@@ -72,7 +72,7 @@ async function digestSHA256toBase64(message) {
     let key = CryptoJS.AES.decrypt(encrypted, kdfkey, cfg);
 
     try {
-        keystore = JSON.parse(key.toString(CryptoJS.enc.Utf8));
+        let keystore = JSON.parse(key.toString(CryptoJS.enc.Utf8));
         if (encryptcontent_id in keystore) {
             return keystore;
         } else {
@@ -93,9 +93,9 @@ async function digestSHA256toBase64(message) {
     if (ciphertext_bundle) {
         if (username) {
             {%- if webcrypto %}
-            userhash = await digestSHA256toBase64(encodeURIComponent(username.value.toLowerCase()));
+            userhash = await digestSHA256toBase64(encodeURIComponent(username.toLowerCase()));
             {%- else %}
-            userhash = CryptoJS.SHA256(encodeURIComponent(username.value.toLowerCase())).toString(CryptoJS.enc.Base64);
+            userhash = CryptoJS.SHA256(encodeURIComponent(username.toLowerCase())).toString(CryptoJS.enc.Base64);
             {%- endif %}
         }
         for (let i = 0; i < ciphertext_bundle.length; i++) {
@@ -103,11 +103,16 @@ async function digestSHA256toBase64(message) {
             if (parts.length == 3) {
                 keys = {% if webcrypto %}await {% endif %}decrypt_key(password, parts[0], parts[1], parts[2]);
                 if (keys) {
+                    {% if local_storage %}setCredentials(null, password);{% endif %}
                     return keys;
                 }
             } else if (parts.length == 4 && username) {
                 if (parts[3] == userhash) {
-                    return {% if webcrypto %}await {% endif %}decrypt_key(password, parts[0], parts[1], parts[2]);
+                    keys = {% if webcrypto %}await {% endif %}decrypt_key(password, parts[0], parts[1], parts[2]);
+                    if (keys) {
+                        {% if local_storage %}setCredentials(username, password);{% endif %}
+                        return keys;
+                    }
                 }
             }
         }
@@ -178,33 +183,49 @@ async function digestSHA256toBase64(message) {
 };
 
 {% if remember_password -%}
-/* Save decrypted keystore to sessionStorage/localStorage */
+/* Save decrypted keystore to sessionStorage */
 {% if webcrypto %}async {% endif %}function setKeys(keys_from_keystore) {
     for (const id in keys_from_keystore) {
-    {% if session_storage -%}
         sessionStorage.setItem(id, keys_from_keystore[id]);
-    {%- else %}
-        localStorage.setItem(id, keys_from_keystore[id]);
-    {%- endif %}
     }
 };
 
-/* Delete key with specific name in sessionStorage/localStorage */
+/* Delete key with specific name in sessionStorage */
 {% if webcrypto %}async {% endif %}function delItemName(key) {
-    {% if session_storage -%}
     sessionStorage.removeItem(key);
-    {%- else %}
-    localStorage.removeItem(key);
-    {%- endif %}
 };
 
 {% if webcrypto %}async {% endif %}function getItemName(key) {
-    {% if session_storage -%}
     return sessionStorage.getItem(key);
-    {%- else %}
-    return localStorage.getItem(key);
-    {%- endif %}
 };
+
+    {%- if local_storage %}
+/* save username/password to localStorage */
+{% if webcrypto %}async {% endif %}function setCredentials(username, password) {
+    localStorage.setItem('{{ remember_prefix }}credentials', JSON.stringify({'user': username, 'password': password}));
+}
+
+/* try to get username/password from localStorage */
+{% if webcrypto %}async {% endif %}function getCredentials(username_input, password_input) {
+    const credentials = JSON.parse(localStorage.getItem('{{ remember_prefix }}credentials'));
+    if (credentials) {
+        if (credentials['user'] && username_input) {
+            username_input.value = credentials['user'];
+        }
+        if (credentials['password']) {
+            password_input.value = credentials['password'];
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/*remove username/password from localStorage */
+{% if webcrypto %}async {% endif %}function delCredentials() {
+    localStorage.removeItem('{{ remember_prefix }}credentials');
+}
+    {%- endif %}
 {%- endif %}
 
 /* Reload scripts src after decryption process */
@@ -313,10 +334,15 @@ async function digestSHA256toBase64(message) {
     let key=false;
     let keys_from_keystore=false;
 
+    let user=false;
+    if (username_input) {
+        user = username_input.value;
+    }
+
     if (key_from_storage !== false) {
         key = key_from_storage;
     } else {
-        keys_from_keystore = {% if webcrypto %}await {% endif %}decrypt_key_from_bundle(password_input.value, encryptcontent_keystore, username_input);
+        keys_from_keystore = {% if webcrypto %}await {% endif %}decrypt_key_from_bundle(password_input.value, encryptcontent_keystore, user);
         if (keys_from_keystore) {
             key = keys_from_keystore[encryptcontent_id];
         }
@@ -359,16 +385,15 @@ async function digestSHA256toBase64(message) {
 };
 
 {% if webcrypto %}async {% endif %}function decryptor_reaction(key_or_keys, password_input, fallback_used=false) {
-
     if (key_or_keys) {
         let key;
         if (typeof key_or_keys === "object") {
             key = key_or_keys[encryptcontent_id];
             {% if remember_password -%}
-            {% if webcrypto %}await {% endif %}setKeys(key_or_keys);
+            setKeys(key_or_keys);
             {%- endif %}
             {% if experimental -%}
-            {% if webcrypto %}await {% endif %}decrypt_search(key_or_keys);
+            decrypt_search(key_or_keys);
             {%- endif %}
         } else {
             key = key_or_keys;
@@ -377,9 +402,9 @@ async function digestSHA256toBase64(message) {
         // continue to decrypt others parts
         {% if encrypted_something -%}
         let encrypted_something = {{ encrypted_something }};
-        {% if webcrypto %}await {% endif %}decrypt_somethings(key, encrypted_something);
+        decrypt_somethings(key, encrypted_something);
         if (typeof inject_something !== 'undefined') {
-            {% if webcrypto %}await {% endif %}decrypt_somethings(key, inject_something);
+            decrypt_somethings(key, inject_something);
         }
         if (typeof delete_something !== 'undefined') {
             let el = document.getElementById(delete_something)
@@ -389,7 +414,7 @@ async function digestSHA256toBase64(message) {
         }
         {%- endif %}
     } else {
-        // remove item on sessionStorage/localStorage if decryption process fail (Invalid item)
+        // remove item on sessionStorage if decryption process fail (Invalid item)
         if (!fallback_used) {
             if (!encryptcontent_obfuscate) {
                 // create HTML element for the inform message
@@ -400,7 +425,7 @@ async function digestSHA256toBase64(message) {
             }
         }
         {% if remember_password -%}
-        {% if webcrypto %}await {% endif %}delItemName(encryptcontent_id);
+        delItemName(encryptcontent_id);
         {%- endif %}
     }
 }
@@ -415,15 +440,38 @@ async function digestSHA256toBase64(message) {
     }
     var encrypted_content = document.getElementById('mkdocs-encrypted-content');
     var decrypted_content = document.getElementById('mkdocs-decrypted-content');
+    let content_decrypted;
     {% if remember_password -%}
-    /* If remember_password is set, try to use sessionStorage/localstorage item to decrypt content when page is loaded */
+    /* If remember_password is set, try to use sessionStorage item to decrypt content when page is loaded */
     let key_from_storage = {% if webcrypto %}await {% endif %}getItemName(encryptcontent_id);
     if (key_from_storage) {
-        let content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
+        content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
             password_input, encrypted_content, decrypted_content, key_from_storage, username_input
         );
-        {% if webcrypto %}await {% endif %}decryptor_reaction(content_decrypted, password_input, true);
+        {% if local_storage %}
+        /* try to get username/password from localStorage */
+        if (content_decrypted === false) {
+            let got_credentials = {% if webcrypto %}await {% endif %}getCredentials(username_input, password_input);
+            if (got_credentials) {
+                content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
+                    password_input, encrypted_content, decrypted_content, false, username_input
+                );
+            }
+        }
+        {% endif %}
+        decryptor_reaction(content_decrypted, password_input, true);
     }
+    {% if local_storage %}
+    else {
+        let got_credentials = {% if webcrypto %}await {% endif %}getCredentials(username_input, password_input);
+        if (got_credentials) {
+            content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
+                password_input, encrypted_content, decrypted_content, false, username_input
+            );
+            decryptor_reaction(content_decrypted, password_input, true);
+        }
+    }
+    {% endif %}
     {%- endif %}
     {% if password_button -%}
     /* If password_button is set, try decrypt content when button is press */
@@ -431,10 +479,10 @@ async function digestSHA256toBase64(message) {
     if (decrypt_button) {
         decrypt_button.onclick = {% if webcrypto %}async {% endif %}function(event) {
             event.preventDefault();
-            let content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
+            content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
                 password_input, encrypted_content, decrypted_content, false, username_input
             );
-            {% if webcrypto %}await {% endif %}decryptor_reaction(content_decrypted, password_input);
+            decryptor_reaction(content_decrypted, password_input);
         };
     }
     {%- endif %}
@@ -442,10 +490,10 @@ async function digestSHA256toBase64(message) {
     password_input.addEventListener('keypress', {% if webcrypto %}async {% endif %}function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            let content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
+            content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
                 password_input, encrypted_content, decrypted_content, false, username_input
             );
-            {% if webcrypto %}await {% endif %}decryptor_reaction(content_decrypted, password_input);
+            decryptor_reaction(content_decrypted, password_input);
         }
     });
 }

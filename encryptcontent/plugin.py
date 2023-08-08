@@ -73,7 +73,7 @@ class encryptContentPlugin(BasePlugin):
         ('global_password', config_options.Type(string_types, default=None)),
         ('remember_password', config_options.Type(bool, default=False)),
         ('remember_prefix', config_options.Type(string_types, default='encryptcontent_')),
-        ('session_storage', config_options.Type(bool, default=True)),
+        ('local_storage', config_options.Type(bool, default=False)),
         ('password_inventory', config_options.Type(dict, default={})),
         ('password_file', config_options.Type(string_types, default=None)),
         # default features enabled
@@ -298,13 +298,14 @@ class encryptContentPlugin(BasePlugin):
             'hljs': self.config['hljs'],
             'mermaid2': self.config['mermaid2'],
             'remember_password': self.config['remember_password'],
-            'session_storage': self.config['session_storage'],
+            'local_storage': self.config['local_storage'],
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
             'experimental': self.config['search_index'] == 'dynamically',
             'site_path': self.setup['site_path'],
             'kdf_iterations' : self.setup['kdf_iterations'],
             'webcrypto' : self.config['webcrypto'],
+            'remember_prefix': quote(self.config['remember_prefix'], safe='~()*!\''),
             # add extra vars
             'extra': self.config['js_extra_vars']
         })
