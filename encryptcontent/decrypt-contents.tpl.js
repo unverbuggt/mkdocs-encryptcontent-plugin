@@ -16,6 +16,52 @@ async function digestSHA256toBase64(message) {
 
 /* Decrypts the key from the key bundle. */
 {% if webcrypto %}async {% endif %}function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
+    {%- if webcrypto %}
+    const salt = fromBase64(salt_b64);
+    const encPassword = new TextEncoder().encode(encodeURIComponent(password));
+    const kdfkey = await window.crypto.subtle.importKey(
+        "raw",
+        encPassword,
+        "PBKDF2",
+        false,
+        ["deriveKey"],
+    );
+    const wckey = await window.crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt,
+          iterations: encryptcontent_obfuscate ? 1 : {{ kdf_iterations }},
+          hash: "SHA-256",
+        },
+        kdfkey,
+        { name: "AES-CBC", length: 256 },
+        true,
+        ["decrypt"],
+    );
+    const ciphertext = fromBase64(ciphertext_b64);
+    const iv = fromBase64(iv_b64);
+    try {
+        const decrypted = await window.crypto.subtle.decrypt(
+            {
+                name: "AES-CBC",
+                iv: iv
+            },
+            wckey,
+            ciphertext
+        );
+        const keystore = JSON.parse(new TextDecoder().decode(decrypted));
+        if (encryptcontent_id in keystore) {
+            return keystore;
+        } else {
+            //id not found in keystore
+            return false;
+        }
+    }
+    catch (err) {
+        // encoding failed; wrong key
+        return false;
+    }
+    {%- else %}
     let salt = CryptoJS.enc.Base64.parse(salt_b64),
         kdfcfg = {keySize: 256 / 32,hasher: CryptoJS.algo.SHA256,iterations: encryptcontent_obfuscate ? 1 : {{ kdf_iterations }}};
     let kdfkey = CryptoJS.PBKDF2(encodeURIComponent(password), salt,kdfcfg);
@@ -37,6 +83,7 @@ async function digestSHA256toBase64(message) {
         // encoding failed; wrong password
         return false;
     }
+    {%- endif %}
 };
 
 /* Split key bundle and try to decrypt it */
@@ -70,6 +117,35 @@ async function digestSHA256toBase64(message) {
 
 /* Decrypts the content from the ciphertext bundle. */
 {% if webcrypto %}async {% endif %}function decrypt_content(key, iv_b64, ciphertext_b64) {
+    {%- if webcrypto %}
+    //const key = hexKeyToAESkey(key);
+    const rawKey = fromHex(key);
+    const iv = fromBase64(iv_b64);
+    const ciphertext = fromBase64(ciphertext_b64);
+    try {
+        const wckey = await window.crypto.subtle.importKey(           
+            "raw",
+            rawKey,                                                 
+            "AES-CBC",
+            true,
+            ["decrypt"]
+        );
+        const decrypted = await window.crypto.subtle.decrypt(
+            {
+                name: "AES-CBC",
+                iv: iv
+            },
+            wckey,
+            ciphertext
+        );
+        const decoder = new TextDecoder();
+        return decoder.decode(decrypted);
+    }
+    catch (err) {
+        // encoding failed; wrong key
+        return false;
+    }
+    {%- else %}
     let iv = CryptoJS.enc.Base64.parse(iv_b64),
         ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64);
     let encrypted = {ciphertext: ciphertext},
@@ -86,6 +162,7 @@ async function digestSHA256toBase64(message) {
         // negative sigBytes; wrong key
         return false;
     }
+    {%- endif %}
 };
 
 /* Split cyphertext bundle and try to decrypt it */

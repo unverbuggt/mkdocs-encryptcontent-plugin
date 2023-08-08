@@ -97,7 +97,7 @@ class encryptContentPlugin(BasePlugin):
         ('selfhost_dir', config_options.Type(string_types, default='')),
         ('translations', config_options.Type(dict, default={}, required=False)),
         ('hash_filenames', config_options.Type(dict, default={}, required=False)),
-        ('kdf_pow', config_options.Type(int, default=int(4))),
+        ('kdf_pow', config_options.Type(int, default=int(-1))), # -1: default on whether webcrypto is set or not
         ('sign_files', config_options.Type(string_types, default=None)),
         ('sign_key', config_options.Type(string_types, default='encryptcontent.key')),
         ('webcrypto', config_options.Type(bool, default=False)),
@@ -215,11 +215,12 @@ class encryptContentPlugin(BasePlugin):
         
         # optionally selfhost cryptojs
         js_libraries = []
-        for jsurl in JS_LIBRARIES:
-            if self.config["selfhost"]:
-                js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
-            else:
-                js_libraries.append(jsurl[0])
+        if not self.config['webcrypto']:
+            for jsurl in JS_LIBRARIES:
+                if self.config["selfhost"]:
+                    js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
+                else:
+                    js_libraries.append(jsurl[0])
 
         obfuscate = 0
         uname = 0
@@ -452,7 +453,13 @@ class encryptContentPlugin(BasePlugin):
         self.setup['min_enttropy_spied_on'] = 0
         self.setup['min_enttropy_secret'] = 0
 
-        self.setup['kdf_iterations'] = pow(10,self.config['kdf_pow'])
+        if self.config['kdf_pow'] == -1:
+            if self.config['webcrypto']:
+                self.setup['kdf_iterations'] = pow(10,5) # depending on size of password inventory 6-7 might be suitable
+            else:
+                self.setup['kdf_iterations'] = pow(10,4)
+        else:
+            self.setup['kdf_iterations'] = pow(10,self.config['kdf_pow'])
 
         self.setup['password_keys'] = {}
         self.setup['obfuscate_keys'] = {}
@@ -539,7 +546,7 @@ class encryptContentPlugin(BasePlugin):
             logger.exception(exp)
 
         # optionally download cryptojs
-        if self.config['selfhost'] and self.config['selfhost_download']:
+        if not self.config['webcrypto'] and self.config['selfhost'] and self.config['selfhost_download']:
             logger.info('Downloading cryptojs for self-hosting (if needed)...')
             if self.config['selfhost_dir']:
                 dlpath = self.setup['config_path'].joinpath(self.config['selfhost_dir'] + '/assets/javascripts/cryptojs/')
@@ -896,15 +903,16 @@ class encryptContentPlugin(BasePlugin):
             new_entry['file'] = decrypt_js_path
             new_entry['url'] = config.data["site_url"] + '/assets/javascripts/decrypt-contents.js'
             self.setup['files_to_sign'].append(new_entry)
-            for jsurl in JS_LIBRARIES:
-                new_entry = {}
-                if self.config['selfhost']:
-                    new_entry['file'] = Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
-                    new_entry['url'] = config.data["site_url"] + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1]
-                else:
-                    new_entry['file'] =  ""
-                    new_entry['url'] = "https:" + jsurl[0]
-                self.setup['files_to_sign'].append(new_entry)
+            if not self.config['webcrypto']:
+                for jsurl in JS_LIBRARIES:
+                    new_entry = {}
+                    if self.config['selfhost']:
+                        new_entry['file'] = Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
+                        new_entry['url'] = config.data["site_url"] + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1]
+                    else:
+                        new_entry['file'] =  ""
+                        new_entry['url'] = "https:" + jsurl[0]
+                    self.setup['files_to_sign'].append(new_entry)
 
         #clear all keystores
         self.setup['password_keys'].clear()
