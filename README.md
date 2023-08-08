@@ -36,6 +36,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * ~~decrypt all possible keys by one login (replace path fallback)~~
 * optional server side keystore (allows throtteling)
 * optional replace crypto-js by webcrypto functions
+* localStorage option is rather useless now (being unsafe to start with). Fix it nevertheless by saving credentials instead of keys.
 * ...to be defined
 
 # Table of Contents
