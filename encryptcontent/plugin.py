@@ -71,9 +71,10 @@ class encryptContentPlugin(BasePlugin):
         ('button_class', config_options.Type(string_types, default=None)),
         # password feature
         ('global_password', config_options.Type(string_types, default=None)),
+        ('remember_keys', config_options.Type(bool, default=True)),
         ('remember_password', config_options.Type(bool, default=False)),
         ('remember_prefix', config_options.Type(string_types, default='encryptcontent_')),
-        ('local_storage', config_options.Type(bool, default=False)),
+        ('session_storage', config_options.Type(bool, default=True)),
         ('password_inventory', config_options.Type(dict, default={})),
         ('password_file', config_options.Type(string_types, default=None)),
         # default features enabled
@@ -297,8 +298,9 @@ class encryptContentPlugin(BasePlugin):
             'arithmatex': self.config['arithmatex'],
             'hljs': self.config['hljs'],
             'mermaid2': self.config['mermaid2'],
+            'remember_keys': self.config['remember_keys'],
             'remember_password': self.config['remember_password'],
-            'local_storage': self.config['local_storage'],
+            'session_storage': self.config['session_storage'],
             'encrypted_something': self.config['encrypted_something'],
             'reload_scripts': self.config['reload_scripts'],
             'experimental': self.config['search_index'] == 'dynamically',
@@ -923,6 +925,7 @@ class encryptContentPlugin(BasePlugin):
         self.setup['keystore_obfuscate'].clear()
         self.setup['keystore_password'].clear()
         self.setup['keystore_userpass'].clear()
+        self.config['password_inventory'] = {} # reset for multiple runs
 
         #modify search_index in the style of mkdocs-exclude-search
         if self.setup['search_plugin_found'] and self.config['search_index'] != 'clear':

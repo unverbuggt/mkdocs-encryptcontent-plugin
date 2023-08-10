@@ -103,14 +103,14 @@ async function digestSHA256toBase64(message) {
             if (parts.length == 3) {
                 keys = {% if webcrypto %}await {% endif %}decrypt_key(password, parts[0], parts[1], parts[2]);
                 if (keys) {
-                    {% if local_storage %}setCredentials(null, password);{% endif %}
+                    {% if remember_password %}setCredentials(null, password);{% endif %}
                     return keys;
                 }
             } else if (parts.length == 4 && username) {
                 if (parts[3] == userhash) {
                     keys = {% if webcrypto %}await {% endif %}decrypt_key(password, parts[0], parts[1], parts[2]);
                     if (keys) {
-                        {% if local_storage %}setCredentials(username, password);{% endif %}
+                        {% if remember_password %}setCredentials(username, password);{% endif %}
                         return keys;
                     }
                 }
@@ -123,7 +123,6 @@ async function digestSHA256toBase64(message) {
 /* Decrypts the content from the ciphertext bundle. */
 {% if webcrypto %}async {% endif %}function decrypt_content(key, iv_b64, ciphertext_b64) {
     {%- if webcrypto %}
-    //const key = hexKeyToAESkey(key);
     const rawKey = fromHex(key);
     const iv = fromBase64(iv_b64);
     const ciphertext = fromBase64(ciphertext_b64);
@@ -182,7 +181,7 @@ async function digestSHA256toBase64(message) {
     return false;
 };
 
-{% if remember_password -%}
+{% if- remember_keys -%}
 /* Save decrypted keystore to sessionStorage */
 {% if webcrypto %}async {% endif %}function setKeys(keys_from_keystore) {
     for (const id in keys_from_keystore) {
@@ -198,17 +197,25 @@ async function digestSHA256toBase64(message) {
 {% if webcrypto %}async {% endif %}function getItemName(key) {
     return sessionStorage.getItem(key);
 };
-
-    {%- if local_storage %}
-/* save username/password to localStorage */
+{%- endif %}
+{%- if remember_password %}
+/* save username/password to sessionStorage/localStorage */
 {% if webcrypto %}async {% endif %}function setCredentials(username, password) {
+    {%- if session_storage %}
+    sessionStorage.setItem('{{ remember_prefix }}credentials', JSON.stringify({'user': username, 'password': password}));
+    {%- else %}
     localStorage.setItem('{{ remember_prefix }}credentials', JSON.stringify({'user': username, 'password': password}));
+    {%- endif %}
 }
 
-/* try to get username/password from localStorage */
+/* try to get username/password from sessionStorage/localStorage */
 {% if webcrypto %}async {% endif %}function getCredentials(username_input, password_input) {
+    {%- if session_storage %}
+    const credentials = JSON.parse(sessionStorage.getItem('{{ remember_prefix }}credentials'));
+    {%- else %}
     const credentials = JSON.parse(localStorage.getItem('{{ remember_prefix }}credentials'));
-    if (credentials) {
+    {%- endif %}
+    if (credentials && !encryptcontent_obfuscate) {
         if (credentials['user'] && username_input) {
             username_input.value = credentials['user'];
         }
@@ -223,9 +230,12 @@ async function digestSHA256toBase64(message) {
 
 /*remove username/password from localStorage */
 {% if webcrypto %}async {% endif %}function delCredentials() {
+    {%- if session_storage %}
+    sessionStorage.removeItem('{{ remember_prefix }}credentials');
+    {%- else %}
     localStorage.removeItem('{{ remember_prefix }}credentials');
-}
     {%- endif %}
+}
 {%- endif %}
 
 /* Reload scripts src after decryption process */
@@ -389,7 +399,7 @@ async function digestSHA256toBase64(message) {
         let key;
         if (typeof key_or_keys === "object") {
             key = key_or_keys[encryptcontent_id];
-            {% if remember_password -%}
+            {% if remember_keys -%}
             setKeys(key_or_keys);
             {%- endif %}
             {% if experimental -%}
@@ -424,7 +434,7 @@ async function digestSHA256toBase64(message) {
                 password_input.focus();
             }
         }
-        {% if remember_password -%}
+        {% if remember_keys -%}
         delItemName(encryptcontent_id);
         {%- endif %}
     }
@@ -441,14 +451,14 @@ async function digestSHA256toBase64(message) {
     var encrypted_content = document.getElementById('mkdocs-encrypted-content');
     var decrypted_content = document.getElementById('mkdocs-decrypted-content');
     let content_decrypted;
-    {% if remember_password -%}
-    /* If remember_password is set, try to use sessionStorage item to decrypt content when page is loaded */
+    {% if remember_keys -%}
+    /* If remember_keys is set, try to use sessionStorage item to decrypt content when page is loaded */
     let key_from_storage = {% if webcrypto %}await {% endif %}getItemName(encryptcontent_id);
     if (key_from_storage) {
         content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
             password_input, encrypted_content, decrypted_content, key_from_storage, username_input
         );
-        {% if local_storage %}
+        {% if remember_password -%}
         /* try to get username/password from localStorage */
         if (content_decrypted === false) {
             let got_credentials = {% if webcrypto %}await {% endif %}getCredentials(username_input, password_input);
@@ -458,10 +468,10 @@ async function digestSHA256toBase64(message) {
                 );
             }
         }
-        {% endif %}
+        {%- endif %}
         decryptor_reaction(content_decrypted, password_input, true);
     }
-    {% if local_storage %}
+    {% if remember_password -%}
     else {
         let got_credentials = {% if webcrypto %}await {% endif %}getCredentials(username_input, password_input);
         if (got_credentials) {
@@ -471,7 +481,7 @@ async function digestSHA256toBase64(message) {
             decryptor_reaction(content_decrypted, password_input, true);
         }
     }
-    {% endif %}
+    {%- endif %}
     {%- endif %}
     {% if password_button -%}
     /* If password_button is set, try decrypt content when button is press */
