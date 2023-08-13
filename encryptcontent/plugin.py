@@ -475,20 +475,21 @@ class encryptContentPlugin(BasePlugin):
 
         if self.config['password_file']:
             if self.config['password_inventory']:
-                print(self.config['password_inventory'])
                 logger.error("Please define either 'password_file' or 'password_inventory' in mkdocs.yml and not both.")
                 os._exit(1)
             password_file = os.path.join(config_path, self.config['password_file'])
             with open(password_file, 'r') as stream:
-                self.config['password_inventory'] = yaml.safe_load(stream)
+                self.setup['password_inventory'] = yaml.safe_load(stream)
+        elif self.config['password_inventory']:
+            self.setup['password_inventory'] = self.config['password_inventory']
 
-        if self.config['password_inventory']:
-            for level in self.config['password_inventory'].keys():
+        if self.setup['password_inventory']:
+            for level in self.setup['password_inventory'].keys():
                 new_entry = {}
                 self.keystore_id += 1
                 new_entry['id'] = quote(self.config['remember_prefix'] + str(self.keystore_id), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
-                credentials = self.config['password_inventory'][level]
+                credentials = self.setup['password_inventory'][level]
                 if isinstance(credentials, list):
                     for password in credentials:
                         if isinstance(password, dict):
@@ -925,7 +926,7 @@ class encryptContentPlugin(BasePlugin):
         self.setup['keystore_obfuscate'].clear()
         self.setup['keystore_password'].clear()
         self.setup['keystore_userpass'].clear()
-        self.config['password_inventory'] = {} # reset for multiple runs
+        self.setup['password_inventory'] = {} # reset for multiple runs
 
         #modify search_index in the style of mkdocs-exclude-search
         if self.setup['search_plugin_found'] and self.config['search_index'] != 'clear':
