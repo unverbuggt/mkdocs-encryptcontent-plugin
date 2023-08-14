@@ -24,19 +24,22 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 
 ![encryptcontent_demo](https://user-images.githubusercontent.com/12155947/177001700-f0920d4b-0c41-4d11-8164-9f63d29d8a6a.gif)
 
-# Todo for 3.x
+# Todo for 3.0.x
 
 * ~~Rework password handling or inventory of some sort~~
 * ~~Rework crypto (PBKDF2 + AES256)~~
-* ~~Save the generated random keys instead of passwords to session( or local) storage~~
+* ~~Save the generated random keys instead of passwords to session storage (remember_keys)~~
 * ~~Sign generated generated and javascript files used in encrypted pages to make it more tamper proof~~
-* ~~Add check for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it~~
+* ~~Add urlencode for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it~~
 * ~~find an equivalent way to define multiple passwords in the password inventory as global password~~
 * ~~make it possible to define passwords in external yaml file(s)~~
 * ~~decrypt all possible keys by one login (replace path fallback)~~
-* optional server side keystore (allows throtteling)
 * ~~optional replace crypto-js by webcrypto functions~~
-* ~~localStorage option is rather useless now (being unsafe to start with). Fix it nevertheless by saving credentials instead of keys.~~
+* ~~localStorage option is rather useless now (being unsafe to start with). Fix it nevertheless by saving credentials instead of keys~~
+* Update/Restructure documentation
+
+# Todo for 3.1.x
+* optional server side keystore (allows throtteling)
 * ...to be defined
 
 # Table of Contents
