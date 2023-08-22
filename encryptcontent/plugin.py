@@ -755,8 +755,8 @@ class encryptContentPlugin(BasePlugin):
                     self.setup['keystore_userpass'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index))
                 
         if hasattr(page, 'encryptcontent'):
-            if 'i18n_page_file_locale' in context:
-                locale = context['i18n_page_file_locale']
+            if 'i18n_page_locale' in context:
+                locale = context['i18n_page_locale']
                 if locale in self.config['translations']:
                     translations = self.config['translations'][locale]
 
