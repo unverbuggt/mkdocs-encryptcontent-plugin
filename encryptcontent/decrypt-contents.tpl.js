@@ -375,7 +375,7 @@ async function digestSHA256toBase64(message) {
         {%- endif %}
         {% if hljs -%}
         document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightBlock(block);
+            hljs.highlightElement(block);
         });
         {%- endif %}
         {% if reload_scripts | length > 0 -%}
