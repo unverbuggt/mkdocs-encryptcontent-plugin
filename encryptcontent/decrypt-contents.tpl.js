@@ -280,7 +280,7 @@ async function digestSHA256toBase64(message) {
     let could_decrypt = false;
     if (sessionIndex) {
         sessionIndex = JSON.parse(sessionIndex);
-        for (var i=0; i < sessionIndex.docs.length; i++) {
+        for (let i = 0; i < sessionIndex.docs.length; i++) {
             let doc = sessionIndex.docs[i];
             let location_sep = doc.location.indexOf(';');
             if (location_sep !== -1) {
@@ -325,7 +325,7 @@ async function digestSHA256toBase64(message) {
             console.log('WARNING: Unknow tag html found, check "encrypted_something" configuration.');
         }
         if (html_item[0]) {
-            for (i = 0; i < html_item.length; i++) {
+            for (let i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
                 let content = {% if webcrypto %}await {% endif %}decrypt_content_from_bundle(key, html_item[i].innerHTML);
                 if (content !== false) {
@@ -380,7 +380,7 @@ async function digestSHA256toBase64(message) {
         {%- endif %}
         {% if reload_scripts | length > 0 -%}
         let reload_scripts = {{ reload_scripts }};
-        for (i = 0; i < reload_scripts.length; i++) { 
+        for (let i = 0; i < reload_scripts.length; i++) { 
             {% if webcrypto %}await {% endif %}reload_js(reload_scripts[i]);
         }
         {%- endif %}
