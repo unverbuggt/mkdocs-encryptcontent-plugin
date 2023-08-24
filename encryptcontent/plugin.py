@@ -397,6 +397,8 @@ class encryptContentPlugin(BasePlugin):
                     and self.config['hljs'] is not False):  # noqa: W503, E127
             logger.debug('"highlightjs" value detected on theme config, enable rendering after decryption.')
             self.config['hljs'] = config['theme']._vars['highlightjs']
+        elif self.config['hljs']:
+            logger.debug('"highlightjs" feature enabled, enable rendering after decryption.')
         else:
             logger.info('"highlightjs" feature is disabled in your plugin configuration.')
             self.config['hljs'] = False
