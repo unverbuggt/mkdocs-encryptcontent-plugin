@@ -5,7 +5,7 @@ import base64
 import logging
 import json
 import math
-import yaml
+from mkdocs.utils.yaml import get_yaml_loader, yaml_load
 from pathlib import Path
 from os.path import exists
 from jinja2 import Template
@@ -483,7 +483,7 @@ class encryptContentPlugin(BasePlugin):
                 os._exit(1)
             password_file = os.path.join(config_path, self.config['password_file'])
             with open(password_file, 'r') as stream:
-                self.setup['password_inventory'] = yaml.safe_load(stream)
+                self.setup['password_inventory'] = yaml_load(stream)
         elif self.config['password_inventory']:
             self.setup['password_inventory'] = self.config['password_inventory']
 
