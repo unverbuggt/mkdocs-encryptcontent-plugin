@@ -78,9 +78,9 @@ class encryptContentPlugin(BasePlugin):
         ('password_inventory', config_options.Type(dict, default={})),
         ('password_file', config_options.Type(string_types, default=None)),
         # default features enabled
-        ('arithmatex', config_options.Type(bool, default=True)),
-        ('hljs', config_options.Type(bool, default=True)),
-        ('mermaid2', config_options.Type(bool, default=True)),
+        ('arithmatex', config_options.Type(bool, default=None)),
+        ('hljs', config_options.Type(bool, default=None)),
+        ('mermaid2', config_options.Type(bool, default=None)),
         ('tag_encrypted_page', config_options.Type(bool, default=True)),
         # override feature
         ('html_template_path', config_options.Type(string_types, default=None)),
@@ -414,6 +414,8 @@ class encryptContentPlugin(BasePlugin):
         if config['plugins'].get('mermaid2') and self.config['mermaid2'] is not False:
             logger.debug('"mermaid2" value detected on extensions config, enable rendering after decryption.')
             self.config['mermaid2'] = True
+        elif self.config['mermaid2']:
+            logger.debug('"mermaid2" feature enabled, enable rendering after decryption.')
         else:
             logger.info('"mermaid2" feature is disabled in your plugin configuration.')
             self.config['mermaid2'] = False

@@ -411,14 +411,14 @@ async function digestSHA256toBase64(message) {
 
         // any post processing on the decrypted content should be done here
         {% if arithmatex -%}
-        if (typeof MathJax === 'object') { MathJax.typesetPromise(); console.log('MathJax');};
+        if (typeof MathJax === 'object') { MathJax.typesetPromise();};
         {%- endif %}
         {% if mermaid2 -%}
-        if (typeof mermaid === 'object') { mermaid.contentLoaded(); console.log('mermaid');};
+        if (typeof mermaid === 'object') { mermaid.contentLoaded();};
         {%- endif %}
         {% if hljs -%}
         decrypted_element.querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightElement(block);console.log('hljs');
+            hljs.highlightElement(block);
         });
         {%- endif %}
         {% if reload_scripts | length > 0 -%}
