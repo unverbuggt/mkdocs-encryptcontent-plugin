@@ -337,6 +337,7 @@ async function digestSHA256toBase64(message) {
             }
         }
     }
+    return html_item[0];
 };
 
 /* Decrypt content of a page */
@@ -365,25 +366,8 @@ async function digestSHA256toBase64(message) {
     if (content !== false) {
         // success; display the decrypted content
         decrypted_content.innerHTML = content;
-        // encrypted_content.parentNode.removeChild(encrypted_content);
-        // any post processing on the decrypted content should be done here
-        {% if arithmatex -%}
-        if (typeof MathJax === 'object') { MathJax.typesetPromise(); };
-        {%- endif %}
-        {% if mermaid2 -%}
-        if (typeof mermaid === 'object') { mermaid.contentLoaded(); };
-        {%- endif %}
-        {% if hljs -%}
-        document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightElement(block);
-        });
-        {%- endif %}
-        {% if reload_scripts | length > 0 -%}
-        let reload_scripts = {{ reload_scripts }};
-        for (let i = 0; i < reload_scripts.length; i++) { 
-            {% if webcrypto %}await {% endif %}reload_js(reload_scripts[i]);
-        }
-        {%- endif %}
+        encrypted_content.parentNode.removeChild(encrypted_content);
+
         if (keys_from_keystore !== false) {
             return keys_from_keystore
         } else {
@@ -395,6 +379,7 @@ async function digestSHA256toBase64(message) {
 };
 
 {% if webcrypto %}async {% endif %}function decryptor_reaction(key_or_keys, password_input, fallback_used=false) {
+    let decrypted_element = document.getElementById("mkdocs-decrypted-content");
     if (key_or_keys) {
         let key;
         if (typeof key_or_keys === "object") {
@@ -414,7 +399,7 @@ async function digestSHA256toBase64(message) {
         let encrypted_something = {{ encrypted_something }};
         decrypt_somethings(key, encrypted_something);
         if (typeof inject_something !== 'undefined') {
-            decrypt_somethings(key, inject_something);
+            decrypted_element = {% if webcrypto %}await {% endif %}decrypt_somethings(key, inject_something);
         }
         if (typeof delete_something !== 'undefined') {
             let el = document.getElementById(delete_something)
@@ -423,6 +408,26 @@ async function digestSHA256toBase64(message) {
             }
         }
         {%- endif %}
+
+        // any post processing on the decrypted content should be done here
+        {% if arithmatex -%}
+        if (typeof MathJax === 'object') { MathJax.typesetPromise(); console.log('MathJax');};
+        {%- endif %}
+        {% if mermaid2 -%}
+        if (typeof mermaid === 'object') { mermaid.contentLoaded(); console.log('mermaid');};
+        {%- endif %}
+        {% if hljs -%}
+        decrypted_element.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);console.log('hljs');
+        });
+        {%- endif %}
+        {% if reload_scripts | length > 0 -%}
+        let reload_scripts = {{ reload_scripts }};
+        for (let i = 0; i < reload_scripts.length; i++) { 
+            {% if webcrypto %}await {% endif %}reload_js(reload_scripts[i]);
+        }
+        {%- endif %}
+
     } else {
         // remove item on sessionStorage if decryption process fail (Invalid item)
         if (!fallback_used) {
