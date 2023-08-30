@@ -874,6 +874,9 @@ class encryptContentPlugin(BasePlugin):
                 name, tag = list(page.encryptcontent['inject'].items())[0]
                 injector = soup.new_tag("div")
                 something_search = soup.find(tag[0], {tag[1]: name})
+                if not something_search:
+                    logger.error('Could not find tag to inject!\n{name}: [{tag0}, {tag1}]'.format(tag0=tag[0], tag1=tag[1], name=name))
+                    os._exit(1)
                 something_search.insert_before(injector)
                 injector.append(BeautifulSoup(page.encryptcontent['decrypt_form'], 'html.parser'))
                 page.encryptcontent['decrypt_form'] = None
