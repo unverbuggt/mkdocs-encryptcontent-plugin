@@ -67,6 +67,7 @@ class encryptContentPlugin(BasePlugin):
         ('encryption_info_message', config_options.Type(string_types, default=str(SETTINGS['encryption_info_message']))),
         ('password_button_text', config_options.Type(string_types, default=str(SETTINGS['password_button_text']))),
         ('password_button', config_options.Type(bool, default=False)),
+        ('form_class', config_options.Type(string_types, default=None)),
         ('input_class', config_options.Type(string_types, default=None)),
         ('button_class', config_options.Type(string_types, default=None)),
         # password feature
@@ -271,6 +272,7 @@ class encryptContentPlugin(BasePlugin):
             'password_button_text': encryptcontent['password_button_text'],
             'encryption_info_message': encryptcontent['encryption_info_message'],
             'decryption_failure_message': json.dumps(encryptcontent['decryption_failure_message']),
+            'form_class': self.config['form_class'],
             'input_class': self.config['input_class'],
             'button_class': self.config['button_class'],
             'uname': uname,
@@ -436,7 +438,16 @@ class encryptContentPlugin(BasePlugin):
         # Enable experimental code .. :popcorn:
         if self.config['search_index'] == 'dynamically':
             logger.info("EXPERIMENTAL search index encryption enabled.")
-        
+
+        # set default classes in html template
+        if config['theme'].name == 'material':
+            if not self.config['form_class']:
+                self.config['form_class'] = 'md-content__inner md-typeset'
+            if not self.config['input_class']:
+                self.config['input_class'] = 'md-input'
+            if not self.config['button_class']:
+                self.config['button_class'] = 'md-button md-button--primary'
+
         # Get path to site in case of subdir in site_url
         self.setup['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
 
