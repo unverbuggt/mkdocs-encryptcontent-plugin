@@ -67,16 +67,16 @@ def get_external_assets(config, **kwargs):
 def create_readme(config, **kwargs):
     logger = logging.getLogger("mkdocs.create_readme")
     cur_dir = Path(os.path.dirname(os.path.realpath(__file__)))
-    pypi_md = """
-[![PyPI Version][pypi-v-image]][pypi-v-link]
+    pypi_md = """[![PyPI Version][pypi-v-image]][pypi-v-link]
 [![PyPI downloads](https://img.shields.io/pypi/dm/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)'
+
 """
     readme_file = cur_dir / Path('../README.md')
+
     with open(cur_dir / Path('docs/index.md'), "r") as f:
-        contents = f.readlines()
-    contents.insert(1, pypi_md)
-    readme_md = "".join(contents)
+        index_md = f.read()
+    readme_md = ''
     with open(cur_dir / Path('docs/installation.md'), "r") as f:
         readme_md = readme_md + f.read() + '\n'
     with open(cur_dir / Path('docs/usage.md'), "r") as f:
@@ -101,3 +101,8 @@ def create_readme(config, **kwargs):
             markdowntoc.main()
     except:
         logger.error('Please run "pip install markdown-toc"')
+
+    with open(readme_file, "r") as f:
+        readme_md = f.read()
+    with open(readme_file, "w") as f:
+        f.write(pypi_md + index_md + readme_md)

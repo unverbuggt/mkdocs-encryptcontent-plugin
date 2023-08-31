@@ -1,43 +1,8 @@
-# mkdocs-encryptcontent-plugin
-
-# Table of Contents
-	* [Todos for 3.0.x](#Todos-for-3.0.x)
-	* [Todos for 3.1.x](#Todos-for-3.1.x)
-* [Installation](#Installation)
-* [Usage](#Usage)
-	* [Global password protection](#Global-password-protection)
-		* [Password inventory](#Password-inventory)
-		* [Secret from environment](#Secret-from-environment)
-		* [Default vars customization](#Default-vars-customization)
-		* [Translations](#Translations)
-		* [Obfuscate pages](#Obfuscate-pages)
-		* [Example plugin configuration](#Example-plugin-configuration)
-* [Features](#Features)
-	* [Override default templates](#Override-default-templates)
-		* [Add button](#Add-button)
-		* [Tag encrypted page](#Tag-encrypted-page)
-		* [Remember password](#Remember-password)
-	* [Modify generated pages](#Modify-generated-pages)
-		* [Encrypt something](#Encrypt-something)
-		* [Inject decrypt-form.tpl to theme](#Inject-decrypt-form.tpl-to-theme)
-		* [Mix encrypted and normal content](#Mix-encrypted-and-normal-content)
-	* [Search encryption](#Search-encryption)
-		* [Search index encryption](#Search-index-encryption)
-		* [Search index encryption for mkdocs-material](#Search-index-encryption-for-mkdocs-material)
-	* [Javascript extensions](#Javascript-extensions)
-		* [Reload user-defined scripts](#Reload-user-defined-scripts)
-		* [HighlightJS support](#HighlightJS-support)
-		* [Arithmatex support](#Arithmatex-support)
-		* [Mermaid2 support](#Mermaid2-support)
-	* [Security](#Security)
-		* [Crypto-js or webcrypto?](#Crypto-js-or-webcrypto?)
-		* [File name obfuscation](#File-name-obfuscation)
-		* [Signing of generated files](#Signing-of-generated-files)
-
-
 [![PyPI Version][pypi-v-image]][pypi-v-link]
 [![PyPI downloads](https://img.shields.io/pypi/dm/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)'
+
+# mkdocs-encryptcontent-plugin
 
 This plugin allows you to have password protected articles and pages in MKdocs.
 
@@ -76,6 +41,41 @@ The content is encrypted with AES-256 in Python using PyCryptodome and decrypted
 ## Todos for 3.1.x
 * optional server side keystore (allows throtteling)
 * ...to be defined
+
+
+# Table of Contents
+* [Installation](#Installation)
+* [Usage](#Usage)
+	* [Global password protection](#Global-password-protection)
+		* [Password inventory](#Password-inventory)
+		* [Secret from environment](#Secret-from-environment)
+		* [Default vars customization](#Default-vars-customization)
+		* [Translations](#Translations)
+		* [Obfuscate pages](#Obfuscate-pages)
+		* [Example plugin configuration](#Example-plugin-configuration)
+* [Features](#Features)
+	* [Override default templates](#Override-default-templates)
+		* [Add button](#Add-button)
+		* [Tag encrypted page](#Tag-encrypted-page)
+		* [Remember password](#Remember-password)
+	* [Modify generated pages](#Modify-generated-pages)
+		* [Encrypt something](#Encrypt-something)
+		* [Inject decrypt-form.tpl to theme](#Inject-decrypt-form.tpl-to-theme)
+		* [Mix encrypted and normal content](#Mix-encrypted-and-normal-content)
+	* [Search encryption](#Search-encryption)
+		* [Search index encryption](#Search-index-encryption)
+		* [Search index encryption for mkdocs-material](#Search-index-encryption-for-mkdocs-material)
+	* [Javascript extensions](#Javascript-extensions)
+		* [Reload user-defined scripts](#Reload-user-defined-scripts)
+		* [HighlightJS support](#HighlightJS-support)
+		* [Arithmatex support](#Arithmatex-support)
+		* [Mermaid2 support](#Mermaid2-support)
+	* [Security](#Security)
+		* [Crypto-js or webcrypto?](#Crypto-js-or-webcrypto?)
+		* [File name obfuscation](#File-name-obfuscation)
+		* [Signing of generated files](#Signing-of-generated-files)
+
+
 # Installation
 
 Install the package with pip:
