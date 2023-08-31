@@ -67,8 +67,8 @@ def get_external_assets(config, **kwargs):
 def create_readme(config, **kwargs):
     logger = logging.getLogger("mkdocs.create_readme")
     cur_dir = Path(os.path.dirname(os.path.realpath(__file__)))
-    pypi_md = """[![PyPI Version][pypi-v-image]][pypi-v-link]
-[![PyPI downloads](https://img.shields.io/pypi/dm/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin)
+    pypi_md = """[![PyPI Version](https://img.shields.io/pypi/v/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 """
