@@ -1,0 +1,164 @@
+site_name: MkDocs encryptcontent plugin V3
+site_url: https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/
+site_author: René Rüthlein
+
+theme:
+  name: material
+  language: en
+  logo: img/logo.svg
+  favicon: img/logo.ico
+  font: false
+  palette:
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Hell
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: indigo
+      toggle:
+        icon: material/brightness-7 
+        name: Dunkel
+  features:
+    - navigation.indexes
+    - navigation.tracking
+    #- navigation.sections
+    #- navigation.expand
+    - navigation.top
+    #- navigation.prune
+    - content.code.copy
+
+#extra_javascript:
+#  - 'assets/javascripts/highlight.min.js'
+#  - 'assets/javascripts/tex-mml-chtml.js'
+#  - 'assets/javascripts/mermaid.min.js'
+  
+nav:
+    - 'index.md'
+    - 'installation.md'
+    - 'usage.md'
+    - Features:
+      - 'features/index.md'
+      - 'features/modifypages.md'
+      - 'features/search.md'
+      - 'features/jsext.md'
+      - 'features/security.md'
+    - How does it work?: 'explanations.md'
+    - Test bench: 
+      - 'testbench/index.md'
+      - Passwords:
+        - Test1: 'testbench/onlypasswords1.md'
+        - Test2: 'testbench/onlypasswords2.md'
+        - Test3: 'testbench/onlypasswords3.md'
+      - User/Password:
+        - Test1: 'testbench/userpass1.md'
+        - Test2: 'testbench/userpass2.md'
+      - Obfuscate: 'testbench/obfuscate.md'
+      - JS test: 'testbench/jstest.md'
+
+plugins:
+    - include-markdown: {}
+
+    - search:
+        lang: en
+
+    - mermaid2:
+        version: 9.4.3
+
+    - i18n:
+        docs_structure: suffix
+        fallback_to_default: true
+        languages:
+          - build: true
+            default: true
+            locale: en
+            name: English
+          - build: true
+            default: false
+            locale: de
+            name: Deutsch
+            nav_translations:
+              Obfuscate: Verschleiern
+              Passwords: Passwörter
+              Test bench: Testaufbau
+              User/Password: Benutzername/Passwort
+            site_name: MkDocs Encryptcontent Plugin V3
+        reconfigure_material: true
+        reconfigure_search: true
+
+    - encryptcontent:
+        #html_template_path: "decrypt-form.tpl.html"
+        title_prefix: ''
+        summary: ''
+        placeholder: 'Password'
+        placeholder_user: User
+        password_button_text: 'ENTER'
+        decryption_failure_message: 'Wrong user name or password.'
+        encryption_info_message: 'Legitimation required.'
+        translations:
+          de:
+            title_prefix: ''
+            summary: ''
+            placeholder: 'Passwort'
+            placeholder_user: Benutzer
+            password_button_text: 'ENTER'
+            decryption_failure_message: 'Falscher Benutzer oder Passwort.'
+            encryption_info_message: 'Legitimation erforderlich.'
+
+        #input_class: 'w3-input'
+        #button_class: 'w3-button w3-theme-l1 w3-hover-theme'
+        #hljs: true
+        #arithmatex: true
+        #mermaid2: true
+        remember_keys: true
+        remember_password: true
+        remember_prefix: encryptcontent_plugin_
+        encrypted_something:
+          md-footer__inner: [nav, class] #Footer
+          #md-nav: [nav, class] #Menu and toc
+        inject:
+          md-content: [div, class]
+        search_index: 'dynamically' #dynamically
+        password_button: True
+        selfhost: true
+        selfhost_download: true
+        selfhost_dir: 'theme_override'
+        reload_scripts:
+          - '#autostart'
+        password_file: 'passwords.yml'
+        #kdf_pow: 4
+        webcrypto: true
+        sign_files: 'encryptcontent-plugin.json'
+        hash_filenames:
+          extensions:
+            - 'png'
+            - 'jpg'
+            - 'jpeg'
+            - 'svg'
+          except:
+            - 'logo.svg'
+
+repo_url: https://github.com/unverbuggt/mkdocs-encryptcontent-plugin
+
+markdown_extensions:
+    - attr_list
+    - pymdownx.escapeall:
+        hardbreak: true
+    - pymdownx.blocks.html
+    - pymdownx.tilde
+    - pymdownx.arithmatex:
+        generic: true
+    - pymdownx.highlight:
+        anchor_linenums: true
+        line_spans: __span
+        pygments_lang_class: true
+    - pymdownx.inlinehilite
+    - pymdownx.snippets
+    - pymdownx.superfences

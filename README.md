@@ -1,14 +1,49 @@
 # mkdocs-encryptcontent-plugin
 
+# Table of Contents
+	* [Todos for 3.0.x](#Todos-for-3.0.x)
+	* [Todos for 3.1.x](#Todos-for-3.1.x)
+* [Installation](#Installation)
+* [Usage](#Usage)
+	* [Global password protection](#Global-password-protection)
+		* [Password inventory](#Password-inventory)
+		* [Secret from environment](#Secret-from-environment)
+		* [Default vars customization](#Default-vars-customization)
+		* [Translations](#Translations)
+		* [Obfuscate pages](#Obfuscate-pages)
+		* [Example plugin configuration](#Example-plugin-configuration)
+* [Features](#Features)
+	* [Override default templates](#Override-default-templates)
+		* [Add button](#Add-button)
+		* [Tag encrypted page](#Tag-encrypted-page)
+		* [Remember password](#Remember-password)
+	* [Modify generated pages](#Modify-generated-pages)
+		* [Encrypt something](#Encrypt-something)
+		* [Inject decrypt-form.tpl to theme](#Inject-decrypt-form.tpl-to-theme)
+		* [Mix encrypted and normal content](#Mix-encrypted-and-normal-content)
+	* [Search encryption](#Search-encryption)
+		* [Search index encryption](#Search-index-encryption)
+		* [Search index encryption for mkdocs-material](#Search-index-encryption-for-mkdocs-material)
+	* [Javascript extensions](#Javascript-extensions)
+		* [Reload user-defined scripts](#Reload-user-defined-scripts)
+		* [HighlightJS support](#HighlightJS-support)
+		* [Arithmatex support](#Arithmatex-support)
+		* [Mermaid2 support](#Mermaid2-support)
+	* [Security](#Security)
+		* [Crypto-js or webcrypto?](#Crypto-js-or-webcrypto?)
+		* [File name obfuscation](#File-name-obfuscation)
+		* [Signing of generated files](#Signing-of-generated-files)
+
+
 [![PyPI Version][pypi-v-image]][pypi-v-link]
 [![PyPI downloads](https://img.shields.io/pypi/dm/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)'
 
 This plugin allows you to have password protected articles and pages in MKdocs.
 
-The content is encrypted with AES-256 in Python using PyCryptodome, and decrypted in the browser with Crypto-JS.
+The content is encrypted with AES-256 in Python using PyCryptodome and decrypted in the browser with Crypto-JS or Webcrypto.
 
-*It has been tested in Python Python 3.5+*
+*It has been tested in Python Python 3.8+*
 
 **Usecase**
 
@@ -20,11 +55,11 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 >
 > If a password is defined in an article or a page, it is always used even if there is a global password.
 >
-> If a password is defined as an empty character string, the content is not protected.
+> If a password is defined as an empty character string, content encryption is disabled.
+>
+> Additionally password levels can be defined in mkdocs.yml or external yaml file with user/password credentials.
 
-![encryptcontent_demo](https://user-images.githubusercontent.com/12155947/177001700-f0920d4b-0c41-4d11-8164-9f63d29d8a6a.gif)
-
-# Todo for 3.0.x
+## Todos for 3.0.x
 
 * ~~Rework password handling or inventory of some sort~~
 * ~~Rework crypto (PBKDF2 + AES256)~~
@@ -38,40 +73,9 @@ The content is encrypted with AES-256 in Python using PyCryptodome, and decrypte
 * ~~localStorage option is rather useless now (being unsafe to start with). Fix it nevertheless by saving credentials instead of keys~~
 * Update/Restructure documentation
 
-# Todo for 3.1.x
+## Todos for 3.1.x
 * optional server side keystore (allows throtteling)
 * ...to be defined
-
-# Table of Contents
-
-  * [Installation](#installation)
-  * [Usage](#usage)
-    * [Global password protection](#global-password-protection)
-    * [Password inventory](#password-inventory) **NEW**
-    * [Secret from environment](#secret-from-environment)
-    * [Customization](#default-vars-customization)
-    * [Translations](#translations)
-    * [Obfuscate pages](#obfuscate-pages)
-  * [Features](#features)
-    * [HighlightJS support](#highlightjs-support) *(default)*
-    * [Arithmatex support](#arithmatex-support) *(default)*
-    * [Mermaid2 support](#mermaid-support) *(default)*
-    * [Tag encrypted page](#tag-encrypted-page) *(default)*
-    * [Remember password](#remember-password)
-    * [Encrypt something](#encrypt-something)
-    * [Inject decrypt-form.tpl to theme](#inject-decrypt-formtpl-to-theme)
-    * [Mix encrypted and normal content](#mix-encrypted-and-normal-content) **NEW**
-    * [Search index encryption](#search-index-encryption)
-    * [Search index encryption for mkdocs-material](#search-index-encryption-for-mkdocs-material)
-    * [Override default templates](#override-default-templates)
-    * [Add button](#add-button)
-    * [Reload scripts](#reload-scripts)
-    * [Self-host crypto-js](#self-host-crypto-js)
-    * [File name obfuscation](#file-name-obfuscation)
-    * [Signing of generated files](#signing-of-generated-files) **NEW**
-  * [Contributing](#contributing)
-
-
 # Installation
 
 Install the package with pip:
@@ -85,7 +89,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0.dev2-py3-none-any.whl
+pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0.dev3-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -95,61 +99,20 @@ plugins:
     - search: {}
     - encryptcontent: {}
 ```
-> **NOTE:** If you have no `plugins` entry in your configuration file yet, you'll likely also want to add the `search` plugin. MkDocs enables it by default if there is no `plugins` entry set, but now you have to enable it explicitly.
-
+> **NOTE:** If you have no `plugins` entry in your configuration file yet, you'll likely also want to add the `search` plugin.
+> MkDocs enables it by default if there is no `plugins` entry set, but now you have to enable it explicitly.
 
 # Usage
 
-Add an meta tag `password: secret_password` in your markdown files to protect them.
+Add an meta tag `password: secret password` in your markdown files to protect them.
 
-Alternatively add the meta tag `level: secret` to use one or more secrets defined at the plugin's `password_inventory` in your `mkdocs.yml`.
-
-
-## How does this work?
-
-For every unique `password` and for every `level` we generate a random 256 bit key.
-This key will be used for AES-256 encryption on every page with the same `password` or same `level`.
-Optionally search entries and [encrypt something](#encrypt-something) on that page are also encrypted with the same key.
-
-This random secret key (needed for deciphering the pages content) is then encrypted with another key that is derived from
-the defined credentials (a password or a username/password pair).
-The function to derive that key (PBKDF2) can be adjusted in calculation time (`kdf_pow`)
-to make it harder for a brute force attacker to simply try all passwords.
-
-## A word on password strength
-
-The strength of a password can be measured in entropy or "possibilities to try" (for a brute force attacker).
-
-For example take a tree character password with just lower case letters like "abc".  
-The number of lower case letters is 26, so a three character password leads to 26 * 26 * 26 = 17 576 possibilities to try.
-
-Now take a three character password which also includes upper case letters like "aBc".  
-The number of possibilities per character doubles to 52, so the three character password leads to 52 * 52 * 52 = 140 608 possibilities.
-So compared to "abc" we got **eight times** more entropy in this case.
-
-So what happens if we add one character and still only use lower case letters, like "abcd"?  
-It's 26^4 = 456 976 with a four character password, that's **26 times** more entropy compared to only using three lower case characters.
-
-A brute force attacker will find a password after trying half the possibilities on average.
-So the more entropy (possibilities to try) the better.
-It's easier to get high entropy by increasing password size, than with adding more different characters or symbols.
-An attacker could also have watched (or heard) you type the password (paying attention to the use of the shift key,
-space bar or numeric keypad) and this way cross out character that you couldn't possibly have used.
-
-So, to put it mildly: Every web page that forces you to use at least lower/upper case AND a number AND a symbol,
-BUT only forces you to use eight characters of password size is not steering you to the right measures to gain entropy.
-
-But, to be fair: A web page can take measures to seriously throttle the passwords try-able per second on the server side
-or f.ex. use captchas after the third failed try. Although there were and most likely will be bad or failed examples of those measures.
-
-This Mkdocs plugin can currently only take counter-measures to brute force attacks in form of PBKDF2,
-so you should really be interested in choosing a strong password
-(read [example1](https://en.wikipedia.org/wiki/Diceware) or [example2](https://xkcd.com/936/)).
+Alternatively add the meta tag `level: secret` to use one or more secrets defined at the
+plugin's `password_inventory` or `password_file` in your "mkdocs.yml".
 
 
 ### Global password protection
 
-Add `global_password: your_password` in plugin configuration variable, to protect by default your articles with this password
+Add `global_password: your_password` in plugin configuration variable, to protect all pages with this password by default
 
 ```yaml
 plugins:
@@ -157,7 +120,7 @@ plugins:
         global_password: 'your_password'
 ```
 
-If a password is defined in an article, it will **ALWAYS** overwrite the global password. 
+If the password meta tag is defined in a markdown file, it will **ALWAYS** override the global password. 
 
 > **NOTE** Keep in mind that if the `password:` tag exists without value in a page, it will **not be protected** !
 > Use this to **disable** `global_password` on specific pages.
@@ -180,33 +143,22 @@ plugins:
             user5: 'password5'
 ```
 
-These levels may be only one password (f.ex. classified), a list of multiple passwords (f.ex. confidential) or multiple username/password pairs (f.ex. secret).
+These levels may be only one password (f.ex. classified), a list of multiple passwords (f.ex. confidential)
+or multiple username/password pairs (f.ex. secret).
 It is possible to reuse credentials at different levels.
 
 >Note that a "list of multiple passwords" comes with a downside: All entries may be tested because unlike "user/password pairs"
->there is no hint to determine the distinct entry to try (At least I found no hint that wouldn't make it easier for a brute force attacker).
+>there is no hint to determine the distinct entry to try
+>(At least I found no hint that wouldn't make it easier for a brute force attacker).
 >This means, that a high `kdf_pow` could cause long waiting time even if the right password was entered.
 
 The plugin will generate one secret key for each level, which is then used to encrypt the assigned sites.
 
-It is good practice to assign the same level to all pages within a navigation branch,
-this way the secret keys are taken from storage and one doesn't need to re-enter credentials.
-
-- Start Page
-- Help
-- Secret Groups
-    - Group alpha (level: alpha)
-        - Sub Site A (level: alpha)
-            - SubSub Site Aa(level: alpha)
-        - Sub Site B (level: alpha)
-    - Group beta (level: beta)
-        - Sub Site A (level: beta)
-        - Sub Site B (level: beta)
-            - SubSub Site Ba (level: beta)
 
 #### Password inventory in external file
 
-You can define password levels in an external yaml file and use it with `password_file`.
+You can define password levels in an external yaml file and link it with `password_file`.
+The intention is to separate sensitive information from configuration options.
 
 ```yaml
 plugins:
@@ -248,7 +200,9 @@ plugins:
 
 ### Secret from environment
 
-It is possible to read values from environment variable (as discribed [here](https://www.mkdocs.org/user-guide/configuration/#environment-variables))
+It is possible to read values from environment variable 
+(as discribed [here](https://www.mkdocs.org/user-guide/configuration/#environment-variables)).
+This replaces the deprecated `use_secret` option from previous versions.
 
 ```yaml
 plugins:
@@ -262,7 +216,7 @@ plugins:
 
 ### Default vars customization
 
-Optionally you can use some extra variables in plugin configuration to customize default messages.
+Optionally you can use some extra variables in plugin configuration to customize default strings.
 
 ```yaml
 plugins:
@@ -290,7 +244,8 @@ Defaut encryption information message is `Contact your administrator for access 
 
 ### Translations
 
-If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/) plugin you can provide `translations` for the used `i18n_page_file_locale`.
+If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/) 
+plugin you can provide `translations` for the used `i18n_page_locale`.
 
 ```yaml
     - encryptcontent:
@@ -314,78 +269,148 @@ You can set the  meta tag `encryption_summary` to customize `summary` and `encry
 If you want to make it harder for search engines to scrape you pages content,
 you can set `obfuscate: SomeNotSoSecretPassword` meta tag in markdown.
 
-The page than will display `summary` and `encryption_info_message` together with a button labeled with
+The page then will display `summary` and `encryption_info_message` together with a button labeled with
 `password_button_text`. In order to view the pages content one hast to press the button first.
 
 If a `password` or `level` is set, then the `obfuscate` feature will be disabled.
 If you want to use `obfuscate` in a configuration where `global_password` or `_global` level is defined, 
 you'll need to set the `password:` or rather `level:` meta tag (with no password/level defined) to undefine the password on this page.
 
+The keys to all obfuscated pages are also saved in every keystore, so they are decrypted if someone entered
+correct credentials.
+
+
+### Example plugin configuration
+
+```yaml
+plugins:
+    - encryptcontent:
+        title_prefix: ''
+        summary: ''
+        placeholder: 'Password'
+        placeholder_user: User
+        password_button_text: 'ENTER'
+        decryption_failure_message: 'Wrong user name or password.'
+        encryption_info_message: 'Legitimation required.'
+        translations:
+          de:
+            title_prefix: ''
+            summary: ''
+            placeholder: 'Passwort'
+            placeholder_user: Benutzer
+            password_button_text: 'ENTER'
+            decryption_failure_message: 'Falscher Benutzer oder Passwort.'
+            encryption_info_message: 'Legitimation erforderlich.'
+        html_template_path: "decrypt-form.tpl.html" # override default html template
+        password_button: True
+        input_class: 'w3-input' # CSS class used for input username and password
+        button_class: 'w3-button w3-theme-l1 w3-hover-theme' # CSS class for password_button
+        hljs: False
+        arithmatex: False
+        mermaid2: False
+        remember_keys: true # keys from keystore will temporarily saved to sessionStorage
+        remember_password: false # the entered credentials are not saved
+        remember_prefix: encryptcontent_plugin_ # use different prefixes if other sites are running on the same domain
+        encrypted_something: # additionally encrypt some html elements
+          #myNav: [div, id]
+          myToc: [div, id]
+          myTocButton: [div, id]
+        search_index: 'dynamically' # dynamically encrypt mkdocs search index 
+        webcrypto: true # use browsers webcrypto support
+        #selfhost: true # use self-hosted crypto-js
+        #selfhost_download: true # download crypt-js for self-hosting
+        #selfhost_dir: 'theme_override' # where to download crypto-js
+        #reload_scripts:
+        #  - '#theme'
+        password_file: 'passwords.yml' # file with password inventory
+        #kdf_pow: 4 # default for crypto-js: 4, default for webcrypto: 5
+        sign_files: 'encryptcontent-plugin.json' # save ed25519 signatures here
+        #hash_filenames: # add hash to file names of assets (to make them impossible to guess
+        #  extensions:
+        #    - 'png'
+        #    - 'jpg'
+        #    - 'jpeg'
+        #    - 'svg'
+        #  except:
+        #    - 'logo.svg'
+```
+
+title: Features
+
 # Features
 
-### HighlightJS support
+### Override default templates
 
-> **Enable by default**
+Related to [issue #32](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/32)
 
-If HighlightJS module is detected in your theme to improve code color rendering, reload renderer after decryption process. If HighlightJS module is not correctly detected, you can force the detection by adding `hljs: True` on the plugin configuration or set `hljs: False` to disable this feature.
+You can override the default templates with your own templates by providing an actual replacement
+path in the `html_template_path` *(HTML)* and `js_template_path` *(JS)* directives. 
+Overridden templates **completely** replace the default templates. You **must** therefore copy the
+default templates as a starting point to keep this plugin working.
 
-When enable the following part of the template is add to force reloading decrypted content.
-
-```jinja
-{% if hljs %}
-document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
-    hljs.highlightBlock(block);
-});
-{% endif %}
+```yaml
+plugins:
+    - encryptcontent:
+        html_template_path: "/root/real/path/mkdocs_poc/my_html_template.html"
+        js_template_path: "/root/real/path/mkdocs_poc/my_js_template.js"
+        form_class: 'md-content__inner md-typeset'
+        input_class: 'md-input'
+        button_class: 'md-button md-button--primary'
 ```
 
-### Arithmatex support
+Use `form_class`, `input_class` and `button_class` to optionally set a CSS class for the password input field and the button.
 
-> **Enable by default**
+When overriding the default templates, you can add and use your own Jinja variables
+and enrich your template, by defining `html_extra_vars` and `js_extra_vars` directives in key/value format.
+Added values can be used in your Jinja templates via the variable `extra`.
 
-Related to [issue #12](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/12)
+```yaml
+plugins:
+    - encryptcontent:
+        html_extra_vars:
+            my_extra: "extra value"
+            <key>: <value>
+        js_extra_vars:
+            my_extra: "extra value"
+            <key>: <value>
+```
 
-If Arithmatex markdown extension is detected in your markdown extensions to improve math equations rendering, reload renderer after decryption process. If the Arithmatex markdown extension is not correctly detected, you can force the detection by adding `arithmatex: True` on the plugin configuration or set `arithmatex: False` to disable this feature.
+For example, you can modify your HTML template, to add a new title with your own text variable.
+
+```jinja
+[ ... ] 
+<h2>{{ extra.my_extra }}</h2>
+[ ... ]
+```
+
+> **NOTE** Issues related to template override will not be addressed.
+
+### Add button
+
+Add `password_button: True` in plugin configuration variable, to add a button to the right of the password field.
+
+When enabled, it allows to decrypt the content just like the classic keypress ENTER.
+
+Optionally, you can add `password_button_text: 'custom_text_button'` to customize the button text.
  
-When enable, the following part of the template is add to force math equations rendering on decrypted content.
-
-```jinja
-{% if arithmatex %}
-MathJax.typesetPromise()
-{% endif %}
+```yaml
+plugins:
+    - encryptcontent:
+        password_button: True
+        password_button_text: 'custom_text_button'
 ```
-
-> **NOTE** It has been tested in Arithmatex `generic` mode only. 
-
-### Mermaid2 support
-
-> **Enable by default**
-
-Related to [issue #22](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/22)
-
-If mermaid2 plugin is detected in your configuration to generate graph from text, reload renderer after decryption process. If the Mermaid2 plugin is not correctly detected, you can force the detection by adding `mermaid2: True` on the plugin configuration or set `mermaid2: False` to disable this feature.
- 
-When enable, the following part of the template is add to force graph rendering on decrypted content.
-
-```jinja
-{% if mermaid2 %}
-mermaid.contentLoaded();
-{% endif %}
-```
-
-> **NOTE** It has been tested with Mermaid2 mkdocs plugin only.
 
 ### Tag encrypted page
 
 > **Enable by default**
 
-Related to [issue #7](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/7)
+Related to [issue #7](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/7)
 
-This feature add an additional attribute `encrypted` with value `True` to the mkdocs type `mkdocs.nav.page` object.
+This feature adds an additional attribute `encrypted` with value `True` to the mkdocs type `mkdocs.nav.page` object.
 
 You can add `tag_encrypted_page: False` in plugin configuration, to disable tagging of encrypted pages. 
 
-When enable, it becomes possible to use `encrypted` attribute in the jinja template of your theme, as a condition to perform custom modification.
+When enabled, it is possible to use the `encrypted` attribute in the jinja template of your theme, as a condition to perform custom modification.
 
 ```jinja
 {%- for nav_item in nav %}
@@ -395,7 +420,7 @@ When enable, it becomes possible to use `encrypted` attribute in the jinja templ
 {%- endfor %}
 ```
 
-For example, in your theme template, you can use conditional check to add custom class :
+For example, you can use conditional check to add a custom class:
 
 ```jinja
 <a {% if nav_item.encrypted %}class="mkdocs-encrypted-class"{% endif %}href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
@@ -403,73 +428,82 @@ For example, in your theme template, you can use conditional check to add custom
 
 ### Remember password
 
-Related to [issue #6](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/6)
+Related to [issue #6](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/6)
 
-> :warning: **This feature is not really secure !** decryption keys are store in clear text inside session storage.
+By default the plugin will save the decrypted AES keys to session storage of the browser (can be disabled by setting `remember_keys: False`).
+This is enabled for convenience, so you are able to browse between multiple encrypted pages without having to re-enter the password.
+
+Additionally it is possible to save the entered user/password in session storage (setting `remember_password: True`). Use this for
+additional convenience during `mkdocs serve`, because the AES key are regenerated every time MkDocs starts
+(rendering the old ones invalid and requiring to re-enter a valid credential again).
+
+To avoid problems when multiple sites are hosted within the same domain, it is possible to customize the name of
+the keys saved to storage with `remember_prefix`.
+
+> **This feature is not really secure !** decryption keys are store in clear text inside session storage.
 >
-> Instead of using this feature, I recommend to use a password manager with its web plugins.
-> For example **KeepassXC** allows you, with a simple keyboard shortcut, to detect the password field `mkdocs-content-password` and to fill it automatically in a much more secure way.
+> Instead of using these features, I recommend to use a password manager with its browser plugin.
+> For example **KeepassXC** allows you to detect the password field
+> `mkdocs-content-password` and fill it automatically in a much more secure way.
 
-If you do not have password manager, you can set `remember_password: True` in your `mkdocs.yml` to enable remember feature.
+It is also possible to save the used credentials permanently to local storage (setting `session_storage: False`), but
+this should only be done for testing purposes. The local storage of a browser is most likely readable
+for every other process that can access the file system. 
 
-When enabled, each time you fill password form and press `Enter` and the password was correct (could be used to get the decryption key)
-a key on session storage is create with the decryption key as value. 
-When you reload the page, if you already have an 'encryptcontent' key in the session storage of your browser,
-the page will be automatically decrypted using the value previously created.
-
-By default, the key is created with a name relative to the page on which it was generated.
-This 'relative' key will always be used as first attempt to decrypt the current page when loading.
-
-If your password is a [global password](#global-password-protection), you can fill in the form
-field  `mkdocs-content-password`, then use the keyboard shortcut `CTRL + ENTER` instead of the classic `ENTER`. 
-The key that will be created with a generic name to making it accessible, by default, on all the pages of your site.
-
-The form of decryption remains visible as long as the content has not been successfully decrypted, which allows in case of error to retry. 
-These decryption keys are recreated every time the site is built, so they are only valid until the next `mkdocs build` or `mkdocs serve`.
+The session storage however should only be located in memory and be forgotten after the browser tab is closed.
 
 ```yaml
 plugins:
     - encryptcontent:
-        remember_password: True
+        remember_keys : True
+        remember_password: False
+        remember_prefix: secretsite_
 ```
 
-> **NOTE** 
-> Now The default is to use sessionStorage instead of localStorage, so the browser forgets the password after
-> the current tab was closed. However it can be set to use localStorage by setting `session_storage: False`
+title: Modify pages
+
+## Modify generated pages
 
 ### Encrypt something
 
-Related to [issue #9](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/9)
+Related to [issue #9](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/9)
 
-Add `encrypted_something: {}` in the plugin configuration variable, to encrypt something else.
+Add `encrypted_something: {}` in the plugin configuration variable, to encrypt something else on the page.
 
 The syntax of this new variable **MUST** follow the yaml format of a dictionary. 
-Child elements of `encrypted_something` are build with a key `<unique name>` in string format and a list as value. 
-The list have to be contructed with the name of an HTML element `<html tag>` as first item and `id` or `class` as the second item.
+Child elements of `encrypted_something` are build with a key `<unique name>` in string format and a list as value.
+The list has to be constructed with the name of an HTML tag `<html tag>` as first item
+and `id` or `class` as the second item.
 
 ```yaml
 plugins:
     - encryptcontent:
         encrypted_something:
-            <uniq name>: [<html tag>, <'class' or 'id'>]
+            <uniqe name>: [<html tag>, <'class' or 'id'>]
 ```
 
-The `<unique name>` key identifies the name of a specific element of the page that will be searched by beautifulSoup.
-The first value of the `<html tag>` list identifies the type of HTML tag in which the name is present.
-The second value of the list, as string `'id'` or `'class'`, specifies the type of the attribute which contains the unique name in the html tag.
+The `<unique name>` key identifies the name of a specific element of the page that will be
+searched by Beautiful Soup.
+The first value of the list (`<html tag>`) identifies the type of HTML tag in which the name is present.
+The second value of the list (`'id'` or `'class'`) specifies the type of the attribute which contains
+the unique name in the html tag.
 
 Prefer to use an `'id'`, however depending on the template of your theme, it is not always possible to use the id.
-So we can use the class attribute to define your unique name inside html tag. 
-BeautifulSoup will encrypt all HTML elements discovered with the class.
+So we can use the class attribute to define your unique name inside the html tag. 
+Beautiful Soup will encrypt all HTML elements discovered with the class.
 
-When the feature is enabled, you can use any methods *(password, button, remember)* to decrypt every elements encrypted on the page.
+When the feature is enabled every element is decrypted upon successfull content decryption on the page.
 
-By default **every child items** are encrypted and the encrypted elements have `style=display:none` to hide their content.
+> Use this to hide the table of contents on the page or sub pages in the menu
 
-#### How to use it :exploding_head: ?! Examples
+By default **every child item** are encrypted and the encrypted elements have set
+`style="display:none;"` to hide their content.
 
-Use the `page.encrypted` conditions to add attributes of type id or class in the HTML templates of your theme. 
-Each attribute is identified with a unique name and is contained in an html element. 
+#### How to use it?! Examples
+
+You can use the `page.encrypted` tag to add attributes to html tags in the HTML templates of your theme
+or identify usable tag ids or classes that are already in the theme.
+
 Then add these elements in the format of a yaml dictionary under the variable `encrypted_something`.
 
 1. For example, encrypt ToC in a theme where ToC is under 'div' element like this :
@@ -478,7 +512,7 @@ Then add these elements in the format of a yaml dictionary under the variable `e
 <div class=".." {% if page.encrypted %}id="mkdocs-encrypted-toc"{% endif %}>
     <ul class="..">
         <li class=".."><a href="{{ toc_item.url }}">{{ toc_item.title }}</a></li>
-         <li><a href="{{ toc_item.url }}">{{ toc_item.title }}</a></li>
+        <li><a href="{{ toc_item.url }}">{{ toc_item.title }}</a></li>
     </ul>
 </div>
 ```
@@ -492,19 +526,24 @@ plugins:
             mkdocs-encrypted-toc: [div, id]
 ```
 
-2. Other example, with multiples target. In your custom Material theme, you want to encrypt ToC content and Footer.
+2. Other example, with multiple targets. You are using a custom version of Material theme and
+want to encrypt ToC content and Footer.
 
-Materiel generate 2 `<nav>` structure with the same template `toc.html`, so you need to use a `class` instead of an id for this part.
+Material generates 2 `<nav>` structures with the same template `toc.html`, so you need to use a `class`
+instead of an id for this part.
 The footer part, is generated by the `footer.html` template in a classic div so an `id` is sufficient
 
 After modification, your template looks like this :
-```jinja (toc.html)
+
+toc.html:
+```jinja
 <nav class="md-nav md-nav--secondary {% if page.encrypted %}mkdocs-encrypted-toc{% endif %}" aria-label="{{ lang.t('toc.title') }}">
     <label class="md-nav__title" for="__toc"> ... </label>
     <ul class="md-nav__list" data-md-scrollfix> ... </ul>
 </nav>
 ```
-```jinja (footer.html)
+footer.html:
+```jinja
 <footer class="md-footer">
     <div class="md-footer-nav" {% if page.encrypted %}id="mkdocs-encrypted-footer"{% endif %}> ... </div>
     <div class="md-footer-meta md-typeset" {% if page.encrypted %}id="mkdocs-encrypted-footer-meta"{% endif %}>
@@ -592,10 +631,14 @@ Well, the princess is another castle.
 ///
 ```
 
-The markdown externion enables us to wrap a div tag around content by `/// html | div#some-id`.
+The markdown extension enables us to wrap a div tag around content by `/// html | div#some-id`.
 It ends with `///`. The meta tag `inject_id` defines which div id we would like to encrypt
 (it also injects the decryption form here). And the div id found at `delete_id` will be deleted
-on successfull decryption.
+on successful decryption.
+
+title: Search encryption
+
+## Search encryption
 
 ### Search index encryption
 
@@ -664,73 +707,16 @@ pip install --force-reinstall .
 
 > Note: this currently doesn't work with mkdocs-material-9.x.x
 
-### Override default templates
+title: Javascript extensions
 
-Related to [issue #32](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/32)
+## Javascript extensions
 
-You can override the default templates with your own templates by providing an actual replacement
-path in the `html_template_path` *(HTML)* and `js_template_path` *(JS)* directives. 
-Overridden templates **completely** replace the default templates. You **must** therefore copy the
-default templates to keep this module working.
+### Reload user-defined scripts
 
-```yaml
-plugins:
-    - encryptcontent:
-        html_template_path: "/root/real/path/mkdocs_poc/my_html_template.html"
-        js_template_path: "/root/real/path/mkdocs_poc/my_js_template.js"
-        input_class: 'md-search__form md-search__input'
-        button_class: 'md-search__icon'
-```
+Related to [issue #14](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/14)
 
-Use `input_class` and `button_class` to optionally set a CSS class for the password input field and the button.
-
-When you overriding the default templates, you can add and use your own Jinja variables to condition
-and enrich your template, by defining `html_extra_vars` and `js_extra_vars` directives in key/value format.
-Added values can be used in your Jinja templates via the variable `extra`.
-
-```yaml
-plugins:
-    - encryptcontent:
-        html_extra_vars:
-            my_extra: "extra value"
-            <key>: <value>
-        js_extra_vars:
-            my_extra: "extra value"
-            <key>: <value>
-```
-
-For example, you can modify your HTML template, to add a new title with your own text variable.
-
-```jinja
-[ ... ] 
-<h2>{{ extra.my_extra }}</h2>
-[ ... ]
-```
-
-> **NOTE** You must avoid replacing/overwriting the variables used by default by this module.
-> The limitations are the same as those of the jinja models.
-> Issues related to template override will not be addressed.
-
-### Add button
-
-Add `password_button: True` in plugin configuration variable, to add button to the right of the password field.
-
-When enable, it allows to decrypt the content just like the classic keypress ENTER. If remember password feature is activated, use button to decrypt generate a 'relative' key on your local storage. You cannot use password button to create global password value.
-
-Optionnally, you can add `password_button_text: 'custom_text_button'` to customize the button text.
- 
-```yaml
-plugins:
-    - encryptcontent:
-        password_button: True
-        password_button_text: 'custom_text_button'
-```
-
-### Reload scripts
-
-Related to [issue #14](https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues/14)
-
-You can set `reload_scripts:` in your `mkdocs.yml` with list of script source, to reload and execute some js lib after decryption process.
+You can set `reload_scripts:` in your `mkdocs.yml` with list of script sources
+or script ids, to reload and execute some js lib after decryption process.
 
 ```yaml
 plugins:
@@ -740,11 +726,127 @@ plugins:
             - '#autoexec'
 ```
 
-This feature now doesn't use JQuery anymore.
+It is also possible to reload a script id like `<script id="autoexec">console.log('test');</script>`
+that was encrypted within the page
+(related to [issue #30](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/30)).
 
-It is also possible to reload a script id like `<script id="autoexec">console.log('test');</script>` that was encrypted within the page (related to [issue #30](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/30)).
 
-### Self-host crypto-js
+### HighlightJS support
+
+> **Enable by default**
+
+If HighlightJS module is detected in your theme to improve code color rendering, reload renderer after
+decryption process.
+If HighlightJS module is not correctly detected, you can force the detection by adding `hljs: True`
+on the plugin configuration
+or set `hljs: False` to disable this feature.
+
+When enabled the following part of the template is added to force reloading decrypted content.
+
+```jinja
+{% if hljs %}
+document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) => {
+    hljs.highlightElement(block);
+});
+{% endif %}
+```
+
+
+### Arithmatex support
+
+> **Enable by default**
+
+Related to [issue #12](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/12)
+
+If Arithmatex markdown extension is detected in your markdown extensions to improve math equations rendering,
+reload renderer after decryption process.
+If the Arithmatex markdown extension is not correctly detected, you can force the detection by adding
+`arithmatex: True` on the plugin configuration
+or set `arithmatex: False` to disable this feature.
+ 
+When enabled, the following part of the template is added to force math equations rendering on decrypted content.
+
+```jinja
+{% if arithmatex %}
+MathJax.typesetPromise()
+{% endif %}
+```
+
+> **NOTE** It has been tested in Arithmatex `generic` mode only. 
+
+
+### Mermaid2 support
+
+> **Enable by default**
+
+Related to [issue #22](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/22)
+
+If mermaid2 plugin is detected in your configuration to generate graph from text, reload renderer after
+decryption process.
+If the Mermaid2 plugin is not correctly detected, you can force the detection by adding `mermaid2: True`
+on the plugin configuration
+or set `mermaid2: False` to disable this feature.
+ 
+When enabled, the following part of the template is added to force graph rendering on decrypted content.
+
+```jinja
+{% if mermaid2 %}
+mermaid.contentLoaded();
+{% endif %}
+```
+
+> **NOTE** it currently only works with mermaid version < 10. Also encryptcontent needs to be injected,
+> because the mermaid2 plugin otherwise won't detect the page content correctly.
+
+activate the plugin like this:
+
+```yaml
+plugins:
+    - mermaid2:
+        version: 9.4.3
+
+markdown_extensions:
+    - pymdownx.blocks.html
+```
+
+Example usage:
+
+````
+password: 1234
+inject_id: inject
+
+
+/// html | div#inject
+
+```mermaid
+graph LR
+    hello --> world
+    world --> again
+    again --> hello
+```
+
+///
+````
+
+
+title: Security
+
+## Security
+
+### Crypto-js or webcrypto?
+
+By default the plugin uses the crypto-js library for page decryption, but using
+the browser's built-in webcrypto engine is also possible (set `webcrypto: True`).
+
+The main advantage of webcrypto over crypto-js is that it is much faster, allowing higher
+calculation difficulty for key derivation (`kdf_pow`). Also it may be easier to implement
+key derivation functions other than PBKDF2 with webcrypto in the future.
+
+On the other hand crypto-js is implemented in pure Javascript without dependencies and well
+tested (but it probably won't receive any updates as development stalled in 2021)
+and we know nothing about how good or bad webcrypto is implemented in different browsers.
+
+#### Self-host crypto-js
 
 If you enable `selfhost` then you'll choose to upload crypto-js to your web server rather than using cloudflare CDN.
 The self-host location is "SITE_URL/assets/javascripts/cryptojs/".
@@ -755,8 +857,8 @@ The files are checked for their MD5 hash and saved to `docs_dir` or `selfhost_di
 ```yaml
 plugins:
     - encryptcontent:
-        selfhost: true
-        selfhost_download: false
+        selfhost: True
+        selfhost_download: False
         selfhost_dir: 'theme_overrides'
 ```
 
@@ -816,7 +918,7 @@ an example [canary script](https://en.wikipedia.org/wiki/Domestic_canary#Miner's
 customized to alert if files were modified.
 
 > **NOTE** If Mkdocs is running with `mkdocs serve`, then signature verification of encrypted pages
-> will most likely fail, because the files are modified by Mkdocs to enable live reload.
+> will fail, because the files are modified by Mkdocs to enable live reload.
 
 ```yaml
       sign_files: 'signatures.json'
@@ -833,21 +935,5 @@ all files and verify the signatures.
 
 As long as the private key used for signing remains secret, the canary script will be able to determine
 if someone tampered with the files on the server. But you should run the canary script from another machine
-that is not related to the server, otherwise the attacker could also modify the canary script or sign with his
+that is not related to the server, otherwise the attacker could also modify the canary script and sign with his
 private key instead.
-
-# Contributing
-
-From reporting a bug to submitting a pull request: every contribution is appreciated and welcome.
-
-Report bugs, ask questions and request features using [Github issues][github-issues].
-
-If you want to contribute to the code of this project, please read the [Contribution Guidelines][contributing].
-
-[mkdocs-plugins]: https://www.mkdocs.org/dev-guide/plugins/
-[github-issues]: https://github.com/CoinK0in/mkdocs-encryptcontent-plugin/issues
-[contributing]: CONTRIBUTING.md
-
-<!-- Badges -->
-[pypi-v-image]: https://img.shields.io/pypi/v/mkdocs-encryptcontent-plugin.svg
-[pypi-v-link]: https://pypi.org/project/mkdocs-encryptcontent-plugin/

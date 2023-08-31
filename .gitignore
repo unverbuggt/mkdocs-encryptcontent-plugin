@@ -8,3 +8,4 @@ deploy.cmd
 documentation/encryptcontent.key
 documentation/canary.py
 documentation/theme_override/assets/
+documentation/__pycache__/

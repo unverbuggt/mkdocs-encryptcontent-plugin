@@ -18,7 +18,7 @@ setup(
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
     keywords='mkdocs python markdown encrypt decrypt content',
-    url='https://github.com/unverbuggt/mkdocs-encryptcontent-plugin',
+    url='https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/',
     license='MIT',
     python_requires='>=3.5',
     install_requires=[
