@@ -69,7 +69,7 @@ def create_readme(config, **kwargs):
     cur_dir = Path(os.path.dirname(os.path.realpath(__file__)))
     pypi_md = """[![PyPI Version][pypi-v-image]][pypi-v-link]
 [![PyPI downloads](https://img.shields.io/pypi/dm/mkdocs-encryptcontent-plugin.svg)](https://pypi.org/project/mkdocs-encryptcontent-plugin)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)'
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 """
     readme_file = cur_dir / Path('../README.md')
