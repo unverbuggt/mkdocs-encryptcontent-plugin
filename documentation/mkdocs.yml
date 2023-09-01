@@ -7,9 +7,10 @@ theme:
     custom_dir: theme_override/
     logo: img/logo.svg
     favicon: img/logo.ico
-    extlink: true
-    extblank: true
-    zoom_img: true
+    extlink: True
+    extblank: True
+    zoom_img: True
+    no_imprint: True
 
 extra_javascript:
   - 'assets/javascripts/highlight.min.js'

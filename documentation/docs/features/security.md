@@ -41,7 +41,7 @@ This feature should make it impossible or at least way harder for an external at
 Please also check and disable directory listing for that matter.
 Keep in mind that your hosting provider is still able to see all your images and files.
 
-To counter file name guessing you could active the feature like this:
+To counter file name guessing you could activate the feature like this:
 
 ```yaml
 plugins:

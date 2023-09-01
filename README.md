@@ -37,6 +37,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome and decrypted
 * ~~optional replace crypto-js by webcrypto functions~~
 * ~~localStorage option is rather useless now (being unsafe to start with). Fix it nevertheless by saving credentials instead of keys~~
 * Update/Restructure documentation
+* Quick share links
 
 ## Todos for 3.1.x
 * optional server side keystore (allows throtteling)
@@ -872,7 +873,7 @@ This feature should make it impossible or at least way harder for an external at
 Please also check and disable directory listing for that matter.
 Keep in mind that your hosting provider is still able to see all your images and files.
 
-To counter file name guessing you could active the feature like this:
+To counter file name guessing you could activate the feature like this:
 
 ```yaml
 plugins:

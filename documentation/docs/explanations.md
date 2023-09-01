@@ -64,12 +64,12 @@ BUT only forces you to use eight characters of password size is not steering you
 But, to be fair: A web page can take measures to seriously throttle the passwords try-able per second on the server side
 or f.ex. use captchas after the third failed try. Although there were and most likely will be bad or failed examples of those measures.
 
-This Mkdocs plugin can currently only take additional counter-measures to brute force attacks in form of PBKDF2.
+This MkDocs plugin can currently only take additional counter-measures to brute force attacks in form of PBKDF2.
 PBKDF2 itself is more or less obsolete, because it got no defense against being run in parallel, so we should
 consider it to not having a big effect on **T**.
 Other options like bcrypt, scrypt od argon2 exist, but pbkdf2 is the only option
 currently available in crypto-js and webcrypto. However there may be limitations that render the other option impractical,
-like logner build times and high computing or memory requirements on mobile devices.
+like longer build times and high computing or memory requirements on mobile devices.
 So you should really be interested in choosing a **long** password or pass phrases
 (read the [Diceware article on Wikipedia](https://en.wikipedia.org/wiki/Diceware), [xkcd webcomic on password strength](https://xkcd.com/936/)
 and [this blogpost](https://blog.benpri.me/blog/2019/01/13/why-you-shouldnt-be-using-bcrypt-and-scrypt/)).

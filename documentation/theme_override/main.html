@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded',function(){
 {%- block footer_ext %}
   {%- if not config.theme.no_imprint %}
   <p class="w3-right w3-tiny">
-  {%- if i18n_config and i18n_page_file_locale %}
+  {%- if i18n_config and i18n_page_locale == "en" %}
     <a href="{{ (i18n_page_locale + '/imprint/') | url }}">Imprint</a>
   {%- else %}
     <a href="{{ 'imprint/' | url }}">Impressum</a>

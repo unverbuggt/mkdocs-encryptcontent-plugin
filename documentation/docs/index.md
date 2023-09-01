@@ -33,6 +33,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome and decrypted
 * ~~optional replace crypto-js by webcrypto functions~~
 * ~~localStorage option is rather useless now (being unsafe to start with). Fix it nevertheless by saving credentials instead of keys~~
 * Update/Restructure documentation
+* Quick share links
 
 ## Todos for 3.1.x
 * optional server side keystore (allows throtteling)
