@@ -497,6 +497,8 @@ class encryptContentPlugin(BasePlugin):
                 self.setup['password_inventory'] = yaml_load(stream)
         elif self.config['password_inventory']:
             self.setup['password_inventory'] = self.config['password_inventory']
+        else:
+            self.setup['password_inventory'] = {}
 
         if self.setup['password_inventory']:
             for level in self.setup['password_inventory'].keys():
