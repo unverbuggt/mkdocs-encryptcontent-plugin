@@ -276,7 +276,7 @@ async function digestSHA256toBase64(message) {
 {% if experimental -%}
 /* Decrypt part of the search index and refresh it for search engine */
 {% if webcrypto %}async {% endif %}function decrypt_search(keys) {
-    sessionIndex = sessionStorage.getItem('encryptcontent-index');
+    let sessionIndex = sessionStorage.getItem('encryptcontent-index');
     let could_decrypt = false;
     if (sessionIndex) {
         sessionIndex = JSON.parse(sessionIndex);

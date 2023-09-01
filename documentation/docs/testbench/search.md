@@ -18,10 +18,11 @@ fetch(base_url + '/search/search_index.json')
     }
     response.json().then(
       function(data) {
+        let sessionIndex = JSON.parse(sessionStorage.getItem('encryptcontent-index'));
         let output='';
         for (let i = 0; i < data.docs.length; i++) {
           if (data.docs[i].location.startsWith('encryptcontent_plugin_')) {
-            output = output + data.docs[i].location + "<br>";
+            output = output + '<p>' + data.docs[i].location + '<br>' + sessionIndex.docs[i].location + '</p>';
           }
         }
       searchtest_output.innerHTML = output;
