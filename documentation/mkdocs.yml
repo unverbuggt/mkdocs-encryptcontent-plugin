@@ -40,6 +40,7 @@ nav:
         - Test2: 'testbench/userpass2.md'
       - Obfuscate: 'testbench/obfuscate.md'
       - JS test: 'testbench/jstest.md'
+      - Search encryption: 'testbench/search.md'
 
 plugins:
     - mkdocs-simple-hooks:

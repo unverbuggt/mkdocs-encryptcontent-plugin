@@ -6,6 +6,7 @@ import logging
 import json
 import math
 from mkdocs.utils.yaml import get_yaml_loader, yaml_load
+from mkdocs import plugins
 from pathlib import Path
 from os.path import exists
 from jinja2 import Template
@@ -466,10 +467,6 @@ class encryptContentPlugin(BasePlugin):
         if not self.setup['search_plugin_found']:
             logger.warning('"search" plugin wasn\'t enabled. Search index isn\'t generated or modified.')
 
-        self.setup['locations'] = {}
-
-        self.setup['min_enttropy_spied_on'] = 0
-        self.setup['min_enttropy_secret'] = 0
 
         if self.config['kdf_pow'] == -1:
             if self.config['webcrypto']:
@@ -479,47 +476,53 @@ class encryptContentPlugin(BasePlugin):
         else:
             self.setup['kdf_iterations'] = pow(10,self.config['kdf_pow'])
 
-        self.setup['password_keys'] = {}
-        self.setup['obfuscate_keys'] = {}
-        self.setup['level_keys'] = {}
-        
-        self.setup['keystore'] = {}
-        self.setup['keystore_password'] = {}
-        self.setup['keystore_userpass'] = {}
-        self.setup['keystore_obfuscate'] = {}
+        # mkdocs-static-i18n v1.x runs this plugin multiple times
+        if 'min_enttropy_spied_on' not in self.setup:self.setup['min_enttropy_spied_on'] = 0
+        if 'min_enttropy_secret' not in self.setup:self.setup['min_enttropy_secret'] = 0
 
-        if self.config['password_file']:
-            if self.config['password_inventory']:
-                logger.error("Please define either 'password_file' or 'password_inventory' in mkdocs.yml and not both.")
-                os._exit(1)
-            password_file = os.path.join(config_path, self.config['password_file'])
-            with open(password_file, 'r') as stream:
-                self.setup['password_inventory'] = yaml_load(stream)
-        elif self.config['password_inventory']:
-            self.setup['password_inventory'] = self.config['password_inventory']
-        else:
-            self.setup['password_inventory'] = {}
+        if 'locations' not in self.setup: self.setup['locations'] = {}
+        if 'password_keys' not in self.setup: self.setup['password_keys'] = {}
+        if 'obfuscate_keys' not in self.setup: self.setup['obfuscate_keys'] = {}
+        if 'level_keys' not in self.setup: self.setup['level_keys'] = {}
 
-        if self.setup['password_inventory']:
-            for level in self.setup['password_inventory'].keys():
-                new_entry = {}
-                self.keystore_id += 1
-                new_entry['id'] = quote(self.config['remember_prefix'] + str(self.keystore_id), safe='~()*!\'')
-                new_entry['key'] = get_random_bytes(32)
-                credentials = self.setup['password_inventory'][level]
-                if isinstance(credentials, list):
-                    for password in credentials:
-                        if isinstance(password, dict):
-                            logger.error("Configuration error in yaml syntax of 'password_inventory': expected string at level '{level}', but found dict!".format(level=level))
-                            os._exit(1)
-                        self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'])
-                elif isinstance(credentials, dict):
-                    for user in credentials:
-                        new_entry['uname'] = user
-                        self.__add_to_keystore__((user,credentials[user]), new_entry['key'], new_entry['id'])
-                else:
-                    self.__add_to_keystore__((KS_PASSWORD,credentials), new_entry['key'], new_entry['id'])
-                self.setup['level_keys'][level] = new_entry
+        if 'keystore' not in self.setup: self.setup['keystore'] = {}
+        if 'keystore_password' not in self.setup: self.setup['keystore_password'] = {}
+        if 'keystore_userpass' not in self.setup: self.setup['keystore_userpass'] = {}
+        if 'keystore_obfuscate' not in self.setup: self.setup['keystore_obfuscate'] = {}
+
+        if 'password_inventory' not in self.setup:
+            if self.config['password_file']:
+                if self.config['password_inventory']:
+                    logger.error("Please define either 'password_file' or 'password_inventory' in mkdocs.yml and not both.")
+                    os._exit(1)
+                password_file = os.path.join(config_path, self.config['password_file'])
+                with open(password_file, 'r') as stream:
+                    self.setup['password_inventory'] = yaml_load(stream)
+            elif self.config['password_inventory']:
+                self.setup['password_inventory'] = self.config['password_inventory']
+            else:
+                self.setup['password_inventory'] = {}
+
+            if self.setup['password_inventory']:
+                for level in self.setup['password_inventory'].keys():
+                    new_entry = {}
+                    self.keystore_id += 1
+                    new_entry['id'] = quote(self.config['remember_prefix'] + str(self.keystore_id), safe='~()*!\'')
+                    new_entry['key'] = get_random_bytes(32)
+                    credentials = self.setup['password_inventory'][level]
+                    if isinstance(credentials, list):
+                        for password in credentials:
+                            if isinstance(password, dict):
+                                logger.error("Configuration error in yaml syntax of 'password_inventory': expected string at level '{level}', but found dict!".format(level=level))
+                                os._exit(1)
+                            self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'])
+                    elif isinstance(credentials, dict):
+                        for user in credentials:
+                            new_entry['uname'] = user
+                            self.__add_to_keystore__((user,credentials[user]), new_entry['key'], new_entry['id'])
+                    else:
+                        self.__add_to_keystore__((KS_PASSWORD,credentials), new_entry['key'], new_entry['id'])
+                    self.setup['level_keys'][level] = new_entry
 
         if self.config['sign_files']:
             sign_key_path = self.setup['config_path'].joinpath(self.config['sign_key'])
@@ -909,6 +912,7 @@ class encryptContentPlugin(BasePlugin):
 
         return output_content
 
+    @plugins.event_priority(-200)
     def on_post_build(self, config, **kwargs):
         """
         The post_build event does not alter any variables.
@@ -937,16 +941,6 @@ class encryptContentPlugin(BasePlugin):
                         new_entry['file'] =  ""
                         new_entry['url'] = "https:" + jsurl[0]
                     self.setup['files_to_sign'].append(new_entry)
-
-        #clear all keystores
-        self.setup['password_keys'].clear()
-        self.setup['obfuscate_keys'].clear()
-        self.setup['level_keys'].clear()
-        self.setup['keystore'].clear()
-        self.setup['keystore_obfuscate'].clear()
-        self.setup['keystore_password'].clear()
-        self.setup['keystore_userpass'].clear()
-        self.setup['password_inventory'] = {} # reset for multiple runs
 
         #modify search_index in the style of mkdocs-exclude-search
         if self.setup['search_plugin_found'] and self.config['search_index'] != 'clear':
@@ -977,8 +971,6 @@ class encryptContentPlugin(BasePlugin):
                             code = self.__encrypt_text__(title, page_key)
                             entry['title'] = ';'.join(code)
                         break
-            self.setup['locations'].clear()
-
             try:
                 with open(search_index_filename, "w") as f:
                     json.dump(search_entries, f)
