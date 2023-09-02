@@ -1,7 +1,5 @@
 title: Anchor test
-obfuscate: Crawler be gone!
-encryption_summary: Humans are allowed to press ENTER
-encryption_info_message: This page is just obfuscated to counter web crawlers.
+level: user_and_passwords1
 
 # Anchor 1
 

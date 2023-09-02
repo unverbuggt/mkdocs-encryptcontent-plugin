@@ -38,10 +38,11 @@ nav:
       - User/Password:
         - Test1: 'testbench/userpass1.md'
         - Test2: 'testbench/userpass2.md'
+        - Anchors: 'testbench/anchor.md'
       - Obfuscate: 'testbench/obfuscate.md'
       - JS test: 'testbench/jstest.md'
       - Search encryption: 'testbench/search.md'
-      - Anchors: 'testbench/anchor.md'
+      - Share Link: 'testbench/share.md'
 
 plugins:
     - mkdocs-simple-hooks:

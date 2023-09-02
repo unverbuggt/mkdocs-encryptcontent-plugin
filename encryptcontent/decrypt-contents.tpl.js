@@ -14,6 +14,15 @@ async function digestSHA256toBase64(message) {
 };
 {%- endif %}
 
+function base64url_decode(input) {
+    try {
+        return atob(input.replace(/-/g, '+').replace(/_/g, '/'))
+    }
+    catch (err) {
+        return false;
+    }
+}
+
 /* Decrypts the key from the key bundle. */
 {% if webcrypto %}async {% endif %}function decrypt_key(pass, iv_b64, ciphertext_b64, salt_b64) {
     {%- if webcrypto %}
@@ -493,6 +502,30 @@ async function digestSHA256toBase64(message) {
     }
     {%- endif %}
     {%- endif %}
+    if (window.location.hash) {
+        let location_hash = window.location.hash.substring(1)
+        let anchor_hash = location_hash.search('#')
+        if (anchor_hash  != -1) { //check additional anchor
+            window.location.hash = location_hash.substring(anchor_hash);
+            location_hash = location_hash.substring(0,anchor_hash);
+        }
+        if (!content_decrypted) {
+            let b64u_check = base64url_decode(location_hash);
+            if (b64u_check && b64u_check.startsWith('?') && b64u_check.includes(":")) {
+                b64u_check = b64u_check.substring(1);
+                let pass_sep = b64u_check.search(":");
+                if (!username_input) {
+                    username_input = document.createElement("input");
+                }
+                username_input.value = decodeURIComponent(b64u_check.substring(0,pass_sep));
+                password_input.value = decodeURIComponent(b64u_check.substring(pass_sep+1));
+                content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
+                    password_input, encrypted_content, decrypted_content, false, username_input
+                );
+                decryptor_reaction(content_decrypted, password_input, false);
+            }
+        }
+    }
     {% if password_button -%}
     /* If password_button is set, try decrypt content when button is press */
     let decrypt_button = document.getElementById("mkdocs-decrypt-button");
