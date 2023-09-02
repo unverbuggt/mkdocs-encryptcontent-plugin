@@ -41,6 +41,7 @@ nav:
       - Obfuscate: 'testbench/obfuscate.md'
       - JS test: 'testbench/jstest.md'
       - Search encryption: 'testbench/search.md'
+      - Anchors: 'testbench/anchor.md'
 
 plugins:
     - mkdocs-simple-hooks:

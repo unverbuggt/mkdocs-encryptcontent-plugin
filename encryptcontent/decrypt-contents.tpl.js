@@ -430,7 +430,9 @@ async function digestSHA256toBase64(message) {
             {% if webcrypto %}await {% endif %}reload_js(reload_scripts[i]);
         }
         {%- endif %}
-
+        if (window.location.hash) { //jump to anchor if hash given after decryption
+            window.location.href = window.location.hash;
+        }
     } else {
         // remove item on sessionStorage if decryption process fail (Invalid item)
         if (!fallback_used) {
