@@ -15,10 +15,10 @@ async function digestSHA256toBase64(message) {
 {%- endif %}
 
 /* Decrypts the key from the key bundle. */
-{% if webcrypto %}async {% endif %}function decrypt_key(password, iv_b64, ciphertext_b64, salt_b64) {
+{% if webcrypto %}async {% endif %}function decrypt_key(pass, iv_b64, ciphertext_b64, salt_b64) {
     {%- if webcrypto %}
     const salt = fromBase64(salt_b64);
-    const encPassword = new TextEncoder().encode(encodeURIComponent(password));
+    const encPassword = new TextEncoder().encode(pass);
     const kdfkey = await window.crypto.subtle.importKey(
         "raw",
         encPassword,
@@ -64,7 +64,7 @@ async function digestSHA256toBase64(message) {
     {%- else %}
     let salt = CryptoJS.enc.Base64.parse(salt_b64),
         kdfcfg = {keySize: 256 / 32,hasher: CryptoJS.algo.SHA256,iterations: encryptcontent_obfuscate ? 1 : {{ kdf_iterations }}};
-    let kdfkey = CryptoJS.PBKDF2(encodeURIComponent(password), salt,kdfcfg);
+    let kdfkey = CryptoJS.PBKDF2(pass, salt,kdfcfg);
     let iv = CryptoJS.enc.Base64.parse(iv_b64),
         ciphertext = CryptoJS.enc.Base64.parse(ciphertext_b64);
     let encrypted = {ciphertext: ciphertext},
@@ -89,28 +89,31 @@ async function digestSHA256toBase64(message) {
 /* Split key bundle and try to decrypt it */
 {% if webcrypto %}async {% endif %}function decrypt_key_from_bundle(password, ciphertext_bundle, username) {
     // grab the ciphertext bundle and try to decrypt it
+    let user, pass;
     let parts, keys, userhash;
     if (ciphertext_bundle) {
         if (username) {
+            user = encodeURIComponent(username.toLowerCase());
             {%- if webcrypto %}
-            userhash = await digestSHA256toBase64(encodeURIComponent(username.toLowerCase()));
+            userhash = await digestSHA256toBase64(user);
             {%- else %}
-            userhash = CryptoJS.SHA256(encodeURIComponent(username.toLowerCase())).toString(CryptoJS.enc.Base64);
+            userhash = CryptoJS.SHA256(user).toString(CryptoJS.enc.Base64);
             {%- endif %}
         }
         for (let i = 0; i < ciphertext_bundle.length; i++) {
+            pass = encodeURIComponent(password);
             parts = ciphertext_bundle[i].split(';');
             if (parts.length == 3) {
-                keys = {% if webcrypto %}await {% endif %}decrypt_key(password, parts[0], parts[1], parts[2]);
+                keys = {% if webcrypto %}await {% endif %}decrypt_key(pass, parts[0], parts[1], parts[2]);
                 if (keys) {
-                    {% if remember_password %}setCredentials(null, password);{% endif %}
+                    {% if remember_password %}setCredentials(null, pass);{% endif %}
                     return keys;
                 }
             } else if (parts.length == 4 && username) {
                 if (parts[3] == userhash) {
-                    keys = {% if webcrypto %}await {% endif %}decrypt_key(password, parts[0], parts[1], parts[2]);
+                    keys = {% if webcrypto %}await {% endif %}decrypt_key(pass, parts[0], parts[1], parts[2]);
                     if (keys) {
-                        {% if remember_password %}setCredentials(username, password);{% endif %}
+                        {% if remember_password %}setCredentials(user, pass);{% endif %}
                         return keys;
                     }
                 }
@@ -217,10 +220,10 @@ async function digestSHA256toBase64(message) {
     {%- endif %}
     if (credentials && !encryptcontent_obfuscate) {
         if (credentials['user'] && username_input) {
-            username_input.value = credentials['user'];
+            username_input.value = decodeURIComponent(credentials['user']);
         }
         if (credentials['password']) {
-            password_input.value = credentials['password'];
+            password_input.value = decodeURIComponent(credentials['password']);
         }
         return true;
     } else {
@@ -464,7 +467,7 @@ async function digestSHA256toBase64(message) {
             password_input, encrypted_content, decrypted_content, key_from_storage, username_input
         );
         {% if remember_password -%}
-        /* try to get username/password from localStorage */
+        /* try to get username/password from sessionStorage */
         if (content_decrypted === false) {
             let got_credentials = {% if webcrypto %}await {% endif %}getCredentials(username_input, password_input);
             if (got_credentials) {
