@@ -515,13 +515,25 @@ class encryptContentPlugin(BasePlugin):
                             if isinstance(password, dict):
                                 logger.error("Configuration error in yaml syntax of 'password_inventory': expected string at level '{level}', but found dict!".format(level=level))
                                 os._exit(1)
-                            self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'])
+                            if password:
+                                self.__add_to_keystore__((KS_PASSWORD,password), new_entry['key'], new_entry['id'])
+                            else:
+                                logger.error("Empty password found for level '{level}'!".format(level=level))
+                                os._exit(1)
                     elif isinstance(credentials, dict):
                         for user in credentials:
                             new_entry['uname'] = user
-                            self.__add_to_keystore__((user,credentials[user]), new_entry['key'], new_entry['id'])
+                            if credentials[user]:
+                                self.__add_to_keystore__((user,credentials[user]), new_entry['key'], new_entry['id'])
+                            else:
+                                logger.error("Empty password found for level '{level}' and user '{user}'!".format(level=level,user=user))
+                                os._exit(1)
                     else:
-                        self.__add_to_keystore__((KS_PASSWORD,credentials), new_entry['key'], new_entry['id'])
+                        if credentials:
+                            self.__add_to_keystore__((KS_PASSWORD,credentials), new_entry['key'], new_entry['id'])
+                        else:
+                            logger.error("Empty password found for level '{level}'!".format(level=level))
+                            os._exit(1)
                     self.setup['level_keys'][level] = new_entry
 
         if self.config['sign_files']:
