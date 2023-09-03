@@ -9,7 +9,7 @@ If nothing was decrypted, yet, they must match (otherwise open a new tab).
 Now decrypt pages and check if the search_index decrypted the entries.
 
 /// html | div#searchtest-output
-    attrs: {clasee: 'w3-responsive'}
+    attrs: {class: 'w3-responsive'}
 
 empty
 

@@ -43,6 +43,7 @@ nav:
       - JS test: 'testbench/jstest.md'
       - Search encryption: 'testbench/search.md'
       - Share Link: 'testbench/share.md'
+      - Hash files: 'testbench/hashfilenames.md'
 
 plugins:
     - mkdocs-simple-hooks:

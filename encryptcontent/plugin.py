@@ -591,6 +591,7 @@ class encryptContentPlugin(BasePlugin):
                 filepath = dlpath.joinpath(jsurl[0].rsplit('/',1)[1])
                 self.__download_and_check__(filepath, dlurl, jsurl[1])
 
+    @plugins.event_priority(-200)
     def on_files(self, files, config, **kwargs):
         """
         The files event is called after the files collection is populated from the docs_dir.
