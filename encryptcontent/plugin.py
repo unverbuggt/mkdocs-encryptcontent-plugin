@@ -324,7 +324,7 @@ class encryptContentPlugin(BasePlugin):
         # generate random 34 cahracter password
         characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRTSUVWXYZ0123456789"
         out = ""
-        for i in range(34):
+        for i in range(32):
             out = out + characters[randrange(0,len(characters)-1)]
         return out
 
