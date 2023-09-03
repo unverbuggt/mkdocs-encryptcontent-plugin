@@ -514,10 +514,9 @@ function base64url_decode(input) {
             if (b64u_check && b64u_check.startsWith('?') && b64u_check.includes(":")) {
                 b64u_check = b64u_check.substring(1);
                 let pass_sep = b64u_check.search(":");
-                if (!username_input) {
-                    username_input = document.createElement("input");
+                if (username_input) {
+                    username_input.value = decodeURIComponent(b64u_check.substring(0,pass_sep));
                 }
-                username_input.value = decodeURIComponent(b64u_check.substring(0,pass_sep));
                 password_input.value = decodeURIComponent(b64u_check.substring(pass_sep+1));
                 content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
                     password_input, encrypted_content, decrypted_content, false, username_input

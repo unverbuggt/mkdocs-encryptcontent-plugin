@@ -1,8 +1,16 @@
 title: Encode share link
 
-[Test1](userpass1.md#P2RhdmU6b3hpZGl6ZQ)
+#Various tests
 
-[Test2](anchor.md#P2RhdmU6b3hpZGl6ZQ#anchor-6)
+[Test1 (user: dave)](userpass1.md#P2RhdmU6b3hpZGl6ZQ)
+
+[Test2 (user: dave, go to anchor-6)](anchor.md#P2RhdmU6b3hpZGl6ZQ#anchor-6)
+
+[Test3 (password: squirrel)](onlypasswords2.md#PzpzcXVpcnJlbA)
+
+[Test4 (obfuscate: Crawler be gone!)](obfuscate.md#PzpDcmF3bGVyJTIwYmUlMjBnb25lIQ)
+
+# Create share link
 
 <div class="w3-row-padding" style="padding-left: 0px;">
   <div class="w3-third">
