@@ -8,7 +8,6 @@ import math
 from mkdocs.utils.yaml import get_yaml_loader, yaml_load
 from mkdocs import plugins
 from pathlib import Path
-from os.path import exists
 from jinja2 import Template
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Hash import SHA256, SHA512, MD5
@@ -38,7 +37,7 @@ JS_LIBRARIES = [
     ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.js','da81b91b1b57c279c29b3469649d9b86'],
 ]
 
-PLUGIN_DIR = os.path.dirname(os.path.realpath(__file__))
+PLUGIN_DIR = Path(__file__).parent.absolute()
 
 SETTINGS = {
     'title_prefix': '[Protected] ',
@@ -120,7 +119,7 @@ class encryptContentPlugin(BasePlugin):
 
     def __download_and_check__(self, filename, url, hash):
         hash_md5 = MD5.new()
-        if not exists(filename):
+        if not Path(filename).exists():
             with urlopen(url) as response:
                 filecontent = response.read()
                 hash_md5.update(filecontent)
@@ -366,23 +365,23 @@ class encryptContentPlugin(BasePlugin):
         :param config: global configuration object (mkdocs.yml)
         :return: global configuration object modified to include templates files
         """
-        config_path = os.path.dirname(config.data['config_file_path']) # convert everything to Pathlib later...
+        self.setup['config_path'] = Path(config['config_file_path']).parent
 
         # set default templates or override relative to mkdocs.yml
         if not self.config['html_template_path']:
-            html_template_path = str(os.path.join(PLUGIN_DIR, 'decrypt-form.tpl.html'))
+            html_template_path = PLUGIN_DIR.joinpath('decrypt-form.tpl.html')
         else:
-            html_template_path = os.path.join(config_path, self.config['html_template_path'])
+            html_template_path = self.setup['config_path'].joinpath(self.config['html_template_path'])
 
         if not self.config['js_template_path']:
-            js_template_path = str(os.path.join(PLUGIN_DIR, 'decrypt-contents.tpl.js'))
+            js_template_path = PLUGIN_DIR.joinpath('decrypt-contents.tpl.js')
         else:
-            js_template_path = os.path.join(config_path, self.config['js_template_path'])
+            js_template_path = self.setup['config_path'].joinpath(self.config['js_template_path'])
 
         if not self.config['canary_template_path']:
-            canary_template_path = str(os.path.join(PLUGIN_DIR, 'canary.tpl.py'))
+            canary_template_path = PLUGIN_DIR.joinpath('canary.tpl.py')
         else:
-            canary_template_path = os.path.join(config_path, self.config['canary_template_path'])
+            canary_template_path = self.setup['config_path'].joinpath(self.config['canary_template_path'])
 
         logger.debug('Load HTML template from file: "{file}".'.format(file=html_template_path))
         with open(html_template_path, 'r') as template_html:
@@ -452,8 +451,6 @@ class encryptContentPlugin(BasePlugin):
         # Get path to site in case of subdir in site_url
         self.setup['site_path'] = urlsplit(config.data["site_url"] or '/').path[1::]
 
-        self.setup['config_path'] = Path(config['config_file_path']).parents[0]
-
         self.setup['search_plugin_found'] = False
         encryptcontent_plugin_found = False
         for plugin in config['plugins']:
@@ -495,7 +492,7 @@ class encryptContentPlugin(BasePlugin):
                 if self.config['password_inventory']:
                     logger.error("Please define either 'password_file' or 'password_inventory' in mkdocs.yml and not both.")
                     os._exit(1)
-                password_file = os.path.join(config_path, self.config['password_file'])
+                password_file = self.setup['config_path'].joinpath(self.config['password_file'])
                 with open(password_file, 'r') as stream:
                     self.setup['password_inventory'] = yaml_load(stream)
             elif self.config['password_inventory']:
@@ -538,7 +535,7 @@ class encryptContentPlugin(BasePlugin):
 
         if self.config['sign_files']:
             sign_key_path = self.setup['config_path'].joinpath(self.config['sign_key'])
-            if not exists(sign_key_path):
+            if not sign_key_path.exists():
                 logger.info('Generating signing key and saving to "{file}".'.format(file=str(self.config['sign_key'])))
                 key = ECC.generate(curve='Ed25519')
                 self.setup['sign_key'] = key
@@ -573,7 +570,7 @@ class encryptContentPlugin(BasePlugin):
                     for dir in config['theme'].dirs.copy():
                         if re.compile(r".*[/\\]contrib[/\\]search[/\\]templates$").match(dir):
                             config['theme'].dirs.remove(dir)
-                            path = os.path.join(PLUGIN_DIR, 'contrib/templates')
+                            path = str(PLUGIN_DIR.joinpath('contrib/templates'))
                             config['theme'].dirs.append(path)
                             if 'search/main.js' not in config['extra_javascript']:
                                 config['extra_javascript'].append('search/main.js')
