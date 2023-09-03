@@ -1,6 +1,6 @@
 title: Encode share link
 
-#Various tests
+# Various tests
 
 [Test1 (user: dave)](userpass1.md#P2RhdmU6b3hpZGl6ZQ)
 
@@ -26,7 +26,7 @@ title: Encode share link
 <div class="w3-row-padding w3-margin-top" style="padding-left: 0px;">
   <div class="w3-twothird">
     <label for="share-output">Output</label>
-    <code name="share-output" id="share-output" type="text"></code>
+    <input class="w3-input w3-border w3-hover-theme w3-theme-l1" name="share-output" id="share-output" type="text" onchange="decB64Url();">
     <div id="output-length"></div>
   </div>
 </div>
@@ -49,17 +49,33 @@ var decode_length = document.getElementById('decode-length');
 
 
 function base64url_decode(input) {
-    return atob(input.replace(/-/g, '+').replace(/_/g, '/'))
+    try {
+        return atob(input.replace(/-/g, '+').replace(/_/g, '/'))
+    }
+    catch (err) {
+        return "";
+    }
 }
 function base64url_encode(input) {
-    return btoa(input).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    try {
+        return btoa(input).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    catch (err) {
+        return "";
+    }
 }
 
 
 function genB64Url() {
     const str = "?" + encodeURIComponent(share_user.value) + ":" + encodeURIComponent(share_pass.value);
     let encstr = base64url_encode(str);
-    share_output.textContent = '#' + encstr;
+    share_output.value = '#' + encstr;
+    decB64Url()
+}
+
+function decB64Url() {
+    const str = "?" + encodeURIComponent(share_user.value) + ":" + encodeURIComponent(share_pass.value);
+    let encstr = share_output.value.substr(1);
     output_length.innerHTML = "Length: " + encstr.length;
     let decstr = base64url_decode(encstr)
     share_decode.textContent = decstr;
@@ -68,3 +84,14 @@ function genB64Url() {
 genB64Url();
 
 </script>
+
+# Automatic sharelink
+
+sharelinks.yml
+```yaml
+{% include "../../sharelinks.yml" %}
+```
+[onlypasswords1#Pzp4VEZrZ283NXVuZGsyUHBWQkQyRThQTUlia1BqYVFFM2Jz](onlypasswords1.md#Pzp4VEZrZ283NXVuZGsyUHBWQkQyRThQTUlia1BqYVFFM2Jz)\
+[onlypasswords2#PzpienZicVNtSEpvSjNucVE2aW5NMW5aTFJZNVlMUWNXTDNN](onlypasswords2.md#PzpienZicVNtSEpvSjNucVE2aW5NMW5aTFJZNVlMUWNXTDNN)\
+[userpass1#PzM6dUxHQXU3TXpBOHJDR2Z1cmpOZXV1d1VDYm1KeEg3R3VjaA](userpass1.md#PzM6dUxHQXU3TXpBOHJDR2Z1cmpOZXV1d1VDYm1KeEg3R3VjaA)\
+[userpass2#PzQ6R2k1a0RtaG15eEhqRXA4S0dLajJFSTVObDNvaXJtcUp2Sw](userpass2.md#PzQ6R2k1a0RtaG15eEhqRXA4S0dLajJFSTVObDNvaXJtcUp2Sw)\

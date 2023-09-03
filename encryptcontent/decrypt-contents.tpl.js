@@ -502,6 +502,7 @@ function base64url_decode(input) {
     }
     {%- endif %}
     {%- endif %}
+    {%- if sharelinks %}
     if (window.location.hash) {
         let location_hash = window.location.hash.substring(1)
         let anchor_hash = location_hash.search('#')
@@ -525,6 +526,7 @@ function base64url_decode(input) {
             }
         }
     }
+    {%- endif %}
     {% if password_button -%}
     /* If password_button is set, try decrypt content when button is press */
     let decrypt_button = document.getElementById("mkdocs-decrypt-button");

@@ -5,6 +5,7 @@ import base64
 import logging
 import json
 import math
+import yaml
 from mkdocs.utils.yaml import get_yaml_loader, yaml_load
 from mkdocs import plugins
 from pathlib import Path
@@ -13,6 +14,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Hash import SHA256, SHA512, MD5
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
+from Crypto.Random.random import randrange
 from Crypto.Util.Padding import pad
 from Crypto.PublicKey import ECC
 from Crypto.Signature import eddsa
@@ -78,6 +80,8 @@ class encryptContentPlugin(BasePlugin):
         ('session_storage', config_options.Type(bool, default=True)),
         ('password_inventory', config_options.Type(dict, default={})),
         ('password_file', config_options.Type(string_types, default=None)),
+        ('sharelinks', config_options.Type(bool, default=False)),
+        ('sharelinks_file', config_options.Type(string_types, default='sharelinks.yml')),
         # default features enabled
         ('arithmatex', config_options.Type(bool, default=None)),
         ('hljs', config_options.Type(bool, default=None)),
@@ -310,10 +314,22 @@ class encryptContentPlugin(BasePlugin):
             'kdf_iterations' : self.setup['kdf_iterations'],
             'webcrypto' : self.config['webcrypto'],
             'remember_prefix': quote(self.config['remember_prefix'], safe='~()*!\''),
+            'sharelinks' : self.config['sharelinks'],
             # add extra vars
             'extra': self.config['js_extra_vars']
         })
         return decrypt_js
+
+    def __get_random_password__(self):
+        # generate random 34 cahracter password
+        characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRTSUVWXYZ0123456789"
+        out = ""
+        for i in range(34):
+            out = out + characters[randrange(0,len(characters)-1)]
+        return out
+
+    def __b64url_encode__(self, input):
+        return base64.b64encode(input.encode()).decode().replace('+','-').replace('/','_').replace('=','')
 
     def __get_entropy_from_password__(self, password):
         #          123456789012345678901234567890
@@ -501,6 +517,23 @@ class encryptContentPlugin(BasePlugin):
                 self.setup['password_inventory'] = {}
 
             if self.setup['password_inventory']:
+                if self.config['sharelinks']:
+                    sharelinks_path = self.setup['config_path'].joinpath(self.config['sharelinks_file'])
+                    sharelinks = {}
+                    shareidx = 0
+                    if sharelinks_path.exists():
+                        with open(sharelinks_path, 'r') as stream:
+                            sharelinks = yaml_load(stream)
+                        for level in sharelinks:
+                            if not level.startswith('~'):
+                                idx = int(sharelinks[level].split('|')[0])
+                                if idx > shareidx:
+                                    shareidx = idx
+                    for level in self.setup['password_inventory'].keys():
+                        if level not in sharelinks:
+                            shareidx = shareidx + 1
+                            sharelinks[level] = str(shareidx) + '|' + self.__get_random_password__()
+
                 for level in self.setup['password_inventory'].keys():
                     new_entry = {}
                     self.keystore_id += 1
@@ -508,6 +541,12 @@ class encryptContentPlugin(BasePlugin):
                     new_entry['key'] = get_random_bytes(32)
                     credentials = self.setup['password_inventory'][level]
                     if isinstance(credentials, list):
+                        if sharelinks:
+                            shareuser, sharepass = sharelinks[level].split('|')
+                            self.__add_to_keystore__((KS_PASSWORD,sharepass), new_entry['key'], new_entry['id'])
+                            sharelink = '#'+self.__b64url_encode__('?:'+sharepass)
+                            logger.info('Sharelink for level "{level}": {sharelink}'.format(level=level, sharelink=sharelink))
+                            sharelinks["~"+level] = sharelink
                         for password in credentials:
                             if isinstance(password, dict):
                                 logger.error("Configuration error in yaml syntax of 'password_inventory': expected string at level '{level}', but found dict!".format(level=level))
@@ -518,6 +557,12 @@ class encryptContentPlugin(BasePlugin):
                                 logger.error("Empty password found for level '{level}'!".format(level=level))
                                 os._exit(1)
                     elif isinstance(credentials, dict):
+                        if sharelinks:
+                            shareuser, sharepass = sharelinks[level].split('|')
+                            self.__add_to_keystore__((shareuser,sharepass), new_entry['key'], new_entry['id'])
+                            sharelink = '#'+self.__b64url_encode__('?'+shareuser+':'+sharepass)
+                            logger.info('Sharelink for level "{level}": {sharelink}'.format(level=level, sharelink=sharelink))
+                            sharelinks["~"+level] = sharelink
                         for user in credentials:
                             new_entry['uname'] = user
                             if credentials[user]:
@@ -526,12 +571,22 @@ class encryptContentPlugin(BasePlugin):
                                 logger.error("Empty password found for level '{level}' and user '{user}'!".format(level=level,user=user))
                                 os._exit(1)
                     else:
+                        if sharelinks:
+                            shareuser, sharepass = sharelinks[level].split('|')
+                            self.__add_to_keystore__((KS_PASSWORD,sharepass), new_entry['key'], new_entry['id'])
+                            sharelink = '#'+self.__b64url_encode__('?:'+sharepass)
+                            logger.info('Sharelink for level "{level}": {sharelink}'.format(level=level, sharelink=sharelink))
+                            sharelinks["~"+level] = sharelink
                         if credentials:
                             self.__add_to_keystore__((KS_PASSWORD,credentials), new_entry['key'], new_entry['id'])
                         else:
                             logger.error("Empty password found for level '{level}'!".format(level=level))
                             os._exit(1)
                     self.setup['level_keys'][level] = new_entry
+                
+                if sharelinks:
+                    with open(sharelinks_path, 'w') as stream:
+                        yaml.dump(sharelinks,stream)
 
         if self.config['sign_files']:
             sign_key_path = self.setup['config_path'].joinpath(self.config['sign_key'])
@@ -759,7 +814,7 @@ class encryptContentPlugin(BasePlugin):
         """
 
         # Add obfuscate keys to all other keystores
-        keystore = self.setup['keystore'] # make a copy()
+        keystore = self.setup['keystore'].copy() # make a copy()
         for index in keystore:
             if index[0] == KS_OBFUSCATE:
                 if index not in self.setup['keystore_obfuscate']:
@@ -783,7 +838,7 @@ class encryptContentPlugin(BasePlugin):
             else:
                 if index not in self.setup['keystore_userpass']:
                     self.setup['keystore_userpass'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index))
-                
+
         if hasattr(page, 'encryptcontent'):
             if 'i18n_page_locale' in context:
                 locale = context['i18n_page_locale']

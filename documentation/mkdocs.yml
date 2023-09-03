@@ -134,6 +134,7 @@ plugins:
         reload_scripts:
           - '#autostart'
         password_file: 'passwords.yml'
+        sharelinks: true
         #kdf_pow: 4
         webcrypto: true
         sign_files: 'encryptcontent-plugin.json'
