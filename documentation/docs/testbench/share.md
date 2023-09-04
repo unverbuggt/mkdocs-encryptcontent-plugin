@@ -2,9 +2,11 @@ title: Encode share link
 
 # Various tests
 
-[Test1 (user: dave)](userpass1.md#P2RhdmU6b3hpZGl6ZQ)
+[Test1a (user: dave)](userpass1.md#P2RhdmU6b3hpZGl6ZQ)\
+[Test1b (user: dave)](userpass1.md?dave:oxidize)
 
-[Test2 (user: dave, go to anchor-6)](anchor.md#P2RhdmU6b3hpZGl6ZQ#anchor-6)
+[Test2a (user: dave, go to anchor-6)](anchor.md#P2RhdmU6b3hpZGl6ZQ#anchor-6)\
+[Test2b (user: dave, go to anchor-6)](anchor.md#?dave:oxidize#anchor-6)
 
 [Test3 (password: squirrel)](onlypasswords2.md#PzpzcXVpcnJlbA)
 
@@ -67,14 +69,13 @@ function base64url_encode(input) {
 
 
 function genB64Url() {
-    const str = "?" + encodeURIComponent(share_user.value) + ":" + encodeURIComponent(share_pass.value);
+    const str = "?" + share_user.value + ":" + share_pass.value;
     let encstr = base64url_encode(str);
     share_output.value = '#' + encstr;
     decB64Url()
 }
 
 function decB64Url() {
-    const str = "?" + encodeURIComponent(share_user.value) + ":" + encodeURIComponent(share_pass.value);
     let encstr = share_output.value.substr(1);
     output_length.innerHTML = "Length: " + encstr.length;
     let decstr = base64url_decode(encstr)

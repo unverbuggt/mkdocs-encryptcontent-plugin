@@ -511,14 +511,22 @@ function base64url_decode(input) {
             location_hash = location_hash.substring(0,anchor_hash);
         }
         if (!content_decrypted) {
-            let b64u_check = base64url_decode(location_hash);
-            if (b64u_check && b64u_check.startsWith('?') && b64u_check.includes(":")) {
-                b64u_check = b64u_check.substring(1);
-                let pass_sep = b64u_check.search(":");
-                if (username_input) {
-                    username_input.value = decodeURIComponent(b64u_check.substring(0,pass_sep));
+            let sharestring;
+            if (location_hash.startsWith('?') && location_hash.includes(":")) {
+                sharestring=location_hash;
+            } else {
+                let b64u_check = base64url_decode(location_hash);
+                if (b64u_check && b64u_check.startsWith('?') && b64u_check.includes(":")) {
+                    sharestring=b64u_check;
                 }
-                password_input.value = decodeURIComponent(b64u_check.substring(pass_sep+1));
+            }
+            if (sharestring) {
+                sharestring = sharestring.substring(1);
+                let pass_sep = sharestring.search(":");
+                if (username_input) {
+                    username_input.value = decodeURIComponent(sharestring.substring(0,pass_sep));
+                }
+                password_input.value = decodeURIComponent(sharestring.substring(pass_sep+1));
                 content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
                     password_input, encrypted_content, decrypted_content, false, username_input
                 );
