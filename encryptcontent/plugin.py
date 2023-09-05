@@ -588,7 +588,7 @@ class encryptContentPlugin(BasePlugin):
                     with open(sharelinks_path, 'w') as stream:
                         yaml.dump(sharelinks,stream)
 
-        if self.config['sign_files']:
+        if self.config['sign_files'] and 'sign_key' not in self.setup:
             sign_key_path = self.setup['config_path'].joinpath(self.config['sign_key'])
             if not sign_key_path.exists():
                 logger.info('Generating signing key and saving to "{file}".'.format(file=str(self.config['sign_key'])))
@@ -971,7 +971,7 @@ class encryptContentPlugin(BasePlugin):
 
             if self.config['sign_files']:
                 new_entry = {}
-                new_entry['file'] = Path(config.data["site_dir"] + "/" + page.file.dest_uri)
+                new_entry['file'] = Path(config.data["site_dir"]).joinpath(page.file.dest_uri)
                 new_entry['url'] = config.data["site_url"] + page.file.url
                 self.setup['files_to_sign'].append(new_entry)
 
@@ -987,20 +987,20 @@ class encryptContentPlugin(BasePlugin):
         """
         
         Path(config.data["site_dir"] + '/assets/javascripts/').mkdir(parents=True, exist_ok=True)
-        decrypt_js_path = Path(config.data["site_dir"] + '/assets/javascripts/decrypt-contents.js')
+        decrypt_js_path = Path(config.data["site_dir"]).joinpath('assets/javascripts/decrypt-contents.js')
         with open(decrypt_js_path, "w") as file:
             file.write(self.__generate_decrypt_js__())
 
         if self.config['sign_files']:
             new_entry = {}
             new_entry['file'] = decrypt_js_path
-            new_entry['url'] = config.data["site_url"] + '/assets/javascripts/decrypt-contents.js'
+            new_entry['url'] = config.data["site_url"] + 'assets/javascripts/decrypt-contents.js'
             self.setup['files_to_sign'].append(new_entry)
             if not self.config['webcrypto']:
                 for jsurl in JS_LIBRARIES:
                     new_entry = {}
                     if self.config['selfhost']:
-                        new_entry['file'] = Path(config.data["site_dir"] + '/assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
+                        new_entry['file'] = Path(config.data["site_dir"]).joinpath('assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
                         new_entry['url'] = config.data["site_url"] + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1]
                     else:
                         new_entry['file'] =  ""
@@ -1009,7 +1009,7 @@ class encryptContentPlugin(BasePlugin):
 
         #modify search_index in the style of mkdocs-exclude-search
         if self.setup['search_plugin_found'] and self.config['search_index'] != 'clear':
-            search_index_filename = Path(config.data["site_dir"] + "/search/search_index.json")
+            search_index_filename = Path(config.data["site_dir"]).joinpath('search/search_index.json')
             try:
                 with open(search_index_filename, "r") as f:
                     search_entries = json.load(f)
@@ -1057,7 +1057,7 @@ class encryptContentPlugin(BasePlugin):
                 signatures[file['url']] = self.__sign_file__(file['file'], file['url'], self.setup['sign_key'])
                 urls_to_verify.append(file['url'])
             if signatures:
-                sign_file_path = Path(config.data["site_dir"] + '/' + self.config['sign_files'])
+                sign_file_path = Path(config.data["site_dir"]).joinpath(self.config['sign_files'])
                 with open(sign_file_path, "w") as file:
                     file.write(json.dumps(signatures))
 
