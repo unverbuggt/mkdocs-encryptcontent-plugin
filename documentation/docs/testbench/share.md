@@ -2,15 +2,15 @@ title: Encode share link
 
 # Various tests
 
-[Test1a (user: dave)](userpass1.md#P2RhdmU6b3hpZGl6ZQ)\
-[Test1b (user: dave)](userpass1.md?dave:oxidize)
+[Test1a (user: dave)](userpass1.md#IWRhdmV-b3hpZGl6ZQ)\
+[Test1b (user: dave)](userpass1.md#!dave~oxidize)
 
-[Test2a (user: dave, go to anchor-6)](anchor.md#P2RhdmU6b3hpZGl6ZQ#anchor-6)\
-[Test2b (user: dave, go to anchor-6)](anchor.md#?dave:oxidize#anchor-6)
+[Test2a (user: dave, go to anchor-6)](anchor.md#IWRhdmV-b3hpZGl6ZQ#anchor-6)\
+[Test2b (user: dave, go to anchor-6)](anchor.md#!dave~oxidize#anchor-6)
 
-[Test3 (password: squirrel)](onlypasswords2.md#PzpzcXVpcnJlbA)
+[Test3 (password: squirrel)](onlypasswords2.md#IX5zcXVpcnJlbA)
 
-[Test4 (obfuscate: Crawler be gone!)](obfuscate.md#PzpDcmF3bGVyJTIwYmUlMjBnb25lIQ)
+[Test4 (obfuscate: Crawler be gone!)](obfuscate.md#IX5DcmF3bGVyIGJlIGdvbmUh)
 
 # Create share link
 
@@ -69,7 +69,7 @@ function base64url_encode(input) {
 
 
 function genB64Url() {
-    const str = "?" + share_user.value + ":" + share_pass.value;
+    const str = "!" + share_user.value + "~" + share_pass.value;
     let encstr = base64url_encode(str);
     share_output.value = '#' + encstr;
     decB64Url()
@@ -86,13 +86,10 @@ genB64Url();
 
 </script>
 
-# Automatic sharelink
+# Sharelinks output
 
-sharelinks.yml
-```yaml
-{% include "../../sharelinks.yml" %}
+-sharelinks.yml
+
 ```
-[onlypasswords1#Pzp4VEZrZ283NXVuZGsyUHBWQkQyRThQTUlia1BqYVFFM2Jz](onlypasswords1.md#Pzp4VEZrZ283NXVuZGsyUHBWQkQyRThQTUlia1BqYVFFM2Jz)\
-[onlypasswords2#PzpienZicVNtSEpvSjNucVE2aW5NMW5aTFJZNVlMUWNXTDNN](onlypasswords2.md#PzpienZicVNtSEpvSjNucVE2aW5NMW5aTFJZNVlMUWNXTDNN)\
-[userpass1#PzM6dUxHQXU3TXpBOHJDR2Z1cmpOZXV1d1VDYm1KeEg3R3VjaA](userpass1.md#PzM6dUxHQXU3TXpBOHJDR2Z1cmpOZXV1d1VDYm1KeEg3R3VjaA)\
-[userpass2#PzQ6R2k1a0RtaG15eEhqRXA4S0dLajJFSTVObDNvaXJtcUp2Sw](userpass2.md#PzQ6R2k1a0RtaG15eEhqRXA4S0dLajJFSTVObDNvaXJtcUp2Sw)\
+{% include "../../sharelinks.txt" %}
+```

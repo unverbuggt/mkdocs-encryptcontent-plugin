@@ -1,0 +1,7 @@
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/obfuscate/#IX5DcmF3bGVyIGJlIGdvbmUh
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/onlypasswords1/#IX5zYXNzeQ
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/userpass1/#IWFsaWNlfm5pbWJsZW5lc3M
+
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/obfuscate/#!~Crawler%20be%20gone!
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/onlypasswords1/#!~sassy
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/userpass1/#!alice~nimbleness

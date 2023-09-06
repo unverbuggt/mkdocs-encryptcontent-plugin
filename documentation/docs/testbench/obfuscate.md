@@ -2,6 +2,7 @@ title: Obfuscate
 obfuscate: Crawler be gone!
 encryption_summary: Humans are allowed to press ENTER
 encryption_info_message: This page is just obfuscated to counter web crawlers.
+sharelink: true
 
 <script id="autostart">
 const ctheme = 'css/w3-theme-44bb4f-mono';

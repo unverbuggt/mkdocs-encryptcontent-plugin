@@ -81,7 +81,7 @@ class encryptContentPlugin(BasePlugin):
         ('password_inventory', config_options.Type(dict, default={})),
         ('password_file', config_options.Type(string_types, default=None)),
         ('sharelinks', config_options.Type(bool, default=False)),
-        ('sharelinks_file', config_options.Type(string_types, default='sharelinks.yml')),
+        ('sharelinks_output', config_options.Type(string_types, default='sharelinks.txt')),
         # default features enabled
         ('arithmatex', config_options.Type(bool, default=None)),
         ('hljs', config_options.Type(bool, default=None)),
@@ -320,14 +320,6 @@ class encryptContentPlugin(BasePlugin):
         })
         return decrypt_js
 
-    def __get_random_password__(self):
-        # generate random 34 cahracter password
-        characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRTSUVWXYZ0123456789"
-        out = ""
-        for i in range(32):
-            out = out + characters[randrange(0,len(characters)-1)]
-        return out
-
     def __b64url_encode__(self, input):
         return base64.b64encode(input.encode()).decode().replace('+','-').replace('/','_').replace('=','')
 
@@ -503,6 +495,10 @@ class encryptContentPlugin(BasePlugin):
         if 'keystore_userpass' not in self.setup: self.setup['keystore_userpass'] = {}
         if 'keystore_obfuscate' not in self.setup: self.setup['keystore_obfuscate'] = {}
 
+        if 'sharelinks' not in self.setup and self.config['sharelinks']:
+            self.setup['sharelinks_output'] = self.setup['config_path'].joinpath(self.config['sharelinks_output'])
+            self.setup['sharelinks'] = {}
+
         if 'password_inventory' not in self.setup:
             if self.config['password_file']:
                 if self.config['password_inventory']:
@@ -517,22 +513,6 @@ class encryptContentPlugin(BasePlugin):
                 self.setup['password_inventory'] = {}
 
             if self.setup['password_inventory']:
-                if self.config['sharelinks']:
-                    sharelinks_path = self.setup['config_path'].joinpath(self.config['sharelinks_file'])
-                    sharelinks = {}
-                    shareidx = 0
-                    if sharelinks_path.exists():
-                        with open(sharelinks_path, 'r') as stream:
-                            sharelinks = yaml_load(stream)
-                        for level in sharelinks:
-                            if not level.startswith('~'):
-                                idx = int(sharelinks[level].split('|')[0])
-                                if idx > shareidx:
-                                    shareidx = idx
-                    for level in self.setup['password_inventory'].keys():
-                        if level not in sharelinks:
-                            shareidx = shareidx + 1
-                            sharelinks[level] = str(shareidx) + '|' + self.__get_random_password__()
 
                 for level in self.setup['password_inventory'].keys():
                     new_entry = {}
@@ -541,12 +521,6 @@ class encryptContentPlugin(BasePlugin):
                     new_entry['key'] = get_random_bytes(32)
                     credentials = self.setup['password_inventory'][level]
                     if isinstance(credentials, list):
-                        if sharelinks:
-                            shareuser, sharepass = sharelinks[level].split('|')
-                            self.__add_to_keystore__((KS_PASSWORD,sharepass), new_entry['key'], new_entry['id'])
-                            sharelink = '#'+self.__b64url_encode__('?:'+sharepass)
-                            logger.info('Sharelink for level "{level}": {sharelink}'.format(level=level, sharelink=sharelink))
-                            sharelinks["~"+level] = sharelink
                         for password in credentials:
                             if isinstance(password, dict):
                                 logger.error("Configuration error in yaml syntax of 'password_inventory': expected string at level '{level}', but found dict!".format(level=level))
@@ -557,12 +531,6 @@ class encryptContentPlugin(BasePlugin):
                                 logger.error("Empty password found for level '{level}'!".format(level=level))
                                 os._exit(1)
                     elif isinstance(credentials, dict):
-                        if sharelinks:
-                            shareuser, sharepass = sharelinks[level].split('|')
-                            self.__add_to_keystore__((shareuser,sharepass), new_entry['key'], new_entry['id'])
-                            sharelink = '#'+self.__b64url_encode__('?'+shareuser+':'+sharepass)
-                            logger.info('Sharelink for level "{level}": {sharelink}'.format(level=level, sharelink=sharelink))
-                            sharelinks["~"+level] = sharelink
                         for user in credentials:
                             new_entry['uname'] = user
                             if credentials[user]:
@@ -571,22 +539,12 @@ class encryptContentPlugin(BasePlugin):
                                 logger.error("Empty password found for level '{level}' and user '{user}'!".format(level=level,user=user))
                                 os._exit(1)
                     else:
-                        if sharelinks:
-                            shareuser, sharepass = sharelinks[level].split('|')
-                            self.__add_to_keystore__((KS_PASSWORD,sharepass), new_entry['key'], new_entry['id'])
-                            sharelink = '#'+self.__b64url_encode__('?:'+sharepass)
-                            logger.info('Sharelink for level "{level}": {sharelink}'.format(level=level, sharelink=sharelink))
-                            sharelinks["~"+level] = sharelink
                         if credentials:
                             self.__add_to_keystore__((KS_PASSWORD,credentials), new_entry['key'], new_entry['id'])
                         else:
                             logger.error("Empty password found for level '{level}'!".format(level=level))
                             os._exit(1)
                     self.setup['level_keys'][level] = new_entry
-                
-                if sharelinks:
-                    with open(sharelinks_path, 'w') as stream:
-                        yaml.dump(sharelinks,stream)
 
         if self.config['sign_files'] and 'sign_key' not in self.setup:
             sign_key_path = self.setup['config_path'].joinpath(self.config['sign_key'])
@@ -772,6 +730,23 @@ class encryptContentPlugin(BasePlugin):
             encryptcontent['id'] = self.setup['obfuscate_keys'][index]['id']
             setattr(page, 'encryptcontent', encryptcontent)
 
+        # Gernerate sharelink entry
+        if hasattr(page, 'encryptcontent') and 'sharelink' in page.meta.keys():
+            if self.config['sharelinks'] and page.meta.get('sharelink'):
+                if page.url not in self.setup['sharelinks']:
+                    if page.encryptcontent.get('password'):
+                        self.setup['sharelinks'][page.url] = ('', page.encryptcontent['password'])
+                    elif page.encryptcontent.get('level'):
+                        level = page.encryptcontent['level']
+                        credentials = self.setup['password_inventory'][level]
+                        if isinstance(credentials, dict):
+                            self.setup['sharelinks'][page.url] = next(iter( credentials.items() ))
+                        else:
+                            self.setup['sharelinks'][page.url] = ('', credentials[0])
+                    elif page.encryptcontent.get('obfuscate'):
+                        self.setup['sharelinks'][page.url] = ('', page.encryptcontent['obfuscate'])
+                    
+
         return markdown
 
     def on_page_content(self, html, page, config, **kwargs):
@@ -840,6 +815,7 @@ class encryptContentPlugin(BasePlugin):
                     self.setup['keystore_userpass'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index))
 
         if hasattr(page, 'encryptcontent'):
+
             if 'i18n_page_locale' in context:
                 locale = context['i18n_page_locale']
                 if locale in self.config['translations']:
@@ -1049,6 +1025,19 @@ class encryptContentPlugin(BasePlugin):
                            ' Your weakest password only got {spied_on} bits of entropy, if someone watched you while typing'
                            ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(self.setup['min_enttropy_spied_on']), secret = math.ceil(self.setup['min_enttropy_secret']))
                     )
+
+        if self.config['sharelinks']:
+            sharelinks = []
+            for page in self.setup['sharelinks']:
+                username, password = self.setup['sharelinks'][page]
+                sharelinks.append(config.data["site_url"] + page + '#' + self.__b64url_encode__('!' + username + '~' + password))
+            sharelinks.append('')
+            for page in self.setup['sharelinks']:
+                username, password = self.setup['sharelinks'][page]
+                sharelinks.append(config.data["site_url"] + page + '#!' + quote(username, safe='~()*!\'') + '~' + quote(password, safe='~()*!\''))
+            with open(self.setup['sharelinks_output'], 'w') as stream:
+                stream.write('\n'.join(sharelinks))
+
 
         if self.config['sign_files']:
             signatures = {}

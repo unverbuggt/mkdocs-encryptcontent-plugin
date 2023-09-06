@@ -2,6 +2,7 @@ title: Benutzername / Passwort 1
 level: user_and_passwords1
 inject_id: protected
 delete_id: teaser
+sharelink: true
 
 /// html | div#teaser
 

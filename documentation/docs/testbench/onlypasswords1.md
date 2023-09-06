@@ -2,6 +2,7 @@ title: Only passwords 1
 level: onlypasswords1
 inject_id: protected
 delete_id: teaser
+sharelink: true
 
 /// html | div#teaser
 
