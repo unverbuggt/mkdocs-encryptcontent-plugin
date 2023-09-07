@@ -321,7 +321,7 @@ class encryptContentPlugin(BasePlugin):
         return decrypt_js
 
     def __b64url_encode__(self, input):
-        return base64.b64encode(input.encode()).decode().replace('+','-').replace('/','_').replace('=','')
+        return base64.b64encode(input.encode(), altchars=b'-_').decode().replace('=','')
 
     def __get_entropy_from_password__(self, password):
         #          123456789012345678901234567890

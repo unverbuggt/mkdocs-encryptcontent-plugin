@@ -16,7 +16,9 @@ async function digestSHA256toBase64(message) {
 
 function base64url_decode(input) {
     try {
-        return atob(input.replace(/-/g, '+').replace(/_/g, '/'))
+        const binString = atob(input.replace(/-/g, '+').replace(/_/g, '/'));
+        const binArray = Uint8Array.from(binString, (m) => m.codePointAt(0));
+        return new TextDecoder().decode(binArray);
     }
     catch (err) {
         return false;
@@ -516,8 +518,10 @@ function base64url_decode(input) {
                 sharestring=decodeURIComponent(location_hash);
             } else {
                 let b64u_check = base64url_decode(location_hash);
-                if (b64u_check && b64u_check.startsWith('!') && b64u_check.includes("~")) {
-                    sharestring=b64u_check;
+                if (b64u_check !== false) {
+                    if (b64u_check.startsWith('!') && b64u_check.includes("~")) {
+                        sharestring=b64u_check;
+                    }
                 }
             }
             if (sharestring) {
