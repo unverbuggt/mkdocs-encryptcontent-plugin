@@ -88,7 +88,7 @@ genB64Url();
 
 # Sharelinks output
 
--sharelinks.yml
+sharelinks.txt
 
 ```
 {% include "../../sharelinks.txt" %}

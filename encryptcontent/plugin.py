@@ -712,6 +712,9 @@ class encryptContentPlugin(BasePlugin):
             setattr(page, 'encryptcontent', encryptcontent)
         elif encryptcontent.get('level'):
             index = encryptcontent['level']
+            if not index in self.setup['level_keys']:
+                logger.error('Please define "{level}" in password_inventory or password_file!'.format(level=index))
+                os._exit(1)
             encryptcontent['type'] = 'level'
             encryptcontent['key'] = self.setup['level_keys'][index]['key']
             encryptcontent['id'] = self.setup['level_keys'][index]['id']
@@ -741,8 +744,10 @@ class encryptContentPlugin(BasePlugin):
                         credentials = self.setup['password_inventory'][level]
                         if isinstance(credentials, dict):
                             self.setup['sharelinks'][page.url] = next(iter( credentials.items() ))
-                        else:
+                        elif isinstance(credentials, list):
                             self.setup['sharelinks'][page.url] = ('', credentials[0])
+                        else:
+                            self.setup['sharelinks'][page.url] = ('', credentials)
                     elif page.encryptcontent.get('obfuscate'):
                         self.setup['sharelinks'][page.url] = ('', page.encryptcontent['obfuscate'])
                     
