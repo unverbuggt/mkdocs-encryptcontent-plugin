@@ -40,9 +40,12 @@ nav:
       - User/Password:
         - Test1: 'testbench/userpass1.md'
         - Test2: 'testbench/userpass2.md'
+        - Anchors: 'testbench/anchor.md'
       - Obfuscate: 'testbench/obfuscate.md'
       - JS test: 'testbench/jstest.md'
       - Search encryption: 'testbench/search.md'
+      - Share Link: 'testbench/share.md'
+      - Hash files: 'testbench/hashfilenames.md'
 
 plugins:
     - include-markdown: {}
@@ -115,6 +118,7 @@ plugins:
         reload_scripts:
           - '#autostart'
         password_file: 'passwords.yml'
+        sharelinks: true
         #kdf_pow: 4
         webcrypto: true
         sign_files: 'encryptcontent-plugin.json'
