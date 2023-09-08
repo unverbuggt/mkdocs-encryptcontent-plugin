@@ -514,19 +514,19 @@ function base64url_decode(input) {
         }
         if (!content_decrypted) {
             let sharestring;
-            if (location_hash.startsWith('!') && location_hash.includes("~")) {
+            if (location_hash.startsWith('!')) {
                 sharestring=decodeURIComponent(location_hash);
             } else {
                 let b64u_check = base64url_decode(location_hash);
                 if (b64u_check !== false) {
-                    if (b64u_check.startsWith('!') && b64u_check.includes("~")) {
+                    if (b64u_check.startsWith('!') && b64u_check.includes(":")) {
                         sharestring=b64u_check;
                     }
                 }
             }
             if (sharestring) {
                 sharestring = sharestring.substring(1);
-                let pass_sep = sharestring.search("~");
+                let pass_sep = sharestring.search(":");
                 if (username_input) {
                     username_input.value = sharestring.substring(0,pass_sep);
                 }

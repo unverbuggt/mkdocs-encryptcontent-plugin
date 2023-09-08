@@ -2,15 +2,17 @@ title: Encode share link
 
 # Various tests
 
-[Test1a (user: dave)](userpass1.md#IWRhdmV-b3hpZGl6ZQ)\
-[Test1b (user: dave)](userpass1.md#!dave~oxidize)
+[Test1a (user: dave)](userpass1.md#IWRhdmU6b3hpZGl6ZQ)\
+[Test1b (user: dave)](userpass1.md#!dave:oxidize)
 
-[Test2a (user: dave, go to anchor-6)](anchor.md#IWRhdmV-b3hpZGl6ZQ#anchor-6)\
-[Test2b (user: dave, go to anchor-6)](anchor.md#!dave~oxidize#anchor-6)
+[Test2a (user: dave, go to anchor-6)](anchor.md#IWRhdmU6b3hpZGl6ZQ#anchor-6)\
+[Test2b (user: dave, go to anchor-6)](anchor.md#!dave:oxidize#anchor-6)
 
-[Test3 (password: squirrel)](onlypasswords2.md#IX5zcXVpcnJlbA)
+[Test3a (password: squirrel)](onlypasswords2.md#ITpzcXVpcnJlbA)\
+[Test3b (password: squirrel)](onlypasswords2.md#!squirrel)
 
-[Test4 (obfuscate: Crawler be gone!)](obfuscate.md#IX5DcmF3bGVyIGJlIGdvbmUh)
+[Test4a (obfuscate: Crawler be gone!)](obfuscate.md#ITpDcmF3bGVyIGJlIGdvbmUh)\
+[Test4b (obfuscate: Crawler be gone!)](obfuscate.md#!Crawler%20be%20gone!)
 
 # Create share link
 
@@ -38,14 +40,6 @@ title: Encode share link
     <label for="share-decode">decoded</label>
     <code name="share-decode" id="share-decode" type="text"></code>
     <div id="decode-length"></div>
-  </div>
-</div>
-
-<div class="w3-row-padding w3-margin-top" style="padding-left: 0px;">
-  <div class="w3-twothird">
-    <label for="share-url">url encoded</label>
-    <code name="share-url" id="share-url" type="text"></code>
-    <div id="url-length"></div>
   </div>
 </div>
 
@@ -90,7 +84,7 @@ function base64url_encode(input) {
 
 
 function genB64Url() {
-    const str = "!" + share_user.value + "~" + share_pass.value;
+    const str = "!" + share_user.value + ":" + share_pass.value;
     let encstr = base64url_encode(str);
     share_output.value = '#' + encstr;
     decB64Url()
@@ -102,8 +96,6 @@ function decB64Url() {
     let decstr = base64url_decode(encstr)
     share_decode.textContent = decstr;
     decode_length.innerHTML = "length: " + decstr.length;
-    share_url.textContent = '#' + encodeURIComponent(share_user.value) + "~" + encodeURIComponent(share_pass.value);
-    url_length.innerHTML = "length: " + share_url.textContent.length;
 }
 genB64Url();
 

@@ -1035,11 +1035,7 @@ class encryptContentPlugin(BasePlugin):
             sharelinks = []
             for page in self.setup['sharelinks']:
                 username, password = self.setup['sharelinks'][page]
-                sharelinks.append(config.data["site_url"] + page + '#' + self.__b64url_encode__('!' + username + '~' + password))
-            sharelinks.append('')
-            for page in self.setup['sharelinks']:
-                username, password = self.setup['sharelinks'][page]
-                sharelinks.append(config.data["site_url"] + page + '#!' + quote(username, safe='~()*!\'') + '~' + quote(password, safe='~()*!\''))
+                sharelinks.append(config.data["site_url"] + page + '#' + self.__b64url_encode__('!' + username + ':' + password))
             with open(self.setup['sharelinks_output'], 'w') as stream:
                 stream.write('\n'.join(sharelinks))
 
