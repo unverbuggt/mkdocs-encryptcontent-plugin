@@ -80,6 +80,7 @@ class encryptContentPlugin(BasePlugin):
         ('session_storage', config_options.Type(bool, default=True)),
         ('password_inventory', config_options.Type(dict, default={})),
         ('password_file', config_options.Type(string_types, default=None)),
+        ('cache_file', config_options.Type(string_types, default='encryptcontent.cache')),
         ('sharelinks', config_options.Type(bool, default=False)),
         ('sharelinks_output', config_options.Type(string_types, default='sharelinks.txt')),
         # default features enabled
@@ -166,8 +167,30 @@ class encryptContentPlugin(BasePlugin):
             iterations = self.setup['kdf_iterations']
         """ Encrypts key with PBKDF2 and AES-256. """
         salt = get_random_bytes(16)
-        # generate PBKDF2 key from salt and password (password is URI encoded)
-        kdfkey = PBKDF2(quote(password, safe='~()*!\''), salt, 32, count=iterations, hmac_hash_module=SHA256)
+
+        if index[0] == KS_OBFUSCATE and password in self.setup['cache']['obfuscate']:
+            fromcache = self.setup['cache']['obfuscate'][password].split(';')
+            kdfkey = bytes.fromhex(fromcache[0])
+            salt = bytes.fromhex(fromcache[1])
+        elif index[0] == KS_PASSWORD and password in self.setup['cache']['password']:
+            fromcache = self.setup['cache']['password'][password].split(';')
+            kdfkey = bytes.fromhex(fromcache[0])
+            salt = bytes.fromhex(fromcache[1])
+        elif isinstance(index[0], str) and index[0] in self.setup['cache']['userpass']:
+            fromcache = self.setup['cache']['userpass'][index[0]].split(';')
+            kdfkey = bytes.fromhex(fromcache[0])
+            salt = bytes.fromhex(fromcache[1])
+        else:
+            # generate PBKDF2 key from salt and password (password is URI encoded)
+            kdfkey = PBKDF2(quote(password, safe='~()*!\''), salt, 32, count=iterations, hmac_hash_module=SHA256)
+            logger.info('Need to generate KDF key...')
+            if index[0] == KS_OBFUSCATE:
+                self.setup['cache']['obfuscate'][password] = kdfkey.hex() + ';' + salt.hex()
+            elif index[0] == KS_PASSWORD:
+                self.setup['cache']['password'][password] = kdfkey.hex() + ';' + salt.hex()
+            else:
+                self.setup['cache']['userpass'][index[0]] = kdfkey.hex() + ';' + salt.hex()
+
         # initialize AES-256
         iv = get_random_bytes(16)
         cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
@@ -493,6 +516,23 @@ class encryptContentPlugin(BasePlugin):
         if 'keystore_password' not in self.setup: self.setup['keystore_password'] = {}
         if 'keystore_userpass' not in self.setup: self.setup['keystore_userpass'] = {}
         if 'keystore_obfuscate' not in self.setup: self.setup['keystore_obfuscate'] = {}
+
+        # rebuild kdf keys only if not in cache
+        if 'cache_file' not in self.setup and self.config['cache_file']:
+            self.setup['cache_file'] = self.setup['config_path'].joinpath(self.config['cache_file'])
+            if self.setup['cache_file'].exists():
+                with open(self.setup['cache_file'], 'r') as stream:
+                    self.setup['cache'] = yaml.safe_load(stream)
+
+        if 'cache' not in self.setup or self.setup['cache']['kdf_iterations'] != self.setup['kdf_iterations']:
+            self.setup['cache'] = {}
+            self.setup['cache']['userpass'] = {}
+            self.setup['cache']['password'] = {}
+            self.setup['cache']['obfuscate'] = {}
+            self.setup['cache']['kdf_iterations'] = self.setup['kdf_iterations']
+            self.setup['keystore_password'] = {}
+            self.setup['keystore_userpass'] = {}
+            self.setup['keystore_obfuscate'] = {}
 
         if 'sharelinks' not in self.setup and self.config['sharelinks']:
             self.setup['sharelinks_output'] = self.setup['config_path'].joinpath(self.config['sharelinks_output'])
@@ -1029,6 +1069,10 @@ class encryptContentPlugin(BasePlugin):
                            ' Your weakest password only got {spied_on} bits of entropy, if someone watched you while typing'
                            ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(self.setup['min_enttropy_spied_on']), secret = math.ceil(self.setup['min_enttropy_secret']))
                     )
+
+        if 'cache_file' in self.setup:
+            with open(self.setup['cache_file'], 'w') as stream:
+                stream.write(yaml.dump(self.setup['cache']))
 
         if self.config['sharelinks']:
             sharelinks = []
