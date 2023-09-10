@@ -38,7 +38,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome and decrypted
 * ~~localStorage option is rather useless now (being unsafe to start with). Fix it nevertheless by saving credentials instead of keys~~
 * Update/Restructure documentation
 * Quick share links
-* Implement keystore cache to speed up build time
+* ~~Implement keystore cache to speed up build time~~
 
 ## Todos for 3.1.x
 * optional server side keystore (allows throtteling)
@@ -60,6 +60,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome and decrypted
 		* [Add button](#Add-button)
 		* [Tag encrypted page](#Tag-encrypted-page)
 		* [Remember password](#Remember-password)
+		* [Share link generation](#Share-link-generation)
 	* [Modify generated pages](#Modify-generated-pages)
 		* [Encrypt something](#Encrypt-something)
 		* [Inject decrypt-form.tpl to theme](#Inject-decrypt-form.tpl-to-theme)
@@ -91,7 +92,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0.dev3-py3-none-any.whl
+pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0.dev4-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -461,6 +462,29 @@ plugins:
         remember_password: False
         remember_prefix: secretsite_
 ```
+
+### Share link generation
+
+It is possible to share valid credentials by adding them to the hash part of the URL.
+The plugin can also generate share links for certain pages if the metag tag `sharelink: true`
+is defined in markdown.
+It will use the first credential for the pages level or the pages password.
+The credentials for auto-generated links are base64url encoded.
+
+```yaml
+plugins:
+    - encryptcontent:
+        sharelinks: True
+        sharelinks_output: 'sharelinks.txt' # generated share links are saved here
+```
+> One condition applies: The user name must not contain the ":" character (Passwords may use that character).
+
+However if `sharelinks: True` is enabled in the plugin configuration you can generate share links yourself:\
+`https://your-domain.com/your-site/protected-page/#!username:password` for user/password or\
+`https://your-domain.com/your-site/protected-page/#!password` for only password.
+
+> Then another condition applies: If non-aphanumeric characters are used in user/password,
+> they need to be URLencoded (f.ex. %20 = space character). Some browsers may do that automatically (Do a copy/paste from the browsers address bar then).
 
 title: Modify pages
 
@@ -863,6 +887,22 @@ plugins:
         selfhost_download: False
         selfhost_dir: 'theme_overrides'
 ```
+
+#### KDF key generation caching
+
+Either way (webcrypto or crypto-js) the [KDF](https://en.wikipedia.org/wiki/Key_derivation_function)
+key generation needs to be done for each credential.
+This may take some additional time when building the site, especially when there are many different ones.
+That's why these keys and salt are cached by default to a yaml file named "encryptcontent.cache".
+
+```yaml
+plugins:
+    - encryptcontent:
+        cache_file: 'encryptcontent.cache' # change file name if needed
+```
+
+Caching can be disabled by setting `cache_file: ''`.
+
 
 ### File name obfuscation
 

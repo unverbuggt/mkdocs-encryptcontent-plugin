@@ -122,3 +122,26 @@ plugins:
         remember_password: False
         remember_prefix: secretsite_
 ```
+
+### Share link generation
+
+It is possible to share valid credentials by adding them to the hash part of the URL.
+The plugin can also generate share links for certain pages if the metag tag `sharelink: true`
+is defined in markdown.
+It will use the first credential for the pages level or the pages password.
+The credentials for auto-generated links are base64url encoded.
+
+```yaml
+plugins:
+    - encryptcontent:
+        sharelinks: True
+        sharelinks_output: 'sharelinks.txt' # generated share links are saved here
+```
+> One condition applies: The user name must not contain the ":" character (Passwords may use that character).
+
+However if `sharelinks: True` is enabled in the plugin configuration you can generate share links yourself:\
+`https://your-domain.com/your-site/protected-page/#!username:password` for user/password or\
+`https://your-domain.com/your-site/protected-page/#!password` for only password.
+
+> Then another condition applies: If non-aphanumeric characters are used in user/password,
+> they need to be URLencoded (f.ex. %20 = space character). Some browsers may do that automatically (Do a copy/paste from the browsers address bar then).

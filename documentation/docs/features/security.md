@@ -31,6 +31,22 @@ plugins:
         selfhost_dir: 'theme_overrides'
 ```
 
+#### KDF key generation caching
+
+Either way (webcrypto or crypto-js) the [KDF](https://en.wikipedia.org/wiki/Key_derivation_function)
+key generation needs to be done for each credential.
+This may take some additional time when building the site, especially when there are many different ones.
+That's why these keys and salt are cached by default to a yaml file named "encryptcontent.cache".
+
+```yaml
+plugins:
+    - encryptcontent:
+        cache_file: 'encryptcontent.cache' # change file name if needed
+```
+
+Caching can be disabled by setting `cache_file: ''`.
+
+
 ### File name obfuscation
 
 Imagine your pages contain many images and you labeled them "1.jpg", "2.jpg" and so on for some reason.

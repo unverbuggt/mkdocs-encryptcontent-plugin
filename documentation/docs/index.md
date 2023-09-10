@@ -34,7 +34,7 @@ The content is encrypted with AES-256 in Python using PyCryptodome and decrypted
 * ~~localStorage option is rather useless now (being unsafe to start with). Fix it nevertheless by saving credentials instead of keys~~
 * Update/Restructure documentation
 * Quick share links
-* Implement keystore cache to speed up build time
+* ~~Implement keystore cache to speed up build time~~
 
 ## Todos for 3.1.x
 * optional server side keystore (allows throtteling)

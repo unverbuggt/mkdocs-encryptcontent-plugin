@@ -138,6 +138,7 @@ plugins:
         #kdf_pow: 4
         webcrypto: true
         sign_files: 'encryptcontent-plugin.json'
+        cache_file: 'encryptcontent.cache'
         hash_filenames:
           extensions:
             - 'png'
