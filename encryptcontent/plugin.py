@@ -112,8 +112,6 @@ class encryptContentPlugin(BasePlugin):
 
     setup = {}
 
-    keystore_id = 0
-
     def __hash_md5_file__(self, fname):
         hash_md5 = MD5.new()
         with open(fname, "rb") as f:
@@ -490,6 +488,7 @@ class encryptContentPlugin(BasePlugin):
         if 'obfuscate_keys' not in self.setup: self.setup['obfuscate_keys'] = {}
         if 'level_keys' not in self.setup: self.setup['level_keys'] = {}
 
+        if 'keystore_id' not in self.setup: self.setup['keystore_id'] = 0
         if 'keystore' not in self.setup: self.setup['keystore'] = {}
         if 'keystore_password' not in self.setup: self.setup['keystore_password'] = {}
         if 'keystore_userpass' not in self.setup: self.setup['keystore_userpass'] = {}
@@ -516,8 +515,8 @@ class encryptContentPlugin(BasePlugin):
 
                 for level in self.setup['password_inventory'].keys():
                     new_entry = {}
-                    self.keystore_id += 1
-                    new_entry['id'] = quote(self.config['remember_prefix'] + str(self.keystore_id), safe='~()*!\'')
+                    self.setup['keystore_id'] += 1
+                    new_entry['id'] = quote(self.config['remember_prefix'] + str(self.setup['keystore_id']), safe='~()*!\'')
                     new_entry['key'] = get_random_bytes(32)
                     credentials = self.setup['password_inventory'][level]
                     if isinstance(credentials, list):
@@ -701,8 +700,8 @@ class encryptContentPlugin(BasePlugin):
             index = encryptcontent['password']
             if index not in self.setup['password_keys']:
                 new_entry = {}
-                self.keystore_id += 1
-                new_entry['id'] = quote(self.config['remember_prefix'] + str(self.keystore_id), safe='~()*!\'')
+                self.setup['keystore_id'] += 1
+                new_entry['id'] = quote(self.config['remember_prefix'] + str(self.setup['keystore_id']), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
                 self.__add_to_keystore__((KS_PASSWORD,index), new_entry['key'], new_entry['id'])
                 self.setup['password_keys'][index] = new_entry
@@ -723,8 +722,8 @@ class encryptContentPlugin(BasePlugin):
             index = encryptcontent['obfuscate']
             if index not in self.setup['obfuscate_keys']:
                 new_entry = {}
-                self.keystore_id += 1
-                new_entry['id'] = quote(self.config['remember_prefix'] + str(self.keystore_id), safe='~()*!\'')
+                self.setup['keystore_id'] += 1
+                new_entry['id'] = quote(self.config['remember_prefix'] + str(self.setup['keystore_id']), safe='~()*!\'')
                 new_entry['key'] = get_random_bytes(32)
                 self.__add_to_keystore__((KS_OBFUSCATE,index), new_entry['key'], new_entry['id'])
                 self.setup['obfuscate_keys'][index] = new_entry

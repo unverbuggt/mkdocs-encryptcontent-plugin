@@ -1,5 +1,5 @@
 title: Verschleiern
-obfuscate: Crawler be gone!
+obfuscate: Kriechtier hau ab!
 encryption_summary: Menschen dürfen ENTER klicken
 encryption_info_message: Diese Seite ist nur für Webcrawler unkenntlich gemacht.
 
