@@ -254,12 +254,14 @@ class encryptContentPlugin(BasePlugin):
         obfuscate_password = None
         encryptcontent_id = ''
 
+        encryptcontent_keystore = []
+
         if encryptcontent['type'] == 'password':
             # get 32-bit AES-256 key from password_keys
             key = encryptcontent['key']
             keystore = self.setup['password_keys'][encryptcontent['password']]
             encryptcontent_id = keystore['id']
-            encrypted_keystore = self.setup['keystore_password']
+            encryptcontent_keystore.append(self.setup['keystore_password'][(KS_PASSWORD, encryptcontent['password'])])
         elif encryptcontent['type'] == 'level':
             # get 32-bit AES-256 key from level_keys
             key = encryptcontent['key']
@@ -267,21 +269,23 @@ class encryptContentPlugin(BasePlugin):
             encryptcontent_id = keystore['id']
             if keystore.get('uname'):
                 encrypted_keystore = self.setup['keystore_userpass']
+                for entry in encrypted_keystore: # might as well add all credentials as keystore can be found by user name
+                    encryptcontent_keystore.append(encrypted_keystore[entry])
                 uname = 1
             else:
                 encrypted_keystore = self.setup['keystore_password']
+                for entry in encrypted_keystore:
+                    if entry[1] in self.setup['password_inventory'][encryptcontent['level']]:
+                        encryptcontent_keystore.append(encrypted_keystore[entry])
         elif encryptcontent['type'] == 'obfuscate':
             # get 32-bit AES-256 key from obfuscate_keys
             key = encryptcontent['key']
             keystore = self.setup['obfuscate_keys'][encryptcontent['obfuscate']]
             encryptcontent_id = keystore['id']
-            encrypted_keystore = self.setup['keystore_obfuscate']
+            encryptcontent_keystore.append(self.setup['keystore_obfuscate'][(KS_OBFUSCATE, encryptcontent['obfuscate'])])
             obfuscate = 1
             obfuscate_password = encryptcontent['obfuscate']
 
-        encryptcontent_keystore = []
-        for entry in encrypted_keystore:
-            encryptcontent_keystore.append(encrypted_keystore[entry])
 
         inject_something = encryptcontent['inject'] if 'inject' in encryptcontent else None
         delete_something = encryptcontent['delete_id'] if 'delete_id' in encryptcontent else None

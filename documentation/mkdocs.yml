@@ -24,10 +24,10 @@ nav:
     - 'usage.md'
     - Features:
       - 'features/index.md'
-      - 'features/modifypages.md'
-      - 'features/search.md'
-      - 'features/jsext.md'
-      - 'features/security.md'
+      - Modify pages: 'features/modifypages.md'
+      - Search encryption: 'features/search.md'
+      - Javascript extensions: 'features/jsext.md'
+      - Security: 'features/security.md'
     - How does it work?: 'explanations.md'
     - Test bench: 
       - 'testbench/index.md'

@@ -25,7 +25,7 @@
         <p id="mkdocs-decrypt-msg"></p>
     </form>
 </div>
-
+<div id="encryptcontent-info"></div>
 <script type="text/javascript">
 var encryptcontent_id = "{{ encryptcontent_id }}";
 var encryptcontent_path = "{{ encryptcontent_path }}";
@@ -39,3 +39,7 @@ var encryptcontent_obfuscate = {{ obfuscate }};
 <script type="text/javascript" src="{{ library }}"></script>
 {%- endfor %}
 <script type="text/javascript" src="{{ base_path }}assets/javascripts/decrypt-contents.js" defer></script>
+<script>
+var encryptcontent_info = document.getElementById('encryptcontent-info');
+encryptcontent_info.innerHTML = '<b>keystore length:</b> '+ encryptcontent_keystore.length + '<br>encryptcontent id:<b>:</b> ' + encryptcontent_id;
+</script>

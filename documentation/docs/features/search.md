@@ -1,5 +1,3 @@
-title: Search encryption
-
 ## Search encryption
 
 ### Search index encryption

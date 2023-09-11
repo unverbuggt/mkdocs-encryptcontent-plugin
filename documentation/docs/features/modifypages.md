@@ -1,5 +1,3 @@
-title: Modify pages
-
 ## Modify generated pages
 
 ### Encrypt something

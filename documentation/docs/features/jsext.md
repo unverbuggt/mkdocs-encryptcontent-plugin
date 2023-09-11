@@ -1,5 +1,3 @@
-title: Javascript extensions
-
 ## Javascript extensions
 
 ### Reload user-defined scripts

@@ -1,5 +1,3 @@
-title: Features
-
 # Features
 
 ### Override default templates

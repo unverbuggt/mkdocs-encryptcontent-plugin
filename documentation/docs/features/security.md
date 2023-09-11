@@ -1,5 +1,3 @@
-title: Security
-
 ## Security
 
 ### Crypto-js or webcrypto?

@@ -338,8 +338,6 @@ plugins:
         #    - 'logo.svg'
 ```
 
-title: Features
-
 # Features
 
 ### Override default templates
@@ -485,8 +483,6 @@ However if `sharelinks: True` is enabled in the plugin configuration you can gen
 
 > Then another condition applies: If non-aphanumeric characters are used in user/password,
 > they need to be URLencoded (f.ex. %20 = space character). Some browsers may do that automatically (Do a copy/paste from the browsers address bar then).
-
-title: Modify pages
 
 ## Modify generated pages
 
@@ -662,8 +658,6 @@ It ends with `///`. The meta tag `inject_id` defines which div id we would like 
 (it also injects the decryption form here). And the div id found at `delete_id` will be deleted
 on successful decryption.
 
-title: Search encryption
-
 ## Search encryption
 
 ### Search index encryption
@@ -732,8 +726,6 @@ pip install --force-reinstall .
 ```
 
 > Note: this currently doesn't work with mkdocs-material-9.x.x
-
-title: Javascript extensions
 
 ## Javascript extensions
 
@@ -854,8 +846,6 @@ graph LR
 ///
 ````
 
-
-title: Security
 
 ## Security
 
