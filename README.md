@@ -24,21 +24,23 @@ The content is encrypted with AES-256 in Python using PyCryptodome and decrypted
 >
 > Additionally password levels can be defined in mkdocs.yml or external yaml file with user/password credentials.
 
-## Todos for 3.0.x
+## New features (compared to version 2.5.x)
 
-* ~~Rework password handling or inventory of some sort~~
-* ~~Rework crypto (PBKDF2 + AES256)~~
-* ~~Save the generated random keys instead of passwords to session storage (remember_keys)~~
-* ~~Sign generated generated and javascript files used in encrypted pages to make it more tamper proof~~
-* ~~Add urlencode for latin1 encoding in passwords, as it pycryptodome's implementation of PBKDF2 requires it~~
-* ~~find an equivalent way to define multiple passwords in the password inventory as global password~~
-* ~~make it possible to define passwords in external yaml file(s)~~
-* ~~decrypt all possible keys by one login (replace path fallback)~~
-* ~~optional replace crypto-js by webcrypto functions~~
-* ~~localStorage option is rather useless now (being unsafe to start with). Fix it nevertheless by saving credentials instead of keys~~
-* Update/Restructure documentation
-* Quick share links
-* ~~Implement keystore cache to speed up build time~~
+* Stronger cryptography (PBKDF2 for key derivation)
+* Faster cryptography (Webcrypto as alternative to crypto-js)
+* Allow password inventory or levels in mkdocs.yml or external file for credential handling
+* Allow user name + password as credentials
+* If credential is reused in different levels it also decrypts all of their content
+* Optional adding of credentials to URLs for sharing
+* Optional tamper check by signing generated files with Ed25519
+* New [Documentation](https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/) and [Test bench](https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/)
+
+## Upgrading from version 2.5.x
+
+The `use_secret` functionality was discontinued in the plugin configuration and as a meta tag.
+
+In order to use environment variables in user names or passwords, use the 
+[special yaml tag](https://www.mkdocs.org/user-guide/configuration/#special-yaml-tags) `!ENV`.
 
 ## Todos for 3.1.x
 * optional server side keystore (allows throtteling)
@@ -92,7 +94,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0.dev4-py3-none-any.whl
+pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0.dev5-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
