@@ -289,7 +289,7 @@ function base64url_decode(input) {
 
 {% if experimental -%}
 /* Decrypt part of the search index and refresh it for search engine */
-{% if webcrypto %}async {% endif %}function decrypt_search(keys) {
+{% if webcrypto %}async {% endif %}function decrypt_search(keys, retry=true) {
     let sessionIndex = sessionStorage.getItem('encryptcontent-index');
     let could_decrypt = false;
     if (sessionIndex) {
@@ -323,6 +323,10 @@ function base64url_decode(input) {
                 window.location.reload();
             }
         }
+    } else if (retry) {
+        setTimeout(() => { //retry after one second if 'encryptcontent-index' not available yet
+            decrypt_search(keys, false);
+        }, 1000);
     }
 };
 {%- endif %}
