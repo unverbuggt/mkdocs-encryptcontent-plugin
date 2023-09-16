@@ -1,5 +1,5 @@
 title: Nur Passwörter 2
-password: flashlight
+password: Hatless,hertz,C4lzone
 inject_id: protected
 delete_id: teaser
 
@@ -7,11 +7,11 @@ delete_id: teaser
 
 Es ist möglich diese Seite mit einem der folgenden Passwörter zu entschlüsseln:
 
-  - flashlight
+  - Hatless,hertz,C4lzone
 
 Wenn eines dieser Passwörter eingegeben wird, dann ist auch [Nur Passwörter 1](onlypasswords1.md) und [Nur Passwörter 2](onlypasswords2.md) entschlüsselt.
 
-> **Hinweis:** Es wird länger dauern wenn das Passwort "flashlight" gewählt wird,
+> **Hinweis:** Es wird länger dauern wenn das Passwort "Hatless,hertz,C4lzone" gewählt wird,
 > weil es siebenmal an den anderen Proben scheitern wird.
 
 ///
@@ -21,11 +21,11 @@ Wenn eines dieser Passwörter eingegeben wird, dann ist auch [Nur Passwörter 1]
 
 Folgendes Passwort **wurde** verwendet um diese Seite zu entschlüsseln:
 
-  - flashlight
+  - Hatless,hertz,C4lzone
 
 Nun kann auch [Nur Passwörter 1](onlypasswords1.md) und [Nur Passwörter 2](onlypasswords2.md) entschlüsselt werden.
 
-> **Hinweis:** Es hat mit dem Passwort "flashlight" länger gedauert,
+> **Hinweis:** Es hat mit dem Passwort "Hatless,hertz,C4lzone" länger gedauert,
 > weil es vorher siebenmal an den anderen Proben gescheitert ist.
 
 <script id="autostart">

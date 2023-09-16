@@ -7,10 +7,10 @@ delete_id: teaser
 
 Es ist möglich diese Seite mit einem der folgenden Benutzername/Passwort Kombinationen zu entschlüsseln:
 
-- charlie: hazelnut
-- dan: apple
-- dave: oxidize
-- david: palm
+  - charlie: gear.code.blonde.at0ll
+  - dan: oxidize,croissant,ClubHouse5
+  - dave: nuClear_lullaby_unveiled_g4rlic
+  - david: establishRelishBlushV3nus
 
 Wenn einer dieser Benutzer eingegeben wurde, dann wird auch [Benutzername/Passwort 1](userpass1.md) entschlüsselt.
 
@@ -21,10 +21,10 @@ Wenn einer dieser Benutzer eingegeben wurde, dann wird auch [Benutzername/Passwo
 
 Eines dieser Benutzername/Passwort Kombinationen **wurde** verwendet um diese Seite zu entschlüsseln:
 
-- charlie: hazelnut
-- dan: apple
-- dave: oxidize
-- david: palm
+  - charlie: gear.code.blonde.at0ll
+  - dan: oxidize,croissant,ClubHouse5
+  - dave: nuClear_lullaby_unveiled_g4rlic
+  - david: establishRelishBlushV3nus
 
 Nun kann auch [Benutzername/Passwort 1](userpass1.md) entschlüsselt werden.
 

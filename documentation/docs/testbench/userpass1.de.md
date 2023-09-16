@@ -8,14 +8,14 @@ sharelink: true
 
 Es ist möglich diese Seite mit einem der folgenden Benutzername/Passwort Kombinationen zu entschlüsseln:
 
-- alice: nimbleness
-- bob: virus
-- carol: gathering
-- carlos: canister
-- charlie: hazelnut
-- dan: apple
-- dave: oxidize
-- david: palm
+  - alice: Racoon Superstore obnoxious23
+  - bob: AbidingScooterRuinedCCCactus
+  - carol: Worry-Bony-Glide-Mace!
+  - carlos: Arre5tConfused Pentagon
+  - charlie: gear.code.blonde.at0ll
+  - dan: oxidize,croissant,ClubHouse5
+  - dave: nuClear_lullaby_unveiled_g4rlic
+  - david: establishRelishBlushV3nus
 
 Wenn einer der unteren vier Benutzer eingegeben wird, dann wird auch [Benutzername/Passwort 2](userpass2.md) entschlüsselt.
 
@@ -26,14 +26,14 @@ Wenn einer der unteren vier Benutzer eingegeben wird, dann wird auch [Benutzerna
 
 Eines dieser Benutzername/Passwort Kombinationen **wurde** verwendet um diese Seite zu entschlüsseln:
 
-- alice: nimbleness
-- bob: virus
-- carol: gathering
-- carlos: canister
-- charlie: hazelnut
-- dan: apple
-- dave: oxidize
-- david: palm
+  - alice: Racoon Superstore obnoxious23
+  - bob: AbidingScooterRuinedCCCactus
+  - carol: Worry-Bony-Glide-Mace!
+  - carlos: Arre5tConfused Pentagon
+  - charlie: gear.code.blonde.at0ll
+  - dan: oxidize,croissant,ClubHouse5
+  - dave: nuClear_lullaby_unveiled_g4rlic
+  - david: establishRelishBlushV3nus
 
 Wenn einer der untersten vier Benutzer eingegeben wurde, dann kann auch [Benutzername/Passwort 2](userpass2.md)
 entschlüsselt werden.

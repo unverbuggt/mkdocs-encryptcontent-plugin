@@ -7,14 +7,14 @@ delete_id: teaser
 
 The following user/passwords are valid to decrypt this page:
 
-- alice: nimbleness
-- bob: virus
-- carol: gathering
-- carlos: canister
-- charlie: hazelnut
-- dan: apple
-- dave: oxidize
-- david: palm
+  - alice: Racoon Superstore obnoxious23
+  - bob: AbidingScooterRuinedCCCactus
+  - carol: Worry-Bony-Glide-Mace!
+  - carlos: Arre5tConfused Pentagon
+  - charlie: gear.code.blonde.at0ll
+  - dan: oxidize,croissant,ClubHouse5
+  - dave: nuClear_lullaby_unveiled_g4rlic
+  - david: establishRelishBlushV3nus
 
 If you use one of the last four users, you'd also be able to decrypt [User/Password 2](userpass2.md).
 
@@ -25,14 +25,14 @@ If you use one of the last four users, you'd also be able to decrypt [User/Passw
 
 One of the following user/passwords **were** used to decrypt this page:
 
-- alice: nimbleness
-- bob: virus
-- carol: gathering
-- carlos: canister
-- charlie: hazelnut
-- dan: apple
-- dave: oxidize
-- david: palm
+  - alice: Racoon Superstore obnoxious23
+  - bob: AbidingScooterRuinedCCCactus
+  - carol: Worry-Bony-Glide-Mace!
+  - carlos: Arre5tConfused Pentagon
+  - charlie: gear.code.blonde.at0ll
+  - dan: oxidize,croissant,ClubHouse5
+  - dave: nuClear_lullaby_unveiled_g4rlic
+  - david: establishRelishBlushV3nus
 
 If you used one of the last four users, you'd also be able to decrypt [User/Password 2](userpass2.md).
 

@@ -7,10 +7,10 @@ delete_id: teaser
 
 The following user/passwords are valid to decrypt this page:
 
-- charlie: hazelnut
-- dan: apple
-- dave: oxidize
-- david: palm
+  - charlie: gear.code.blonde.at0ll
+  - dan: oxidize,croissant,ClubHouse5
+  - dave: nuClear_lullaby_unveiled_g4rlic
+  - david: establishRelishBlushV3nus
 
 If you use one of these users, you'd also be able to decrypt [User/Password 1](userpass1.md).
 
@@ -21,10 +21,10 @@ If you use one of these users, you'd also be able to decrypt [User/Password 1](u
 
 One of the following passwords **were** used to decrypt this page:
 
-- charlie: hazelnut
-- dan: apple
-- dave: oxidize
-- david: palm
+  - charlie: gear.code.blonde.at0ll
+  - dan: oxidize,croissant,ClubHouse5
+  - dave: nuClear_lullaby_unveiled_g4rlic
+  - david: establishRelishBlushV3nus
 
 You're also able to decrypt [User/Password 1](userpass1.md).
 

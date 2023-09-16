@@ -1,5 +1,5 @@
 title: Only passwords 3
-password: flashlight
+password: Hatless,hertz,C4lzone
 inject_id: protected
 delete_id: teaser
 
@@ -7,11 +7,11 @@ delete_id: teaser
 
 The following passwords are valid to decrypt this page:
 
-  - flashlight
+  - Hatless,hertz,C4lzone
 
 If you use one of these passwords, you'd also be able to decrypt [only passwords 1](onlypasswords1.md) and [only passwords 2](onlypasswords2.md).
 
-> **Note:** It will take some time if you use the password "flashlight"
+> **Note:** It will take some time if you use the password "Hatless,hertz,C4lzone"
 > because it has to be tried on seven challenges before it works.
 
 ///
@@ -21,11 +21,11 @@ If you use one of these passwords, you'd also be able to decrypt [only passwords
 
 The following password **was** used to decrypt this page:
 
-  - flashlight
+  - Hatless,hertz,C4lzone
 
 You're also able to decrypt [only passwords 1](onlypasswords1.md) and [only passwords 2](onlypasswords2.md).
 
-> **Note:** It took some time if you used the password "flashlight"
+> **Note:** It took some time if you used the password "Hatless,hertz,C4lzone"
 > because it had to be tried on seven challenges before it worked.
 
 <script id="autostart">

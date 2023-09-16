@@ -11,8 +11,8 @@ title: Encode share link
 [Test3a (password: m00dy#augmented#Arsonist)](onlypasswords2.md#ITptMDBkeSNhdWdtZW50ZWQjQXJzb25pc3Q)\
 [Test3b (password: SpotChestOilCycle22)](onlypasswords2.md#!SpotChestOilCycle22)
 
-[Test4a (obfuscate: Crawler be gone!)](obfuscate.md#ITpDcmF3bGVyIGJlIGdvbmUh)\
-[Test4b (obfuscate: Crawler be gone!)](obfuscate.md#!Crawler%20be%20gone!)
+[Test4a (obfuscate: Kriechtier hau ab!)](obfuscate.md#ITpLcmllY2h0aWVyIGhhdSBhYiE)\
+[Test4b (obfuscate: Kriechtier hau ab!)](obfuscate.md#!Kriechtier%20hau%20ab!)
 
 # Create share link
 
