@@ -340,6 +340,7 @@ class encryptContentPlugin(BasePlugin):
             'webcrypto' : self.config['webcrypto'],
             'remember_prefix': quote(self.config['remember_prefix'], safe='~()*!\''),
             'sharelinks' : self.config['sharelinks'],
+            'material' : self.setup['theme'] == 'material',
             # add extra vars
             'extra': self.config['js_extra_vars']
         })
@@ -399,6 +400,8 @@ class encryptContentPlugin(BasePlugin):
         :return: global configuration object modified to include templates files
         """
         self.setup['config_path'] = Path(config['config_file_path']).parent
+
+        self.setup['theme'] = config['theme'].name
 
         # set default templates or override relative to mkdocs.yml
         if not self.config['html_template_path']:
@@ -473,7 +476,7 @@ class encryptContentPlugin(BasePlugin):
             logger.info("EXPERIMENTAL search index encryption enabled.")
 
         # set default classes in html template
-        if config['theme'].name == 'material':
+        if self.setup['theme'] == 'material':
             if not self.config['form_class']:
                 self.config['form_class'] = 'md-content__inner md-typeset'
             if not self.config['input_class']:
@@ -619,7 +622,7 @@ class encryptContentPlugin(BasePlugin):
         try:
             #search_index encryption was moved to on_post_page
             if self.config['search_index'] == 'dynamically':
-                if config['theme'].name == 'material':
+                if self.setup['theme'] == 'material':
                     logger.warning("To enable EXPERIMENTAL search index decryption mkdocs-material needs to be customized (patched)!")
                 else:
                     # Overwrite search/*.js files from templates/search with encryptcontent contrib search assets
@@ -1085,7 +1088,6 @@ class encryptContentPlugin(BasePlugin):
                 sharelinks.append(config.data["site_url"] + page + '#' + self.__b64url_encode__('!' + username + ':' + password))
             with open(self.setup['sharelinks_output'], 'w') as stream:
                 stream.write('\n'.join(sharelinks))
-
 
         if self.config['sign_files']:
             signatures = {}

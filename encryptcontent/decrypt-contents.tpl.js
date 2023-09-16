@@ -568,6 +568,11 @@ function base64url_decode(input) {
     });
 }
 
+{%- if material %}
+if (typeof base_url === 'undefined') {
+    var base_url = JSON.parse(document.getElementById('__config').textContent).base;
+}
+{%- endif %}
 {%- if webcrypto %}
 document.addEventListener('DOMContentLoaded', () => init_decryptor());
 {%- else %}
