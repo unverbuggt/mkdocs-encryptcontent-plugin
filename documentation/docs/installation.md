@@ -13,7 +13,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0.dev5-py3-none-any.whl
+pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:

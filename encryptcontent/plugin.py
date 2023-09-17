@@ -44,7 +44,7 @@ PLUGIN_DIR = Path(__file__).parent.absolute()
 SETTINGS = {
     'title_prefix': '[Protected] ',
     'summary': 'This content is protected with AES encryption. ',
-    'placeholder': 'Use CTRL+ENTER to provide global password',
+    'placeholder': 'Password',
     'placeholder_user': 'User name',
     'password_button_text': 'Decrypt',
     'decryption_failure_message': 'Invalid password.',
