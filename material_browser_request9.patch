@@ -1,0 +1,54 @@
+--- src/assets/javascripts/browser/request/index.ts	Mon Sep 11 18:23:52 2023
++++ src/assets/javascripts/browser/request/index-encryptcontent.ts	Mon Sep 18 20:57:06 2023
+@@ -26,6 +26,7 @@
+   catchError,
+   from,
+   map,
++  tap,
+   of,
+   shareReplay,
+   switchMap,
+@@ -75,11 +76,38 @@
+ export function requestJSON<T>(
+   url: URL | string, options?: RequestInit
+ ): Observable<T> {
+-  return request(url, options)
+-    .pipe(
+-      switchMap(res => res.json()),
+-      shareReplay(1)
+-    )
++  /* Hack to enable search Index decryption */
++  if (url.href.endsWith('/search_index.json')) {
++    const encryptcontentIndexKey = 'encryptcontent-index';
++    const encryptcontentIndex = sessionStorage.getItem(encryptcontentIndexKey);
++    
++    if (encryptcontentIndex) {
++      // if already available in sessionStorage return Observable JSON data
++      try {
++        const parsedData = JSON.parse(encryptcontentIndex) as T;
++        return of(parsedData);
++      } catch (error) {
++        console.error('Error parsing encryptcontent-index:', error);
++        return throwError(error);
++      }
++    } else {
++      // if not yet available in sessionStorage request JSON data
++      return request(url, options).pipe(
++        switchMap((res) => res.json()),
++        tap((jsonData) => {
++          // and save them to sessionstorage
++          sessionStorage.setItem(encryptcontentIndexKey, JSON.stringify(jsonData));
++        }),
++        shareReplay(1)
++      );
++    }
++  } else {
++    return request(url, options)
++      .pipe(
++        switchMap(res => res.json()),
++        shareReplay(1)
++      )
++    }
+ }
+ 
+ /**

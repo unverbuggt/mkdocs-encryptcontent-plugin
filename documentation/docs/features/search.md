@@ -48,6 +48,8 @@ for `mkdocs-material`.
 
 In order to be able to decrypt the search index (`dynamically`) `mkdocs-material` needs to be customized (patched).
 
+#### Material 8.x
+
 You'll need some [prerequisites](https://squidfunk.github.io/mkdocs-material/customization/#environment-setup)
 and also execute these commands:
 
@@ -59,10 +61,19 @@ pip install mkdocs-redirects
 npm install
 
 #copy material_search_worker.patch to mkdocs-material
-patch -p 0 < material_search_worker.patch
+patch -p 0 < material_search_worker8.patch
 
 pip install --force-reinstall .
 #pip install --force-reinstall --no-deps . #faster if mkdocs-material was already installed
 ```
 
-> Note: this currently doesn't work with mkdocs-material-9.x.x
+#### Material 9.x
+
+Follow the instructions for [Theme development](https://squidfunk.github.io/mkdocs-material/customization/#theme-development) carefully.
+
+Apply the patch before [Building the theme](https://squidfunk.github.io/mkdocs-material/customization/#building-the-theme):
+
+```bash
+patch -p 0 < material_browser_request9.patch
+```
+
