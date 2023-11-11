@@ -108,7 +108,8 @@ class encryptContentPlugin(BasePlugin):
         ('sign_files', config_options.Type(string_types, default=None)),
         ('sign_key', config_options.Type(string_types, default='encryptcontent.key')),
         ('webcrypto', config_options.Type(bool, default=False)),
-        # legacy features, doesn't exist anymore
+        ('insecure_test', config_options.Type(bool, default=False)), # insecure test build
+        # legacy features
     )
 
     setup = {}
@@ -166,7 +167,10 @@ class encryptContentPlugin(BasePlugin):
         else:
             iterations = self.setup['kdf_iterations']
         """ Encrypts key with PBKDF2 and AES-256. """
-        salt = get_random_bytes(16)
+        if self.config['insecure_test']:
+            salt = bytes([0x20, 0xd4, 0x84, 0x09, 0x44, 0x44, 0x76, 0x89, 0xed, 0x0c, 0xe3, 0x53, 0x76, 0x89, 0xed, 0xdb])
+        else:
+            salt = get_random_bytes(16)
 
         if index[0] == KS_OBFUSCATE and password in self.setup['cache']['obfuscate']:
             fromcache = self.setup['cache']['obfuscate'][password].split(';')
@@ -192,7 +196,10 @@ class encryptContentPlugin(BasePlugin):
                 self.setup['cache']['userpass'][index[0]] = kdfkey.hex() + ';' + salt.hex()
 
         # initialize AES-256
-        iv = get_random_bytes(16)
+        if self.config['insecure_test']:
+            iv = bytes([0x20, 0xd4, 0x84, 0x09, 0x44, 0x44, 0x76, 0x89, 0xed, 0x0c, 0xe3, 0x53, 0x76, 0x89, 0xed, 0xdb])
+        else:
+            iv = get_random_bytes(16)
         cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
         # use it to encrypt the AES-256 key
         plaintext = json.dumps(keystore[index]).encode()
@@ -226,7 +233,10 @@ class encryptContentPlugin(BasePlugin):
     def __encrypt_text__(self, text, key):
         """ Encrypts text with AES-256. """
         # initialize AES-256
-        iv = get_random_bytes(16)
+        if self.config['insecure_test']:
+            iv = bytes([0x20, 0xd4, 0x84, 0x09, 0x44, 0x44, 0x76, 0x89, 0xed, 0x0c, 0xe3, 0x53, 0x76, 0x89, 0xed, 0xdb])
+        else:
+            iv = get_random_bytes(16)
         cipher = AES.new(key, AES.MODE_CBC, iv)
         plaintext = text.encode('utf-8')
         # plaintext must be padded to be a multiple of 16 bytes
@@ -564,7 +574,11 @@ class encryptContentPlugin(BasePlugin):
                     new_entry = {}
                     self.setup['keystore_id'] += 1
                     new_entry['id'] = quote(self.config['remember_prefix'] + str(self.setup['keystore_id']), safe='~()*!\'')
-                    new_entry['key'] = get_random_bytes(32)
+                    if self.config['insecure_test']:
+                        new_entry['key'] = SHA256.new(level.encode()).digest() # sha256 sum of level
+                    else:
+                        new_entry['key'] = get_random_bytes(32)
+
                     credentials = self.setup['password_inventory'][level]
                     if isinstance(credentials, list):
                         for password in credentials:
@@ -606,6 +620,11 @@ class encryptContentPlugin(BasePlugin):
                     key = ECC.import_key(f.read())
                     self.setup['sign_key'] = key
             self.setup['files_to_sign'] = []
+
+        if self.config['insecure_test']:
+            logger.warning('---------------------------------------------------------------------------------')
+            logger.warning('INSECURE test build active. DON\'T upload the site anywhere else than "localhost".')
+            logger.warning('---------------------------------------------------------------------------------')
 
     def on_pre_build(self, config, **kwargs):
         """
@@ -749,7 +768,10 @@ class encryptContentPlugin(BasePlugin):
                 new_entry = {}
                 self.setup['keystore_id'] += 1
                 new_entry['id'] = quote(self.config['remember_prefix'] + str(self.setup['keystore_id']), safe='~()*!\'')
-                new_entry['key'] = get_random_bytes(32)
+                if self.config['insecure_test']:
+                    new_entry['key'] = SHA256.new(index.encode()).digest() # sha256 sum of password
+                else:
+                    new_entry['key'] = get_random_bytes(32)
                 self.__add_to_keystore__((KS_PASSWORD,index), new_entry['key'], new_entry['id'])
                 self.setup['password_keys'][index] = new_entry
             encryptcontent['type'] = 'password'
@@ -771,7 +793,10 @@ class encryptContentPlugin(BasePlugin):
                 new_entry = {}
                 self.setup['keystore_id'] += 1
                 new_entry['id'] = quote(self.config['remember_prefix'] + str(self.setup['keystore_id']), safe='~()*!\'')
-                new_entry['key'] = get_random_bytes(32)
+                if self.config['insecure_test']:
+                    new_entry['key'] = SHA256.new(index.encode()).digest() # sha256 sum of password
+                else:
+                    new_entry['key'] = get_random_bytes(32)
                 self.__add_to_keystore__((KS_OBFUSCATE,index), new_entry['key'], new_entry['id'])
                 self.setup['obfuscate_keys'][index] = new_entry
             encryptcontent['type'] = 'obfuscate'
