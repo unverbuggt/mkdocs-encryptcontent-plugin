@@ -147,6 +147,7 @@ plugins:
             - 'svg'
           except:
             - 'logo.svg'
+        insecure_test: !ENV [MKDOCS_ENCRYPTCONTENT_INSECURE_TEST, false]
 
 repo_url: https://github.com/unverbuggt/mkdocs-encryptcontent-plugin
 
