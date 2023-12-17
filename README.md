@@ -736,7 +736,8 @@ Follow the instructions for [Theme development](https://squidfunk.github.io/mkdo
 Apply the patch before [Building the theme](https://squidfunk.github.io/mkdocs-material/customization/#building-the-theme):
 
 ```bash
-patch -p 0 < material_browser_request9.patch
+patch -p 0 < material_browser_request9.patch # until Material 9.3
+patch -p 0 < material_browser_request9_4p.patch # Material 9.4+
 ```
 
 
