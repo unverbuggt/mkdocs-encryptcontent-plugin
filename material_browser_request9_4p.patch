@@ -1,14 +1,16 @@
 --- src/templates/assets/javascripts/browser/request/index.ts
 +++ src/templates/assets/javascripts/browser/request/index.ts
-@@ -24,6 +24,7 @@ import {
+@@ -24,6 +24,9 @@ import {
    Observable,
    Subject,
    map,
 +  tap,
++  of,
++  throwError,
    shareReplay,
    switchMap
  } from "rxjs"
-@@ -117,12 +118,38 @@ export function request(
+@@ -117,12 +120,40 @@ export function request(
  export function requestJSON<T>(
    url: URL | string, options?: Options
  ): Observable<T> {
@@ -35,7 +37,8 @@
 +    } else {
 +      // if not yet available in sessionStorage request JSON data
 +      return request(url, options).pipe(
-+        switchMap((res) => res.json()),
++        switchMap(res => res.text()),
++        map(body => JSON.parse(body) as T),
 +        tap((jsonData) => {
 +          // and save them to sessionstorage
 +          sessionStorage.setItem(encryptcontentIndexKey, JSON.stringify(jsonData));
@@ -46,7 +49,8 @@
 +  } else {
 +    return request(url, options)
 +      .pipe(
-+        switchMap(res => res.json()),
++        switchMap(res => res.text()),
++        map(body => JSON.parse(body) as T),
 +        shareReplay(1)
 +      )
 +  }
