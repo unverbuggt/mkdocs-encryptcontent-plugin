@@ -416,6 +416,7 @@ function base64url_decode(input) {
         {% if encrypted_something -%}
         let encrypted_something = {{ encrypted_something }};
         decrypt_somethings(key, encrypted_something);
+        {%- endif %}
         if (typeof inject_something !== 'undefined') {
             decrypted_element = {% if webcrypto %}await {% endif %}decrypt_somethings(key, inject_something);
         }
@@ -425,7 +426,6 @@ function base64url_decode(input) {
                 el.remove();
             }
         }
-        {%- endif %}
 
         // any post processing on the decrypted content should be done here
         {% if arithmatex -%}
