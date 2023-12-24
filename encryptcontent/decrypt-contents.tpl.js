@@ -268,6 +268,9 @@ function base64url_decode(input) {
             if (script_tag.src) {
                 new_script_tag.src = script_tag.src;
             }
+            if (script_tag.type) {
+                new_script_tag.type = script_tag.type;
+            }
             head.appendChild(new_script_tag);
         }
     } else {
