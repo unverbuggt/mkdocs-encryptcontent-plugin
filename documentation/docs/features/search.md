@@ -48,6 +48,8 @@ for `mkdocs-material`.
 
 In order to be able to decrypt the search index (`dynamically`) `mkdocs-material` needs to be customized (patched).
 
+Patches for different versions can be found [here](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/version3/patches).
+
 #### Material 8.x
 
 You'll need some [prerequisites](https://squidfunk.github.io/mkdocs-material/customization/#environment-setup)
