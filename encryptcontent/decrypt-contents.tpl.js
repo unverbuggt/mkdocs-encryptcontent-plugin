@@ -448,6 +448,9 @@ function base64url_decode(input) {
             {% if webcrypto %}await {% endif %}reload_js(reload_scripts[i]);
         }
         {%- endif %}
+        if (typeof theme_run_after_decryption !== 'undefined') {
+            theme_run_after_decryption();
+        }
         if (window.location.hash) { //jump to anchor if hash given after decryption
             window.location.href = window.location.hash;
         }
