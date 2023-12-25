@@ -64,7 +64,9 @@ MathJax.typesetPromise()
 > **NOTE** It has been tested in Arithmatex `generic` mode only. 
 
 
-### Mermaid2 support
+### Mermaid.js support
+
+#### mkdocs-mermaid2-plugin
 
 > **Enable by default**
 
@@ -117,3 +119,19 @@ graph LR
 ///
 ````
 
+#### mkdocs-material
+
+Add support for mermaid graphs by adding the `pymdownx.superfences` to `markdown_extensions` as 
+described [here]( https://squidfunk.github.io/mkdocs-material/reference/diagrams/).
+
+Copy the "material-encryptcontent.mjs" file from
+[here](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/version3/fixes)
+to "/assets/javascripts/" and include it to "mkdocs.yml" like this:
+
+```yaml
+extra_javascript:
+  - assets/javascripts/material-encryptcontent.mjs
+```
+
+The script is called after successful decryption and renders the mermaid graphs in a similar way as
+the theme would normally do.

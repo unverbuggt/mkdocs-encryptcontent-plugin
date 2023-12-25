@@ -74,7 +74,7 @@ In order to use environment variables in user names or passwords, use the
 		* [Reload user-defined scripts](#Reload-user-defined-scripts)
 		* [HighlightJS support](#HighlightJS-support)
 		* [Arithmatex support](#Arithmatex-support)
-		* [Mermaid2 support](#Mermaid2-support)
+		* [Mermaid.js support](#Mermaid.js-support)
 	* [Security](#Security)
 		* [Crypto-js or webcrypto?](#Crypto-js-or-webcrypto?)
 		* [File name obfuscation](#File-name-obfuscation)
@@ -710,6 +710,8 @@ for `mkdocs-material`.
 
 In order to be able to decrypt the search index (`dynamically`) `mkdocs-material` needs to be customized (patched).
 
+Patches for different versions can be found [here](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/version3/patches).
+
 #### Material 8.x
 
 You'll need some [prerequisites](https://squidfunk.github.io/mkdocs-material/customization/#environment-setup)
@@ -807,7 +809,9 @@ MathJax.typesetPromise()
 > **NOTE** It has been tested in Arithmatex `generic` mode only. 
 
 
-### Mermaid2 support
+### Mermaid.js support
+
+#### mkdocs-mermaid2-plugin
 
 > **Enable by default**
 
@@ -860,7 +864,22 @@ graph LR
 ///
 ````
 
+#### mkdocs-material
 
+Add support for mermaid graphs by adding the `pymdownx.superfences` to `markdown_extensions` as 
+described [here]( https://squidfunk.github.io/mkdocs-material/reference/diagrams/).
+
+Copy the "material-encryptcontent.mjs" file from
+[here](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/version3/fixes)
+to "/assets/javascripts/" and include it to "mkdocs.yml" like this:
+
+```yaml
+extra_javascript:
+  - assets/javascripts/material-encryptcontent.mjs
+```
+
+The script is called after successful decryption and renders the mermaid graphs in a similar way as
+the theme would normally do.
 ## Security
 
 ### Crypto-js or webcrypto?
