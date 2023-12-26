@@ -159,7 +159,7 @@ class encryptContentPlugin(BasePlugin):
         else:
             keystore[index][store_id] = key.hex()
 
-    def __encrypt_keys_from_keystore__(self, index):
+    def __encrypt_keys_from_keystore__(self, index, plaintext_length=-1):
         keystore = self.setup['keystore']
         password = index[1]
         if index[0] == KS_OBFUSCATE:
@@ -201,10 +201,14 @@ class encryptContentPlugin(BasePlugin):
         else:
             iv = get_random_bytes(16)
         cipher = AES.new(kdfkey, AES.MODE_CBC, iv)
-        # use it to encrypt the AES-256 key
-        plaintext = json.dumps(keystore[index]).encode()
+        # use it to encrypt the AES-256 key(s)
+        plaintext = json.dumps(keystore[index])
+        # add spaces to plaintext to make keystores indistinguishable
+        if len(plaintext) < plaintext_length:
+            plaintext += ' ' * (plaintext_length - len(plaintext))
+        plaintext_encoded = plaintext.encode()
         # plaintext must be padded to be a multiple of 16 bytes
-        plaintext_padded = pad(plaintext, 16, style='pkcs7')
+        plaintext_padded = pad(plaintext_encoded, 16, style='pkcs7')
         ciphertext = cipher.encrypt(plaintext_padded)
 
         if iterations > 1: #don't calculate entropy for obfuscate passwords
@@ -878,6 +882,13 @@ class encryptContentPlugin(BasePlugin):
                             if obfuscate_id not in self.setup['keystore'][index2].keys():
                                 self.setup['keystore'][index2][obfuscate_id] = keystore[index][obfuscate_id]
 
+        #find longest keystore
+        max_keystore_length = 0
+        for index in self.setup['keystore']:
+            keystore_length = len(json.dumps(self.setup['keystore'][index]))
+            if keystore_length > max_keystore_length:
+                max_keystore_length = keystore_length
+
         # Encrypt all keys to keystore
         # It just encrypts once, but needs to run on every page
         for index in self.setup['keystore']:
@@ -885,10 +896,10 @@ class encryptContentPlugin(BasePlugin):
                 pass
             elif index[0] == KS_PASSWORD:
                 if index not in self.setup['keystore_password']:
-                    self.setup['keystore_password'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index))
+                    self.setup['keystore_password'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index, max_keystore_length))
             else:
                 if index not in self.setup['keystore_userpass']:
-                    self.setup['keystore_userpass'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index))
+                    self.setup['keystore_userpass'][index] = ';'.join(self.__encrypt_keys_from_keystore__(index, max_keystore_length))
 
         if hasattr(page, 'encryptcontent'):
 
