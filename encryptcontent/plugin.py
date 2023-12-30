@@ -541,6 +541,7 @@ class encryptContentPlugin(BasePlugin):
         # rebuild kdf keys only if not in cache
         if 'cache_file' not in self.setup and self.config['cache_file']:
             self.setup['cache_file'] = self.setup['config_path'].joinpath(self.config['cache_file'])
+            self.setup['cache_file'].parents[0].mkdir(parents=True, exist_ok=True)
             if self.setup['cache_file'].exists():
                 with open(self.setup['cache_file'], 'r') as stream:
                     self.setup['cache'] = yaml.safe_load(stream)
@@ -557,6 +558,7 @@ class encryptContentPlugin(BasePlugin):
 
         if 'sharelinks' not in self.setup and self.config['sharelinks']:
             self.setup['sharelinks_output'] = self.setup['config_path'].joinpath(self.config['sharelinks_output'])
+            self.setup['sharelinks_output'].parents[0].mkdir(parents=True, exist_ok=True)
             self.setup['sharelinks'] = {}
 
         if 'password_inventory' not in self.setup:
@@ -612,6 +614,7 @@ class encryptContentPlugin(BasePlugin):
 
         if self.config['sign_files'] and 'sign_key' not in self.setup:
             sign_key_path = self.setup['config_path'].joinpath(self.config['sign_key'])
+            sign_key_path.parents[0].mkdir(parents=True, exist_ok=True)
             if not sign_key_path.exists():
                 logger.info('Generating signing key and saving to "{file}".'.format(file=str(self.config['sign_key'])))
                 key = ECC.generate(curve='Ed25519')
@@ -1133,6 +1136,7 @@ class encryptContentPlugin(BasePlugin):
                 urls_to_verify.append(file['url'])
             if signatures:
                 sign_file_path = Path(config.data["site_dir"]).joinpath(self.config['sign_files'])
+                sign_file_path.parents[0].mkdir(parents=True, exist_ok=True)
                 with open(sign_file_path, "w") as file:
                     file.write(json.dumps(signatures))
 

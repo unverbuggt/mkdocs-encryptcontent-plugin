@@ -139,6 +139,7 @@ plugins:
         webcrypto: true
         sign_files: 'encryptcontent-plugin.json'
         cache_file: 'encryptcontent.cache'
+        sharelinks_output: 'sharelinks.txt'
         hash_filenames:
           extensions:
             - 'png'
