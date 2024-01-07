@@ -134,6 +134,7 @@ plugins:
         reload_scripts:
           - '#autostart'
         password_file: 'passwords.yml'
+        additional_storage_file: 'additional_storage.yaml'
         sharelinks: true
         #kdf_pow: 4
         webcrypto: true

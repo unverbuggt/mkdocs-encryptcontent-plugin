@@ -143,3 +143,33 @@ However if `sharelinks: True` is enabled in the plugin configuration you can gen
 
 > Then another condition applies: If non-aphanumeric characters are used in user/password,
 > they need to be URLencoded (f.ex. %20 = space character). Some browsers may do that automatically (Do a copy/paste from the browsers address bar then).
+
+### Storage of additional variables in keystore
+
+Since version 3.0.3 it is possible to set arbitrary session store variables after decryption.
+These can be used by javascript functions f. ex. to read API tokens or show the user name or set visibility of menu entries.
+The variables are encrypted together with the content keys in the keystore.
+
+```yaml
+plugins:
+    - encryptcontent:
+        additional_storage_file: 'additional_storage.yaml'
+```
+
+The file may contain a `userpass:` dictionary, wich refers to user names
+and/or a `password:` dictionary, that refers to password-only credentials.
+It may contain a arbitrary number of key/value pairs,
+but keep in mind to check if the key name is reasonable and not already used by other parts of the page
+(as it will be overwritten after decryption).
+
+```yaml
+userpass:
+  alice:
+    username: Alice McAliceface
+    userid: 1
+    token: uCZDqa2vzuSPFX-o9TebinUAnD9sePJqpPYhavMkCH7gGo7lhjWRS17-HgBys9UKnFR37zXO4Q_f1_ywZJqBlA==
+
+password:
+  Head32_Sculpture_bovine_:
+    username: Head McPassword
+```

@@ -80,6 +80,7 @@ class encryptContentPlugin(BasePlugin):
         ('session_storage', config_options.Type(bool, default=True)),
         ('password_inventory', config_options.Type(dict, default={})),
         ('password_file', config_options.Type(string_types, default=None)),
+        ('additional_storage_file', config_options.Type(string_types, default=None)),
         ('cache_file', config_options.Type(string_types, default='encryptcontent.cache')),
         ('sharelinks', config_options.Type(bool, default=False)),
         ('sharelinks_output', config_options.Type(string_types, default='sharelinks.txt')),
@@ -158,6 +159,10 @@ class encryptContentPlugin(BasePlugin):
             keystore[index] = new_entry
         else:
             keystore[index][store_id] = key.hex()
+
+    def __vars_to_keystore__(self, index, var, value):
+        keystore = self.setup['keystore']
+        keystore[index][var] = value
 
     def __encrypt_keys_from_keystore__(self, index, plaintext_length=-1):
         keystore = self.setup['keystore']
@@ -611,6 +616,30 @@ class encryptContentPlugin(BasePlugin):
                             logger.error("Empty password found for level '{level}'!".format(level=level))
                             os._exit(1)
                     self.setup['level_keys'][level] = new_entry
+
+        if 'additional_storage' not in self.setup:
+            if self.config['additional_storage_file']:
+                storage_file = self.setup['config_path'].joinpath(self.config['additional_storage_file'])
+                with open(storage_file, 'r') as stream:
+                    self.setup['additional_storage'] = yaml_load(stream)
+                
+                #init empty if missing
+                if 'userpass' not in self.setup['additional_storage']:
+                    self.setup['additional_storage']['userpass'] = {}
+                if 'password' not in self.setup['additional_storage']:
+                    self.setup['additional_storage']['password'] = {}
+                
+                for entry in self.setup['keystore'].copy():
+                    if entry[0] == KS_PASSWORD:
+                        if entry[1] in self.setup['additional_storage']['password']:
+                            for var in self.setup['additional_storage']['password'][entry[1]]:
+                                value = self.setup['additional_storage']['password'][entry[1]][var]
+                                self.__vars_to_keystore__(entry, var, value)
+                    else:
+                        if entry[0] in self.setup['additional_storage']['userpass']:
+                            for var in self.setup['additional_storage']['userpass'][entry[0]]:
+                                value = self.setup['additional_storage']['userpass'][entry[0]][var]
+                                self.__vars_to_keystore__(entry, var, value)
 
         if self.config['sign_files'] and 'sign_key' not in self.setup:
             sign_key_path = self.setup['config_path'].joinpath(self.config['sign_key'])

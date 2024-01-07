@@ -11,7 +11,7 @@ def read(fname):
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='3.0.2',
+    version='3.0.3',
     author='unverbuggt',
     author_email='unverbuggt@xn--rthlein-n2a.de',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',
