@@ -132,6 +132,7 @@ plugins:
         selfhost_download: true
         selfhost_dir: 'theme_override'
         reload_scripts:
+          - '#theme'
           - '#autostart'
         password_file: 'passwords.yml'
         additional_storage_file: 'additional_storage.yaml'

@@ -10,6 +10,11 @@ function runWhenDOMContentLoaded() {
     hljs.highlightElement(el);
   });
   MathJax.typesetPromise();
+  //small test for "additional variables in keystore"
+  username = sessionStorage.getItem('username');
+  if (username) {
+    document.getElementById('show-user').textContent = username;
+  }
 }
 if (DOMContentLoaded_fired) {
   runWhenDOMContentLoaded();
@@ -24,15 +29,16 @@ document.addEventListener('DOMContentLoaded',function(){
 {% endblock %}
 
 {%- block footer_ext %}
-  {%- if not config.theme.no_imprint %}
   <p class="w3-right w3-tiny">
+    <span id="show-user"></span>
+  {%- if not config.theme.no_imprint %}
   {%- if i18n_config and i18n_page_locale == "en" %}
     <a href="{{ (i18n_page_locale + '/imprint/') | url }}">Imprint</a>
   {%- else %}
     <a href="{{ 'imprint/' | url }}">Impressum</a>
   {%- endif %}
-  </p>
   {%- endif %}
+  </p>
 {%- endblock %}
 
 {%- block top_buttons %}
