@@ -362,7 +362,7 @@ function base64url_decode(input) {
 };
 
 /* Decrypt content of a page */
-{% if webcrypto %}async {% endif %}function decrypt_action(password_input, encrypted_content, decrypted_content, key_from_storage, username_input) {
+{% if webcrypto %}async {% endif %}function decrypt_action(username_input, password_input, encrypted_content, decrypted_content, key_from_storage=false) {
     let key=false;
     let keys_from_keystore=false;
 
@@ -399,8 +399,7 @@ function base64url_decode(input) {
     }
 };
 
-{% if webcrypto %}async {% endif %}function decryptor_reaction(key_or_keys, password_input, fallback_used=false) {
-    let decrypted_element = document.getElementById("mkdocs-decrypted-content");
+{% if webcrypto %}async {% endif %}function decryptor_reaction(key_or_keys, password_input, decrypted_content, fallback_used=false) {
     if (key_or_keys) {
         let key;
         if (typeof key_or_keys === "object") {
@@ -421,7 +420,7 @@ function base64url_decode(input) {
         decrypt_somethings(key, encrypted_something);
         {%- endif %}
         if (typeof inject_something !== 'undefined') {
-            decrypted_element = {% if webcrypto %}await {% endif %}decrypt_somethings(key, inject_something);
+            decrypted_content = {% if webcrypto %}await {% endif %}decrypt_somethings(key, inject_something);
         }
         if (typeof delete_something !== 'undefined') {
             let el = document.getElementById(delete_something)
@@ -438,7 +437,7 @@ function base64url_decode(input) {
         if (typeof mermaid === 'object') { mermaid.contentLoaded();};
         {%- endif %}
         {% if hljs -%}
-        decrypted_element.querySelectorAll('pre code').forEach((block) => {
+        decrypted_content.querySelectorAll('pre code').forEach((block) => {
             hljs.highlightElement(block);
         });
         {%- endif %}
@@ -473,21 +472,21 @@ function base64url_decode(input) {
 
 /* Trigger decryption process */
 {% if webcrypto %}async {% endif %}function init_decryptor() {
-    var username_input = document.getElementById('mkdocs-content-user');
-    var password_input = document.getElementById('mkdocs-content-password');
+    let username_input = document.getElementById('mkdocs-content-user');
+    let password_input = document.getElementById('mkdocs-content-password');
     // adjust password field width to placeholder length
     //if (password_input.hasAttribute('placeholder')) {
     //    password_input.setAttribute('size', password_input.getAttribute('placeholder').length);
     //}
-    var encrypted_content = document.getElementById('mkdocs-encrypted-content');
-    var decrypted_content = document.getElementById('mkdocs-decrypted-content');
+    let encrypted_content = document.getElementById('mkdocs-encrypted-content');
+    let decrypted_content = document.getElementById('mkdocs-decrypted-content');
     let content_decrypted;
     {% if remember_keys -%}
     /* If remember_keys is set, try to use sessionStorage item to decrypt content when page is loaded */
     let key_from_storage = {% if webcrypto %}await {% endif %}getItemName(encryptcontent_id);
     if (key_from_storage) {
         content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
-            password_input, encrypted_content, decrypted_content, key_from_storage, username_input
+            username_input, password_input, encrypted_content, decrypted_content, key_from_storage
         );
         {% if remember_password -%}
         /* try to get username/password from sessionStorage */
@@ -495,21 +494,21 @@ function base64url_decode(input) {
             let got_credentials = {% if webcrypto %}await {% endif %}getCredentials(username_input, password_input);
             if (got_credentials) {
                 content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
-                    password_input, encrypted_content, decrypted_content, false, username_input
+                    username_input, password_input, encrypted_content, decrypted_content
                 );
             }
         }
         {%- endif %}
-        decryptor_reaction(content_decrypted, password_input, true);
+        decryptor_reaction(content_decrypted, password_input, decrypted_content, true);
     }
     {% if remember_password -%}
     else {
         let got_credentials = {% if webcrypto %}await {% endif %}getCredentials(username_input, password_input);
         if (got_credentials) {
             content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
-                password_input, encrypted_content, decrypted_content, false, username_input
+                username_input, password_input, encrypted_content, decrypted_content
             );
-            decryptor_reaction(content_decrypted, password_input, true);
+            decryptor_reaction(content_decrypted, password_input, decrypted_content, true);
         }
     }
     {%- endif %}
@@ -542,9 +541,9 @@ function base64url_decode(input) {
                 }
                 password_input.value = sharestring.substring(pass_sep+1);
                 content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
-                    password_input, encrypted_content, decrypted_content, false, username_input
+                    username_input, password_input, encrypted_content, decrypted_content
                 );
-                decryptor_reaction(content_decrypted, password_input, false);
+                decryptor_reaction(content_decrypted, password_input, decrypted_content);
             }
         }
     }
@@ -556,20 +555,20 @@ function base64url_decode(input) {
         decrypt_button.onclick = {% if webcrypto %}async {% endif %}function(event) {
             event.preventDefault();
             content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
-                password_input, encrypted_content, decrypted_content, false, username_input
+                username_input, password_input, encrypted_content, decrypted_content
             );
-            decryptor_reaction(content_decrypted, password_input);
+            decryptor_reaction(content_decrypted, password_input, decrypted_content);
         };
     }
     {%- endif %}
-    /* Default, try decrypt content when key (ctrl) enter is press */
+    /* Default, try decrypt content when key enter is press */
     password_input.addEventListener('keypress', {% if webcrypto %}async {% endif %}function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
             content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
-                password_input, encrypted_content, decrypted_content, false, username_input
+                username_input, password_input, encrypted_content, decrypted_content
             );
-            decryptor_reaction(content_decrypted, password_input);
+            decryptor_reaction(content_decrypted, password_input, decrypted_content);
         }
     });
 }
