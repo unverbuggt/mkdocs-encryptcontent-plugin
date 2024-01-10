@@ -167,6 +167,7 @@ class encryptContentPlugin(BasePlugin):
     def __encrypt_keys_from_keystore__(self, index, plaintext_length=-1):
         keystore = self.setup['keystore']
         password = index[1]
+        password_hash = SHA256.new(password.encode()).digest().hex() # sha256 sum of password
         if index[0] == KS_OBFUSCATE:
             iterations = 1
         else:
@@ -177,28 +178,36 @@ class encryptContentPlugin(BasePlugin):
         else:
             salt = get_random_bytes(16)
 
+        regenerate_kdf = True
         if index[0] == KS_OBFUSCATE and password in self.setup['cache']['obfuscate']:
             fromcache = self.setup['cache']['obfuscate'][password].split(';')
-            kdfkey = bytes.fromhex(fromcache[0])
-            salt = bytes.fromhex(fromcache[1])
+            if len(fromcache) == 3 and password_hash == fromcache[2]:
+                kdfkey = bytes.fromhex(fromcache[0])
+                salt = bytes.fromhex(fromcache[1])
+                regenerate_kdf = False
         elif index[0] == KS_PASSWORD and password in self.setup['cache']['password']:
             fromcache = self.setup['cache']['password'][password].split(';')
-            kdfkey = bytes.fromhex(fromcache[0])
-            salt = bytes.fromhex(fromcache[1])
+            if len(fromcache) == 3 and password_hash == fromcache[2]:
+                kdfkey = bytes.fromhex(fromcache[0])
+                salt = bytes.fromhex(fromcache[1])
+                regenerate_kdf = False
         elif isinstance(index[0], str) and index[0] in self.setup['cache']['userpass']:
             fromcache = self.setup['cache']['userpass'][index[0]].split(';')
-            kdfkey = bytes.fromhex(fromcache[0])
-            salt = bytes.fromhex(fromcache[1])
-        else:
+            if len(fromcache) == 3 and password_hash == fromcache[2]:
+                kdfkey = bytes.fromhex(fromcache[0])
+                salt = bytes.fromhex(fromcache[1])
+                regenerate_kdf = False
+
+        if regenerate_kdf:
             # generate PBKDF2 key from salt and password (password is URI encoded)
             kdfkey = PBKDF2(quote(password, safe='~()*!\''), salt, 32, count=iterations, hmac_hash_module=SHA256)
             logger.info('Need to generate KDF key...')
             if index[0] == KS_OBFUSCATE:
-                self.setup['cache']['obfuscate'][password] = kdfkey.hex() + ';' + salt.hex()
+                self.setup['cache']['obfuscate'][password] = kdfkey.hex() + ';' + salt.hex() + ';' + password_hash
             elif index[0] == KS_PASSWORD:
-                self.setup['cache']['password'][password] = kdfkey.hex() + ';' + salt.hex()
+                self.setup['cache']['password'][password] = kdfkey.hex() + ';' + salt.hex() + ';' + password_hash
             else:
-                self.setup['cache']['userpass'][index[0]] = kdfkey.hex() + ';' + salt.hex()
+                self.setup['cache']['userpass'][index[0]] = kdfkey.hex() + ';' + salt.hex() + ';' + password_hash
 
         # initialize AES-256
         if self.config['insecure_test']:
@@ -550,6 +559,8 @@ class encryptContentPlugin(BasePlugin):
             if self.setup['cache_file'].exists():
                 with open(self.setup['cache_file'], 'r') as stream:
                     self.setup['cache'] = yaml.safe_load(stream)
+                    if not self.setup['cache']: # if file was empty
+                        del self.setup['cache']
 
         if 'cache' not in self.setup or self.setup['cache']['kdf_iterations'] != self.setup['kdf_iterations']:
             self.setup['cache'] = {}
