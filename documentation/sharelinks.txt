@@ -1,12 +1,12 @@
 https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/obfuscate/#ITpDcmF3bGVyIGJlIGdvbmUh
 https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/onlypasswords1/#ITpDbGlxdWUuU2hhbXBvby5WZTU1ZWw
-https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/test1/#ITpbUXcxPXMuR0t9Okx1Sn1zZMO2ZHNh
-https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/test2/#ITpnbmNrdcOkc2hmbGlnbGtmZmhidnJH
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/test1/#IWJvYjpBYmlkaW5nU2Nvb3RlclJ1aW5lZENDOg
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/test2/#ITpnbmNrdcOkc2hmbGlnbGtmZmhidnJHOg
 https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/test3/#ITp5REFIS21Zam1Dc0HDqWtVQ2hhc2Q
 https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/test4/#ITpUZUdoRDlhccOfUW5IdWptTGRzYQ
 https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/test5/#ITpXT2doMMOcd3lLSG9jKklfZGFz
-https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/test1/#ITpbUXcxPXMuR0t9Okx1Sn1zZMO2ZHNh
-https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/test2/#ITpnbmNrdcOkc2hmbGlnbGtmZmhidnJH
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/test1/#IWJvYjpBYmlkaW5nU2Nvb3RlclJ1aW5lZENDOg
+https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/test2/#ITpnbmNrdcOkc2hmbGlnbGtmZmhidnJHOg
 https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/test3/#ITp5REFIS21Zam1Dc0HDqWtVQ2hhc2Q
 https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/test4/#ITpUZUdoRDlhccOfUW5IdWptTGRzYQ
 https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/test5/#ITpXT2doMMOcd3lLSG9jKklfZGFz

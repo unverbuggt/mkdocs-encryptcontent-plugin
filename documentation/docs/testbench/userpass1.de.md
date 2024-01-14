@@ -9,7 +9,7 @@ sharelink: true
 Es ist möglich diese Seite mit einem der folgenden Benutzername/Passwort Kombinationen zu entschlüsseln:
 
   - alice: Racoon Superstore obnoxious23
-  - bob: AbidingScooterRuinedCCCactus
+  - bob: AbidingScooterRuinedCC:Cactus
   - carol: Worry-Bony-Glide-Mace!
   - carlos: Arre5tConfused Pentagon
   - charlie: gear.code.blonde.at0ll
@@ -27,7 +27,7 @@ Wenn einer der unteren vier Benutzer eingegeben wird, dann wird auch [Benutzerna
 Eines dieser Benutzername/Passwort Kombinationen **wurde** verwendet um diese Seite zu entschlüsseln:
 
   - alice: Racoon Superstore obnoxious23
-  - bob: AbidingScooterRuinedCCCactus
+  - bob: AbidingScooterRuinedCC:Cactus
   - carol: Worry-Bony-Glide-Mace!
   - carlos: Arre5tConfused Pentagon
   - charlie: gear.code.blonde.at0ll

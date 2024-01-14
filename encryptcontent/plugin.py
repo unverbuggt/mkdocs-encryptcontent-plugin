@@ -83,6 +83,7 @@ class encryptContentPlugin(BasePlugin):
         ('additional_storage_file', config_options.Type(string_types, default=None)),
         ('cache_file', config_options.Type(string_types, default='encryptcontent.cache')),
         ('sharelinks', config_options.Type(bool, default=False)),
+        ('sharelinks_incomplete', config_options.Type(bool, default=False)),
         ('sharelinks_output', config_options.Type(string_types, default='sharelinks.txt')),
         # default features enabled
         ('arithmatex', config_options.Type(bool, default=None)),
@@ -368,6 +369,7 @@ class encryptContentPlugin(BasePlugin):
             'webcrypto' : self.config['webcrypto'],
             'remember_prefix': quote(self.config['remember_prefix'], safe='~()*!\''),
             'sharelinks' : self.config['sharelinks'],
+            'sharelinks_incomplete' : self.config['sharelinks_incomplete'],
             'material' : self.setup['theme'] == 'material',
             # add extra vars
             'extra': self.config['js_extra_vars']
@@ -1164,6 +1166,8 @@ class encryptContentPlugin(BasePlugin):
             sharelinks = []
             for page in self.setup['sharelinks']:
                 username, password = self.setup['sharelinks'][page]
+                if self.config['sharelinks_incomplete'] and ':' in password:
+                    password = password.rsplit(':',1)[0] + ":" # don't add the remaining part after the last ":" to the sharelink
                 sharelinks.append(config.data["site_url"] + page + '#' + self.__b64url_encode__('!' + username + ':' + password))
             with open(self.setup['sharelinks_output'], 'w') as stream:
                 stream.write('\n'.join(sharelinks))

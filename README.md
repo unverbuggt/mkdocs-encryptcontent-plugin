@@ -467,7 +467,7 @@ plugins:
 ### Share link generation
 
 It is possible to share valid credentials by adding them to the hash part of the URL.
-The plugin can also generate share links for certain pages if the metag tag `sharelink: true`
+The plugin can also generate share links for certain pages if the meta tag `sharelink: true`
 is defined in markdown.
 It will use the first credential for the pages level or the pages password.
 The credentials for auto-generated links are base64url encoded.
@@ -486,6 +486,17 @@ However if `sharelinks: True` is enabled in the plugin configuration you can gen
 
 > Then another condition applies: If non-aphanumeric characters are used in user/password,
 > they need to be URLencoded (f.ex. %20 = space character). Some browsers may do that automatically (Do a copy/paste from the browsers address bar then).
+
+#### Incomplete Share links
+
+Since version 3.0.3 it is possible to leave out one part of the password when share links are generated via meta tag.
+To do this use the ":" character in a password to divide the part that is incorporated to the share link and the part that remains secret,
+like "PartThatIsEncodedToTheShareLink:PartThatRemainsSecret". 
+The feature is enabled by setting the option `sharelinks_incomplete: true`.
+If the password that is read from the share link ends with the ":" character, then an additional password input field is displayed for entering the secret part.
+
+> If the feature is used, then passwords must not end with the ":" character.
+
 
 ### Storage of additional variables in keystore
 

@@ -8,7 +8,7 @@ delete_id: teaser
 The following user/passwords are valid to decrypt this page:
 
   - alice: Racoon Superstore obnoxious23
-  - bob: AbidingScooterRuinedCCCactus
+  - bob: AbidingScooterRuinedCC:Cactus
   - carol: Worry-Bony-Glide-Mace!
   - carlos: Arre5tConfused Pentagon
   - charlie: gear.code.blonde.at0ll
@@ -26,7 +26,7 @@ If you use one of the last four users, you'd also be able to decrypt [User/Passw
 One of the following user/passwords **were** used to decrypt this page:
 
   - alice: Racoon Superstore obnoxious23
-  - bob: AbidingScooterRuinedCCCactus
+  - bob: AbidingScooterRuinedCC:Cactus
   - carol: Worry-Bony-Glide-Mace!
   - carlos: Arre5tConfused Pentagon
   - charlie: gear.code.blonde.at0ll

@@ -540,10 +540,29 @@ function base64url_decode(input) {
                     username_input.value = sharestring.substring(0,pass_sep);
                 }
                 password_input.value = sharestring.substring(pass_sep+1);
+        {%- if sharelinks_incomplete %}
+                if (password_input.value.endsWith(':')) {
+                    if (username_input) {
+                        username_input.style.display = "none";
+                    }
+                    let password_input_sharelink = password_input.cloneNode()
+                    password_input_sharelink.id = "mkdocs-content-password-sharelink";
+                    password_input_sharelink.style.display = "none";
+                    password_input_sharelink.value = password_input.value;
+                    password_input.value = "";
+                    password_input.insertAdjacentElement('beforebegin', password_input_sharelink);
+                } else {
+                    content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
+                        username_input, password_input, encrypted_content, decrypted_content
+                    );
+                    decryptor_reaction(content_decrypted, password_input, decrypted_content);
+                }
+        {%- else %}
                 content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
                     username_input, password_input, encrypted_content, decrypted_content
                 );
                 decryptor_reaction(content_decrypted, password_input, decrypted_content);
+        {%- endif %}
             }
         }
     }
@@ -554,6 +573,12 @@ function base64url_decode(input) {
     if (decrypt_button) {
         decrypt_button.onclick = {% if webcrypto %}async {% endif %}function(event) {
             event.preventDefault();
+    {%- if sharelinks_incomplete %}
+            let password_input_sharelink = document.getElementById('mkdocs-content-password-sharelink');
+            if (password_input_sharelink) {
+                password_input.value = password_input_sharelink.value + password_input.value;
+            }
+    {%- endif %}
             content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
                 username_input, password_input, encrypted_content, decrypted_content
             );
@@ -565,6 +590,12 @@ function base64url_decode(input) {
     password_input.addEventListener('keypress', {% if webcrypto %}async {% endif %}function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
+    {%- if sharelinks_incomplete %}
+            let password_input_sharelink = document.getElementById('mkdocs-content-password-sharelink');
+            if (password_input_sharelink) {
+                password_input.value = password_input_sharelink.value + password_input.value;
+            }
+    {%- endif %}
             content_decrypted = {% if webcrypto %}await {% endif %}decrypt_action(
                 username_input, password_input, encrypted_content, decrypted_content
             );
