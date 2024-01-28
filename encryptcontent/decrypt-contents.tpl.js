@@ -609,8 +609,4 @@ if (typeof base_url === 'undefined') {
     var base_url = JSON.parse(document.getElementById('__config').textContent).base;
 }
 {%- endif %}
-{%- if webcrypto %}
-document.addEventListener('DOMContentLoaded', () => init_decryptor());
-{%- else %}
 document.addEventListener('DOMContentLoaded', init_decryptor());
-{%- endif %}
