@@ -1,9 +1,13 @@
 /* encryptcontent/decrypt-contents.tpl.js */
 {%- if webcrypto %}
 // https://stackoverflow.com/a/50868276
-const fromHex = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+function fromHex(hexString) {
+    return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+}
 // https://stackoverflow.com/a/41106346
-const fromBase64 = base64String => Uint8Array.from(atob(base64String), c => c.charCodeAt(0));
+function fromBase64(base64String) {
+    return Uint8Array.from(atob(base64String), c => c.charCodeAt(0));
+}
 
 async function digestSHA256toBase64(message) {
   const data = new TextEncoder().encode(message);
