@@ -616,3 +616,4 @@ if (typeof base_url === 'undefined') {
 }
 {%- endif %}
 document.addEventListener('DOMContentLoaded', init_decryptor());
+window["init_decryptor"] = init_decryptor;
