@@ -25,7 +25,24 @@ var encryptcontent_obfuscate = {{ obfuscate }};
 {% if inject_something %}var inject_something = {{ inject_something }};{% endif -%}
 {% if delete_something %}var delete_something = "{{ delete_something }}";{%- endif %}
 </script>
-{% for library in js_libraries %}
+{%- if esm %}
+<script type="module">
+if (!window.hasOwnProperty("init_decryptor")) {
+    {%- if not webcrypto %}
+    import("{{ js_libraries[0] }}").then((module) => {
+        window["CryptoJS"] = module.default;
+    {%- endif %}
+    import("{{ base_path }}assets/javascripts/decrypt-contents.js");
+    {%- if not webcrypto %}
+    });
+    {%- endif %}
+} else {
+    init_decryptor();
+}
+</script>
+{%- else %}
+    {%- for library in js_libraries %}
 <script type="text/javascript" src="{{ library }}"></script>
-{%- endfor %}
+    {%- endfor %}
 <script type="text/javascript" src="{{ base_path }}assets/javascripts/decrypt-contents.js" defer></script>
+{%- endif %}

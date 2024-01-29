@@ -29,14 +29,18 @@ try:
 except ImportError:
     string_types = str
 
-JS_LIBRARIES = [
-    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/core.js','b55ae8027253d4d54c4f1ef3b6254646'],
-    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.js','f551ce1340a86e5edbfef4a6aefa798f'],
-    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/cipher-core.js','dfddc0e33faf7a794e0c3c140544490e'],
-    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/sha256.js','561d24c90633fb34c13537a330d12786'],
-    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/hmac.js','ee162ca0ed3b55dd9b2fe74a3464bb74'],
-    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/pbkdf2.js','b9511c07dfe692c2fd7a9ecd3f27650e'],
-    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.js','da81b91b1b57c279c29b3469649d9b86'],
+CRYPTO_ES_LIBRARIES = [
+    ['//cdn.jsdelivr.net/npm/crypto-es@2.1.0/+esm','fd3628cef78b155ff3da3554537e2d76','crypto-es.mjs'],
+]
+
+CRYPTO_JS_LIBRARIES = [
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/core.js','b55ae8027253d4d54c4f1ef3b6254646','core.js'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/enc-base64.js','f551ce1340a86e5edbfef4a6aefa798f','enc-base64.js'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/cipher-core.js','b9c2f3c51e3ffe719444390f47c51627','cipher-core.js'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/sha256.js','561d24c90633fb34c13537a330d12786','sha256.js'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/hmac.js','ee162ca0ed3b55dd9b2fe74a3464bb74','hmac.js'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/pbkdf2.js','3f2876e100b991885f606065d1342984','pbkdf2.js'],
+    ['//cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/aes.js','da81b91b1b57c279c29b3469649d9b86','aes.js'],
 ]
 
 PLUGIN_DIR = Path(__file__).parent.absolute()
@@ -110,6 +114,7 @@ class encryptContentPlugin(BasePlugin):
         ('sign_files', config_options.Type(string_types, default=None)),
         ('sign_key', config_options.Type(string_types, default='encryptcontent.key')),
         ('webcrypto', config_options.Type(bool, default=False)),
+        ('esm', config_options.Type(bool, default=False)),
         ('insecure_test', config_options.Type(bool, default=False)), # insecure test build
         # legacy features
     )
@@ -272,9 +277,9 @@ class encryptContentPlugin(BasePlugin):
         # optionally selfhost cryptojs
         js_libraries = []
         if not self.config['webcrypto']:
-            for jsurl in JS_LIBRARIES:
+            for jsurl in self.setup['js_libraries']:
                 if self.config["selfhost"]:
-                    js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
+                    js_libraries.append(base_path + 'assets/javascripts/cryptojs/' + jsurl[2])
                 else:
                     js_libraries.append(jsurl[0])
 
@@ -344,6 +349,8 @@ class encryptContentPlugin(BasePlugin):
             'encryptcontent_keystore': json.dumps(encryptcontent_keystore),
             'inject_something': inject_something,
             'delete_something': delete_something,
+            'webcrypto' : self.config['webcrypto'],
+            'esm' : self.config['esm'],
             # add extra vars
             'extra': self.config['html_extra_vars']
         })
@@ -367,6 +374,7 @@ class encryptContentPlugin(BasePlugin):
             'site_path': self.setup['site_path'],
             'kdf_iterations' : self.setup['kdf_iterations'],
             'webcrypto' : self.config['webcrypto'],
+            'esm' : self.config['esm'],
             'remember_prefix': quote(self.config['remember_prefix'], safe='~()*!\''),
             'sharelinks' : self.config['sharelinks'],
             'sharelinks_incomplete' : self.config['sharelinks_incomplete'],
@@ -675,6 +683,11 @@ class encryptContentPlugin(BasePlugin):
             logger.warning('INSECURE test build active. DON\'T upload the site anywhere else than "localhost".')
             logger.warning('---------------------------------------------------------------------------------')
 
+        if self.config['esm']:
+            self.setup['js_libraries'] = CRYPTO_ES_LIBRARIES
+        else:
+            self.setup['js_libraries'] = CRYPTO_JS_LIBRARIES
+
     def on_pre_build(self, config, **kwargs):
         """
         The pre_build event does not alter any variables. Use this event to call pre-build scripts.
@@ -713,9 +726,9 @@ class encryptContentPlugin(BasePlugin):
             else:
                 dlpath = Path(config.data['docs_dir'] + '/assets/javascripts/cryptojs/')
             dlpath.mkdir(parents=True, exist_ok=True)
-            for jsurl in JS_LIBRARIES:
+            for jsurl in self.setup['js_libraries']:
                 dlurl = "https:" + jsurl[0]
-                filepath = dlpath.joinpath(jsurl[0].rsplit('/',1)[1])
+                filepath = dlpath.joinpath(jsurl[2])
                 self.__download_and_check__(filepath, dlurl, jsurl[1])
 
     @plugins.event_priority(-200)
@@ -1105,11 +1118,11 @@ class encryptContentPlugin(BasePlugin):
             new_entry['url'] = config.data["site_url"] + 'assets/javascripts/decrypt-contents.js'
             self.setup['files_to_sign'].append(new_entry)
             if not self.config['webcrypto']:
-                for jsurl in JS_LIBRARIES:
+                for jsurl in self.setup['js_libraries']:
                     new_entry = {}
                     if self.config['selfhost']:
-                        new_entry['file'] = Path(config.data["site_dir"]).joinpath('assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1])
-                        new_entry['url'] = config.data["site_url"] + 'assets/javascripts/cryptojs/' + jsurl[0].rsplit('/',1)[1]
+                        new_entry['file'] = Path(config.data["site_dir"]).joinpath('assets/javascripts/cryptojs/' + jsurl[2])
+                        new_entry['url'] = config.data["site_url"] + 'assets/javascripts/cryptojs/' + jsurl[2]
                     else:
                         new_entry['file'] =  ""
                         new_entry['url'] = "https:" + jsurl[0]
