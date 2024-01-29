@@ -352,12 +352,14 @@ function base64url_decode(input) {
         if (html_item[0]) {
             for (let i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
-                let content = {% if webcrypto %}await {% endif %}decrypt_content_from_bundle(key, html_item[i].innerHTML);
-                if (content !== false) {
-                    // success; display the decrypted content
-                    html_item[i].innerHTML = content;
-                    html_item[i].style.display = null;
-                    // any post processing on the decrypted content should be done here
+                if (html_item[i].style.display == "none") {
+                    let content = {% if webcrypto %}await {% endif %}decrypt_content_from_bundle(key, html_item[i].innerHTML);
+                    if (content !== false) {
+                        // success; display the decrypted content
+                        html_item[i].innerHTML = content;
+                        html_item[i].style.display = null;
+                        // any post processing on the decrypted content should be done here
+                    }
                 }
             }
         }
