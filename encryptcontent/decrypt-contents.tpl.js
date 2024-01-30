@@ -615,5 +615,11 @@ if (typeof base_url === 'undefined') {
     var base_url = JSON.parse(document.getElementById('__config').textContent).base;
 }
 {%- endif %}
-document.addEventListener('DOMContentLoaded', init_decryptor());
+if (document.readyState === "loading") {
+  // Loading hasn't finished yet
+  document.addEventListener("DOMContentLoaded", init_decryptor);
+} else {
+  // `DOMContentLoaded` has already fired
+  init_decryptor();
+}
 window["init_decryptor"] = init_decryptor;
