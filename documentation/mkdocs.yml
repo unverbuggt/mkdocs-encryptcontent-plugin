@@ -140,6 +140,7 @@ plugins:
         sharelinks_incomplete: true
         #kdf_pow: 4
         webcrypto: true
+        esm: true
         sign_files: 'encryptcontent-plugin.json'
         cache_file: 'encryptcontent.cache'
         sharelinks_output: 'sharelinks.txt'
