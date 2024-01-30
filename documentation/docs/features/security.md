@@ -1,19 +1,28 @@
 ## Security
 
-### Crypto-js or webcrypto?
+### Crypto-js, crypto-es or webcrypto?
 
 By default the plugin uses the crypto-js library for page decryption, but using
-the browser's built-in webcrypto engine is also possible (set `webcrypto: True`).
+the browser's built-in webcrypto engine is also possible (set `webcrypto: true`).
 
 The main advantage of webcrypto over crypto-js is that it is much faster, allowing higher
 calculation difficulty for key derivation (`kdf_pow`). Also it may be easier to implement
 key derivation functions other than PBKDF2 with webcrypto in the future.
 
-On the other hand crypto-js is implemented in pure Javascript without dependencies and well
-tested (but it probably won't receive any updates as development stalled in 2021)
+On the other hand crypto-js is implemented in pure Javascript without any dependencies and well
+tested (but it probably won't receive any updates as development stalled in 2021, see [here](https://github.com/brix/crypto-js/#discontinued))
 and we know nothing about how good or bad webcrypto is implemented in different browsers.
 
-#### Self-host crypto-js
+There is a new variation of [crypto-js](https://github.com/brix/crypto-js), called [crypto-es](https://github.com/entronad/crypto-es).
+It provides the same functions, but is implemented in modern javascript and can be activated by setting `esm: true`.  
+If `webcrypto: true` and `esm: true` is set, then webcrypto will be loaded as a
+javascript module (speeding up material theme with instant loading feature).
+
+> Crypto-js causes a bug when browsing through encrypted pages,
+> if used in `mkdocs-material` together with the `navigation.instant` feature.
+> It is advised to use `webcrypto: true` or crypto-es with `esm: true` in this case.
+
+#### Self-host Crypto-js or Crypto-es
 
 If you enable `selfhost` then you'll choose to upload crypto-js to your web server rather than using cloudflare CDN.
 The self-host location is "SITE_URL/assets/javascripts/cryptojs/".
