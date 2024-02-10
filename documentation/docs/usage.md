@@ -1,28 +1,12 @@
 # Usage
 
-Add an meta tag `password: secret password` in your markdown files to protect them.
+Add a tag like `password: secret password` to your pages [Meta-Data](https://www.mkdocs.org/user-guide/writing-your-docs/#yaml-style-meta-data) to protect them.
 
-Alternatively add the meta tag `level: secret` to use one or more secrets defined at the
-plugin's `password_inventory` or `password_file` in your "mkdocs.yml".
-
-
-### Global password protection
-
-Add `global_password: your_password` in plugin configuration variable, to protect all pages with this password by default
-
-```yaml
-plugins:
-    - encryptcontent:
-        global_password: 'your_password'
-```
-
-If the password meta tag is defined in a markdown file, it will **ALWAYS** override the global password.
-
-> **NOTE** Keep in mind that if the `password:` tag exists without value in a page, it will **not be protected** !
-> Use this to **disable** `global_password` on specific pages.
+Alternatively add a meta tag like `level: secret` to use one or more secrets defined at the
+plugin's `password_inventory` or `password_file` in your "mkdocs.yml" (see below).
 
 
-### Password inventory
+## Password inventory
 
 With the `password_inventory` you can define protection levels (assigned with the meta tag `level` in markdown files).
 
@@ -50,8 +34,17 @@ It is possible to reuse credentials at different levels.
 
 The plugin will generate one secret key for each level, which is then used to encrypt the assigned sites.
 
+To indicate that your Markdown file should be encrypted for level "secret", add the following metadata at the beginning of the file:
 
-#### Password inventory in external file
+```markdown
+---
+level: secret
+---
+This is the first paragraph of the document.
+```
+
+
+### Password inventory in external file
 
 You can define password levels in an external yaml file and link it with `password_file`.
 The intention is to separate sensitive information from configuration options.
@@ -73,8 +66,22 @@ secret:
     user5: 'password5'
 ```
 
+## Global password protection
 
-#### Global password(s) in inventory
+Add `global_password: your_password` in plugin configuration variable, to protect all pages with this password by default
+
+```yaml
+plugins:
+    - encryptcontent:
+        global_password: 'your_password'
+```
+
+If the password meta tag is defined in a markdown file, it will **ALWAYS** override the global password.
+
+> **NOTE** Keep in mind that if the `password:` tag exists without value in a page, it will **not be protected** !
+> Use this to **disable** `global_password` on specific pages.
+
+### Global passwords in inventory
 
 You can add the special level `_global`, which will be applied globally on all sites like this:
 
@@ -94,7 +101,7 @@ plugins:
 > **NOTE** Add the meta tag `level:` (without a value) to pages which should be excluded from global password level.
 > Also note that it is always possible to set the page to a different level than the global one with the `level` meta tag.
 
-### Secret from environment
+## Secret from environment
 
 It is possible to read values from environment variable
 (as discribed [here](https://www.mkdocs.org/user-guide/configuration/#environment-variables)).
@@ -110,15 +117,7 @@ plugins:
                 user3: !ENV [PASSWORD3_FROM_ENV, FALLBACK_PASSWORD3_FROM_ENV, 'Password if neither PASSWORD3_FROM_ENV nor FALLBACK_PASSWORD3_FROM_ENV defined']
 ```
 
-To indicate that a particular section of your Markdown file contains sensitive information, add the following metadata at the beginning of the file:
-
-```metadata
----
-level: secret
----
-```
-
-### Default vars customization
+## Default vars customization
 
 Optionally you can use some extra variables in plugin configuration to customize default strings.
 
@@ -146,7 +145,7 @@ Defaut encryption information message is `Contact your administrator for access 
 
 > **NOTE** Adding a prefix to the title does not change the default navigation path !
 
-### Translations
+## Translations
 
 If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/)
 plugin you can provide `translations` for the used `i18n_page_locale`.
@@ -164,11 +163,11 @@ plugin you can provide `translations` for the used `i18n_page_locale`.
             encryption_info_message: 'Bitte wenden Sie sich an den Systemadministrator um auf diese Seite zuzugreifen.'
 ```
 
-#### Custom per-page strings
+### Custom per-page strings
 
 You can set the  meta tag `encryption_summary` to customize `summary` and `encryption_info_message` on every page.
 
-### Obfuscate pages
+## Obfuscate pages
 
 If you want to make it harder for search engines to scrape you pages content,
 you can set `obfuscate: SomeNotSoSecretPassword` meta tag in markdown.
@@ -184,7 +183,7 @@ The keys to all obfuscated pages are also saved in every keystore, so they are d
 correct credentials.
 
 
-### Example plugin configuration
+## Example plugin configuration
 
 ```yaml
 plugins:

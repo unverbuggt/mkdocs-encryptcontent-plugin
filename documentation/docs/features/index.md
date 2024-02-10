@@ -1,6 +1,6 @@
 # Features
 
-### Override default templates
+## Override default templates
 
 Related to [issue #32](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/32)
 
@@ -46,7 +46,7 @@ For example, you can modify your HTML template, to add a new title with your own
 
 > **NOTE** Issues related to template override will not be addressed.
 
-### Add button
+## Add button
 
 Add `password_button: True` in plugin configuration variable, to add a button to the right of the password field.
 
@@ -61,7 +61,7 @@ plugins:
         password_button_text: 'custom_text_button'
 ```
 
-### Tag encrypted page
+## Tag encrypted page
 
 > **Enable by default**
 
@@ -87,7 +87,7 @@ For example, you can use conditional check to add a custom class:
 <a {% if nav_item.encrypted %}class="mkdocs-encrypted-class"{% endif %}href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
 ```
 
-### Remember password
+## Remember password
 
 Related to [issue #6](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/6)
 
@@ -121,7 +121,7 @@ plugins:
         remember_prefix: secretsite_
 ```
 
-### Share link generation
+## Share link generation
 
 It is possible to share valid credentials by adding them to the hash part of the URL.
 The plugin can also generate share links for certain pages if the meta tag `sharelink: true`
@@ -144,7 +144,7 @@ However if `sharelinks: True` is enabled in the plugin configuration you can gen
 > Then another condition applies: If non-aphanumeric characters are used in user/password,
 > they need to be URLencoded (f.ex. %20 = space character). Some browsers may do that automatically (Do a copy/paste from the browsers address bar then).
 
-#### Incomplete Share links
+### Incomplete Share links
 
 Since version 3.0.3 it is possible to leave out one part of the password when share links are generated via meta tag.
 To do this use the ":" character in a password to divide the part that is incorporated to the share link and the part that remains secret,
@@ -155,7 +155,7 @@ If the password that is read from the share link ends with the ":" character, th
 > If the feature is used, then passwords must not end with the ":" character.
 
 
-### Storage of additional variables in keystore
+## Storage of additional variables in keystore
 
 Since version 3.0.3 it is possible to set arbitrary session store variables after decryption.
 These can be used by javascript functions f. ex. to read API tokens or show the user name or set visibility of menu entries.

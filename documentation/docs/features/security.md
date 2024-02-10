@@ -1,6 +1,6 @@
 ## Security
 
-### Crypto-js, crypto-es or webcrypto?
+### Crypto-js or crypto-es or webcrypto?
 
 By default the plugin uses the crypto-js library for page decryption, but using
 the browser's built-in webcrypto engine is also possible (set `webcrypto: true`).

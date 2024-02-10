@@ -50,20 +50,24 @@ In order to use environment variables in user names or passwords, use the
 # Table of Contents
 * [Installation](#Installation)
 * [Usage](#Usage)
+	* [Password inventory](#Password-inventory)
+		* [Password inventory in external file](#Password-inventory-in-external-file)
 	* [Global password protection](#Global-password-protection)
-		* [Password inventory](#Password-inventory)
-		* [Secret from environment](#Secret-from-environment)
-		* [Default vars customization](#Default-vars-customization)
-		* [Translations](#Translations)
-		* [Obfuscate pages](#Obfuscate-pages)
-		* [Example plugin configuration](#Example-plugin-configuration)
+		* [Global passwords in inventory](#Global-passwords-in-inventory)
+	* [Secret from environment](#Secret-from-environment)
+	* [Default vars customization](#Default-vars-customization)
+	* [Translations](#Translations)
+		* [Custom per-page strings](#Custom-per-page-strings)
+	* [Obfuscate pages](#Obfuscate-pages)
+	* [Example plugin configuration](#Example-plugin-configuration)
 * [Features](#Features)
 	* [Override default templates](#Override-default-templates)
-		* [Add button](#Add-button)
-		* [Tag encrypted page](#Tag-encrypted-page)
-		* [Remember password](#Remember-password)
-		* [Share link generation](#Share-link-generation)
-		* [Storage of additional variables in keystore](#Storage-of-additional-variables-in-keystore)
+	* [Add button](#Add-button)
+	* [Tag encrypted page](#Tag-encrypted-page)
+	* [Remember password](#Remember-password)
+	* [Share link generation](#Share-link-generation)
+		* [Incomplete Share links](#Incomplete-Share-links)
+	* [Storage of additional variables in keystore](#Storage-of-additional-variables-in-keystore)
 	* [Modify generated pages](#Modify-generated-pages)
 		* [Encrypt something](#Encrypt-something)
 		* [Inject decrypt-form.tpl to theme](#Inject-decrypt-form.tpl-to-theme)
@@ -77,7 +81,7 @@ In order to use environment variables in user names or passwords, use the
 		* [Arithmatex support](#Arithmatex-support)
 		* [Mermaid.js support](#Mermaid.js-support)
 	* [Security](#Security)
-		* [Crypto-js, crypto-es or webcrypto?](#Crypto-js,-crypto-es-or-webcrypto?)
+		* [Crypto-js or crypto-es or webcrypto?](#Crypto-js-or-crypto-es-or-webcrypto?)
 		* [File name obfuscation](#File-name-obfuscation)
 		* [Signing of generated files](#Signing-of-generated-files)
 
@@ -110,29 +114,13 @@ plugins:
 
 # Usage
 
-Add an meta tag `password: secret password` in your markdown files to protect them.
+Add a tag like `password: secret password` to your pages [Meta-Data](https://www.mkdocs.org/user-guide/writing-your-docs/#yaml-style-meta-data) to protect them.
 
-Alternatively add the meta tag `level: secret` to use one or more secrets defined at the
-plugin's `password_inventory` or `password_file` in your "mkdocs.yml".
-
-
-### Global password protection
-
-Add `global_password: your_password` in plugin configuration variable, to protect all pages with this password by default
-
-```yaml
-plugins:
-    - encryptcontent:
-        global_password: 'your_password'
-```
-
-If the password meta tag is defined in a markdown file, it will **ALWAYS** override the global password. 
-
-> **NOTE** Keep in mind that if the `password:` tag exists without value in a page, it will **not be protected** !
-> Use this to **disable** `global_password` on specific pages.
+Alternatively add a meta tag like `level: secret` to use one or more secrets defined at the
+plugin's `password_inventory` or `password_file` in your "mkdocs.yml" (see below).
 
 
-### Password inventory
+## Password inventory
 
 With the `password_inventory` you can define protection levels (assigned with the meta tag `level` in markdown files).
 
@@ -160,8 +148,17 @@ It is possible to reuse credentials at different levels.
 
 The plugin will generate one secret key for each level, which is then used to encrypt the assigned sites.
 
+To indicate that your Markdown file should be encrypted for level "secret", add the following metadata at the beginning of the file:
 
-#### Password inventory in external file
+```markdown
+---
+level: secret
+---
+This is the first paragraph of the document.
+```
+
+
+### Password inventory in external file
 
 You can define password levels in an external yaml file and link it with `password_file`.
 The intention is to separate sensitive information from configuration options.
@@ -183,8 +180,22 @@ secret:
     user5: 'password5'
 ```
 
+## Global password protection
 
-#### Global password(s) in inventory
+Add `global_password: your_password` in plugin configuration variable, to protect all pages with this password by default
+
+```yaml
+plugins:
+    - encryptcontent:
+        global_password: 'your_password'
+```
+
+If the password meta tag is defined in a markdown file, it will **ALWAYS** override the global password.
+
+> **NOTE** Keep in mind that if the `password:` tag exists without value in a page, it will **not be protected** !
+> Use this to **disable** `global_password` on specific pages.
+
+### Global passwords in inventory
 
 You can add the special level `_global`, which will be applied globally on all sites like this:
 
@@ -204,9 +215,9 @@ plugins:
 > **NOTE** Add the meta tag `level:` (without a value) to pages which should be excluded from global password level.
 > Also note that it is always possible to set the page to a different level than the global one with the `level` meta tag.
 
-### Secret from environment
+## Secret from environment
 
-It is possible to read values from environment variable 
+It is possible to read values from environment variable
 (as discribed [here](https://www.mkdocs.org/user-guide/configuration/#environment-variables)).
 This replaces the deprecated `use_secret` option from previous versions.
 
@@ -220,7 +231,7 @@ plugins:
                 user3: !ENV [PASSWORD3_FROM_ENV, FALLBACK_PASSWORD3_FROM_ENV, 'Password if neither PASSWORD3_FROM_ENV nor FALLBACK_PASSWORD3_FROM_ENV defined']
 ```
 
-### Default vars customization
+## Default vars customization
 
 Optionally you can use some extra variables in plugin configuration to customize default strings.
 
@@ -248,9 +259,9 @@ Defaut encryption information message is `Contact your administrator for access 
 
 > **NOTE** Adding a prefix to the title does not change the default navigation path !
 
-### Translations
+## Translations
 
-If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/) 
+If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/)
 plugin you can provide `translations` for the used `i18n_page_locale`.
 
 ```yaml
@@ -266,11 +277,11 @@ plugin you can provide `translations` for the used `i18n_page_locale`.
             encryption_info_message: 'Bitte wenden Sie sich an den Systemadministrator um auf diese Seite zuzugreifen.'
 ```
 
-#### Custom per-page strings
+### Custom per-page strings
 
 You can set the  meta tag `encryption_summary` to customize `summary` and `encryption_info_message` on every page.
 
-### Obfuscate pages
+## Obfuscate pages
 
 If you want to make it harder for search engines to scrape you pages content,
 you can set `obfuscate: SomeNotSoSecretPassword` meta tag in markdown.
@@ -279,14 +290,14 @@ The page then will display `summary` and `encryption_info_message` together with
 `password_button_text`. In order to view the pages content one hast to press the button first.
 
 If a `password` or `level` is set, then the `obfuscate` feature will be disabled.
-If you want to use `obfuscate` in a configuration where `global_password` or `_global` level is defined, 
+If you want to use `obfuscate` in a configuration where `global_password` or `_global` level is defined,
 you'll need to set the `password:` or rather `level:` meta tag (with no password/level defined) to undefine the password on this page.
 
 The keys to all obfuscated pages are also saved in every keystore, so they are decrypted if someone entered
 correct credentials.
 
 
-### Example plugin configuration
+## Example plugin configuration
 
 ```yaml
 plugins:
@@ -321,7 +332,7 @@ plugins:
           #myNav: [div, id]
           myToc: [div, id]
           myTocButton: [div, id]
-        search_index: 'dynamically' # dynamically encrypt mkdocs search index 
+        search_index: 'dynamically' # dynamically encrypt mkdocs search index
         webcrypto: true # use browsers webcrypto support
         #selfhost: true # use self-hosted crypto-js
         #selfhost_download: true # download crypt-js for self-hosting
@@ -343,7 +354,7 @@ plugins:
 
 # Features
 
-### Override default templates
+## Override default templates
 
 Related to [issue #32](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/32)
 
@@ -389,7 +400,7 @@ For example, you can modify your HTML template, to add a new title with your own
 
 > **NOTE** Issues related to template override will not be addressed.
 
-### Add button
+## Add button
 
 Add `password_button: True` in plugin configuration variable, to add a button to the right of the password field.
 
@@ -404,7 +415,7 @@ plugins:
         password_button_text: 'custom_text_button'
 ```
 
-### Tag encrypted page
+## Tag encrypted page
 
 > **Enable by default**
 
@@ -430,7 +441,7 @@ For example, you can use conditional check to add a custom class:
 <a {% if nav_item.encrypted %}class="mkdocs-encrypted-class"{% endif %}href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
 ```
 
-### Remember password
+## Remember password
 
 Related to [issue #6](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/6)
 
@@ -464,7 +475,7 @@ plugins:
         remember_prefix: secretsite_
 ```
 
-### Share link generation
+## Share link generation
 
 It is possible to share valid credentials by adding them to the hash part of the URL.
 The plugin can also generate share links for certain pages if the meta tag `sharelink: true`
@@ -487,7 +498,7 @@ However if `sharelinks: True` is enabled in the plugin configuration you can gen
 > Then another condition applies: If non-aphanumeric characters are used in user/password,
 > they need to be URLencoded (f.ex. %20 = space character). Some browsers may do that automatically (Do a copy/paste from the browsers address bar then).
 
-#### Incomplete Share links
+### Incomplete Share links
 
 Since version 3.0.3 it is possible to leave out one part of the password when share links are generated via meta tag.
 To do this use the ":" character in a password to divide the part that is incorporated to the share link and the part that remains secret,
@@ -498,7 +509,7 @@ If the password that is read from the share link ends with the ":" character, th
 > If the feature is used, then passwords must not end with the ":" character.
 
 
-### Storage of additional variables in keystore
+## Storage of additional variables in keystore
 
 Since version 3.0.3 it is possible to set arbitrary session store variables after decryption.
 These can be used by javascript functions f. ex. to read API tokens or show the user name or set visibility of menu entries.
@@ -923,7 +934,7 @@ The script is called after successful decryption and renders the mermaid graphs 
 the theme would normally do.
 ## Security
 
-### Crypto-js, crypto-es or webcrypto?
+### Crypto-js or crypto-es or webcrypto?
 
 By default the plugin uses the crypto-js library for page decryption, but using
 the browser's built-in webcrypto engine is also possible (set `webcrypto: true`).
