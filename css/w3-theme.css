@@ -1,0 +1,139 @@
+/* inspired by https://www.w3schools.com/w3css/w3css_color_generator.asp and https://www.w3schools.com/colors/colors_schemes.asp */
+
+/* light theme */
+.w3-theme-l5 {color:#000 !important; background-color:#f5fbfb !important}
+.w3-theme-l4 {color:#000 !important; background-color:#d9f1f0 !important}
+.w3-theme-l3 {color:#000 !important; background-color:#bde7e6 !important}
+.w3-theme-l2 {color:#000 !important; background-color:#a1dcdb !important}
+.w3-theme-l1 {color:#000 !important; background-color:#85d2d0 !important}
+.w3-theme-d1 {color:#000 !important; background-color:#a83d3f !important}
+.w3-theme-d2 {color:#000 !important; background-color:#953638 !important}
+.w3-theme-d3 {color:#fff !important; background-color:#822f31 !important}
+.w3-theme-d4 {color:#fff !important; background-color:#70282a !important}
+.w3-theme-d5 {color:#fff !important; background-color:#5d2223 !important}
+
+.w3-theme-light {color:#000 !important; background-color:#f5fbfb !important}
+.w3-theme-dark {color:#fff !important; background-color:#5d2223 !important}
+.w3-theme-action {color:#fff !important; background-color:#5d2223 !important}
+
+.w3-theme {color:#000 !important; background-color:#bb4446 !important}
+.w3-text-theme {color:#bb4446 !important}
+.w3-border-theme {border-color:#bb4446 !important}
+
+.w3-hover-theme:hover {color:#000 !important; background-color:#bb4446 !important}
+.w3-hover-text-theme:hover {color:#bb4446 !important}
+.w3-hover-border-theme:hover {border-color:#bb4446 !important}
+
+.w3-code {
+  border-left:4px solid #bb4446;
+}
+.w3-code {
+  color:#000;
+  background-color:#d9f1f0;
+}
+.w3-codespan {
+  color:#000;
+  background-color:#bde7e6;
+}
+
+a{color: inherit !important;}
+
+.w3-striped tbody tr:nth-child(even){
+    background-color:#d9f1f0
+}
+
+.w3-bordered tr{
+    border-bottom:1px solid #000
+}
+
+.w3-table tbody tr:hover,table li:hover{
+  background-color:#bde7e6
+}
+
+.search-results article:hover {
+  background-color:#bde7e6
+}
+
+pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}/*!
+  Theme: StackOverflow Light
+  Description: Light theme as used on stackoverflow.com
+  Author: stackoverflow.com
+  Maintainer: @Hirse
+  Website: https://github.com/StackExchange/Stacks
+  License: MIT
+  Updated: 2021-05-15
+
+  Updated for @stackoverflow/stacks v0.64.0
+  Code Blocks: /blob/v0.64.0/lib/css/components/_stacks-code-blocks.less
+  Colors: /blob/v0.64.0/lib/css/exports/_stacks-constants-colors.less
+*/.hljs{color:#2f3337}.hljs-subst{color:#2f3337}.hljs-comment{color:#656e77}.hljs-attr,.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-section,.hljs-selector-tag{color:#015692}.hljs-attribute{color:#803378}.hljs-name,.hljs-number,.hljs-quote,.hljs-selector-id,.hljs-template-tag,.hljs-type{color:#b75501}.hljs-selector-class{color:#015692}.hljs-link,.hljs-regexp,.hljs-selector-attr,.hljs-string,.hljs-symbol,.hljs-template-variable,.hljs-variable{color:#54790d}.hljs-meta,.hljs-selector-pseudo{color:#015692}.hljs-built_in,.hljs-literal,.hljs-title{color:#b75501}.hljs-bullet,.hljs-code{color:#535a60}.hljs-meta .hljs-string{color:#54790d}.hljs-deletion{color:#c02d2e}.hljs-addition{color:#2f6f44}.hljs-emphasis{font-style:italic}.hljs-strong{font-weight:700}
+
+@media (prefers-color-scheme: dark) {
+  /* dark theme */
+  .w3-theme-l5 {color:#fff !important; background-color:#030909 !important}
+  .w3-theme-l4 {color:#fff !important; background-color:#0d2524 !important}
+  .w3-theme-l3 {color:#fff !important; background-color:#174140 !important}
+  .w3-theme-l2 {color:#fff !important; background-color:#225d5c !important}
+  .w3-theme-l1 {color:#fff !important; background-color:#2c7977 !important}
+  .w3-theme-d1 {color:#fff !important; background-color:#c15659 !important}
+  .w3-theme-d2 {color:#fff !important; background-color:#c8696b !important}
+  .w3-theme-d3 {color:#fff !important; background-color:#cf7c7e !important}
+  .w3-theme-d4 {color:#fff !important; background-color:#d68e90 !important}
+  .w3-theme-d5 {color:#000 !important; background-color:#dca1a3 !important}
+
+  .w3-theme-light {color:#fff !important; background-color:#030909 !important}
+  .w3-theme-dark {color:#000 !important; background-color:#dca1a3 !important}
+  .w3-theme-action {color:#000 !important; background-color:#dca1a3 !important}
+
+  .w3-theme {color:#fff !important; background-color:#bb4446 !important}
+  .w3-text-theme {color:#bb4446 !important}
+  .w3-border-theme {border-color:#bb4446 !important}
+
+  .w3-hover-theme:hover {color:#fff !important; background-color:#bb4446 !important}
+  .w3-hover-text-theme:hover {color:#bb4446 !important}
+  .w3-hover-border-theme:hover {border-color:#bb4446 !important}
+
+  .w3-code {
+    border-left:4px solid #bb4446;
+  }
+  .w3-code {
+    color:#fff;
+    background-color:#0d2524;
+  }
+  .w3-codespan {
+    color:#fff;
+    background-color:#174140;
+  }
+
+  a{color: inherit !important;}
+
+  .w3-striped tbody tr:nth-child(even){
+      background-color:#0d2524
+  }
+
+  .w3-bordered tr{
+      border-bottom:1px solid #fff
+  }
+
+  .w3-table tbody tr:hover,table li:hover{
+    background-color:#174140
+  }
+
+  .search-results article:hover {
+    background-color:#174140
+  }
+
+  pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}/*!
+    Theme: StackOverflow Dark
+    Description: Dark theme as used on stackoverflow.com
+    Author: stackoverflow.com
+    Maintainer: @Hirse
+    Website: https://github.com/StackExchange/Stacks
+    License: MIT
+    Updated: 2021-05-15
+
+    Updated for @stackoverflow/stacks v0.64.0
+    Code Blocks: /blob/v0.64.0/lib/css/components/_stacks-code-blocks.less
+    Colors: /blob/v0.64.0/lib/css/exports/_stacks-constants-colors.less
+  */.hljs{color:#fff}.hljs-subst{color:#fff}.hljs-comment{color:#999}.hljs-attr,.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-section,.hljs-selector-tag{color:#88aece}.hljs-attribute{color:#c59bc1}.hljs-name,.hljs-number,.hljs-quote,.hljs-selector-id,.hljs-template-tag,.hljs-type{color:#f08d49}.hljs-selector-class{color:#88aece}.hljs-link,.hljs-regexp,.hljs-selector-attr,.hljs-string,.hljs-symbol,.hljs-template-variable,.hljs-variable{color:#b5bd68}.hljs-meta,.hljs-selector-pseudo{color:#88aece}.hljs-built_in,.hljs-literal,.hljs-title{color:#f08d49}.hljs-bullet,.hljs-code{color:#ccc}.hljs-meta .hljs-string{color:#b5bd68}.hljs-deletion{color:#de7176}.hljs-addition{color:#76c490}.hljs-emphasis{font-style:italic}.hljs-strong{font-weight:700}
+}
