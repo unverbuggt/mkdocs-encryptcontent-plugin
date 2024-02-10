@@ -16,7 +16,7 @@ plugins:
         global_password: 'your_password'
 ```
 
-If the password meta tag is defined in a markdown file, it will **ALWAYS** override the global password. 
+If the password meta tag is defined in a markdown file, it will **ALWAYS** override the global password.
 
 > **NOTE** Keep in mind that if the `password:` tag exists without value in a page, it will **not be protected** !
 > Use this to **disable** `global_password` on specific pages.
@@ -96,7 +96,7 @@ plugins:
 
 ### Secret from environment
 
-It is possible to read values from environment variable 
+It is possible to read values from environment variable
 (as discribed [here](https://www.mkdocs.org/user-guide/configuration/#environment-variables)).
 This replaces the deprecated `use_secret` option from previous versions.
 
@@ -108,6 +108,14 @@ plugins:
                 user1: !ENV PASSWORD1_FROM_ENV
                 user2: !ENV [PASSWORD2_FROM_ENV, 'Password if PASSWORD2_FROM_ENV undefined or empty']
                 user3: !ENV [PASSWORD3_FROM_ENV, FALLBACK_PASSWORD3_FROM_ENV, 'Password if neither PASSWORD3_FROM_ENV nor FALLBACK_PASSWORD3_FROM_ENV defined']
+```
+
+To indicate that a particular section of your Markdown file contains sensitive information, add the following metadata at the beginning of the file:
+
+```metadata
+---
+level: secret
+---
 ```
 
 ### Default vars customization
@@ -140,7 +148,7 @@ Defaut encryption information message is `Contact your administrator for access 
 
 ### Translations
 
-If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/) 
+If the plugin is used in conjunction with the [static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/)
 plugin you can provide `translations` for the used `i18n_page_locale`.
 
 ```yaml
@@ -169,7 +177,7 @@ The page then will display `summary` and `encryption_info_message` together with
 `password_button_text`. In order to view the pages content one hast to press the button first.
 
 If a `password` or `level` is set, then the `obfuscate` feature will be disabled.
-If you want to use `obfuscate` in a configuration where `global_password` or `_global` level is defined, 
+If you want to use `obfuscate` in a configuration where `global_password` or `_global` level is defined,
 you'll need to set the `password:` or rather `level:` meta tag (with no password/level defined) to undefine the password on this page.
 
 The keys to all obfuscated pages are also saved in every keystore, so they are decrypted if someone entered
@@ -211,7 +219,7 @@ plugins:
           #myNav: [div, id]
           myToc: [div, id]
           myTocButton: [div, id]
-        search_index: 'dynamically' # dynamically encrypt mkdocs search index 
+        search_index: 'dynamically' # dynamically encrypt mkdocs search index
         webcrypto: true # use browsers webcrypto support
         #selfhost: true # use self-hosted crypto-js
         #selfhost_download: true # download crypt-js for self-hosting
