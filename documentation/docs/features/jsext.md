@@ -70,7 +70,7 @@ MathJax.typesetPromise()
 
 > **Enable by default**
 
-Related to [issue #22](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/22)
+Related to [issue #22](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/22).
 
 If mermaid2 plugin is detected in your configuration to generate graph from text, reload renderer after
 decryption process.
@@ -135,3 +135,22 @@ extra_javascript:
 
 The script is called after successful decryption and renders the mermaid graphs in a similar way as
 the theme would normally do.
+
+### mkdocs-glightbox
+
+Related to [issue #62](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/62).
+
+The plugin would add click events to all image of a page, but it can't do that if the page was encrypted.
+That's why we need to add it to `reload_scripts` section to call it after successful decryption.
+
+```yaml
+plugins:
+  - glightbox:
+      zoomable: true
+      draggable: true
+      skip_classes:
+        - skip-lightbox
+  - encryptcontent:
+      reload_scripts:
+      - '#init-glightbox'
+```
