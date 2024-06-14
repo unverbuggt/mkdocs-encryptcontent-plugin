@@ -468,11 +468,11 @@ class encryptContentPlugin(BasePlugin):
             self.setup['canary_template'] = template_html.read()
 
         # Check if hljs feature need to be enabled, based on theme configuration
-        if ('highlightjs' in config['theme']._vars
-                and config['theme']._vars['highlightjs']    # noqa: W503
+        if ('highlightjs' in config['theme']
+                and config['theme']['highlightjs']    # noqa: W503
                     and self.config['hljs'] is not False):  # noqa: W503, E127
             logger.debug('"highlightjs" value detected on theme config, enable rendering after decryption.')
-            self.config['hljs'] = config['theme']._vars['highlightjs']
+            self.config['hljs'] = config['theme']['highlightjs']
         elif self.config['hljs']:
             logger.debug('"highlightjs" feature enabled, enable rendering after decryption.')
         else:
