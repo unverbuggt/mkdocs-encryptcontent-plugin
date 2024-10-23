@@ -1,0 +1,71 @@
+@media print
+{
+  .no-print, .no-print *
+  {
+    display: none !important;
+  }
+}
+
+/*anchor offset for myTop*/
+h1,h2,h3,h4,h5,h6 {
+  padding-top: 100px;
+  margin-top: -100px;
+}
+.search-results h3 {
+  /*but not for mkdocs-search-results*/
+  padding-top: 0;
+  margin-top: 0;
+}
+
+/*svg icons*/
+.svg-1em {
+  height: 1em;
+  width: 1em;
+  display: inline-flex;
+  bottom: .125em;
+  position: relative;
+  vertical-align: middle;
+}
+.svg-2em {
+  height: 2em;
+  width: 2em;
+  display: inline-flex;
+  position: relative;
+  vertical-align: middle;
+}
+
+/*fonts*/
+body{
+  font-family: Tahoma, Verdana, sans-serif;
+  font-size: .8rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+h1{font-size:2.25rem}h2{font-size:1.875rem}h3{font-size:1.5rem}h4{font-size:1.25rem}h5{font-size:1.125rem}h6{font-size:1rem}
+
+.w3-code, .w3-codespan {
+  font-family:Consolas, Courier, monospace;
+  font-size:.8rem;
+}
+
+.w3-tiny{font-size:0.625rem!important}.w3-small{font-size:0.75rem!important}.w3-medium{font-size:0.9375rem!important}.w3-large{font-size:1.125rem!important}
+.w3-xlarge{font-size:1.5rem!important}.w3-xxlarge{font-size:2.25rem!important}.w3-xxxlarge{font-size:3rem!important}.w3-jumbo{font-size:4rem!important}
+
+.w3-main-custom,#main{transition:margin-left .4s}
+
+@media (max-width:992px){ /*medium or small*/
+  .w3-main-custom{margin-left:0!important;margin-right:0!important}
+}
+@media (max-width:1280px){ /*small or medium or large*/
+  .w3-collapse-custom{display:none}
+  .w3-main-custom{margin-left:0!important}
+  html{font-size: 125%}
+}
+@media (min-width:1281px){ /*huge*/
+  .w3-hide-huge{display:none!important}
+  .w3-collapse-custom{display:block!important}
+  html{font-size: 137.5%}
+}

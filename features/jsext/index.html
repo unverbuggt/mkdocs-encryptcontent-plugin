@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="René Rüthlein" name="author"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/features/jsext/" rel="canonical"/>
+<link href="../../img/logo.ico" rel="shortcut icon"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/features/jsext/" hreflang="de" rel="alternate"/>
+<title>Javascript extensions - MkDocs encryptcontent plugin V3</title>
+<link href="../../css/w3.css" rel="stylesheet"/>
+<link href="../../css/w3-theme.css" id="theme-auto" rel="stylesheet"/>
+<link href="../../css/w3-theme-light.css" id="theme-light" media="none" rel="stylesheet"/>
+<link href="../../css/w3-theme-dark.css" id="theme-dark" media="none" rel="stylesheet"/>
+<link href="../../css/theme.css" rel="stylesheet"/>
+<script>
+  var base_url = "../..";
+  var themeItem = 'risonia_theme_'+encodeURIComponent('https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/');
+
+  function checkTheme() {
+    let theme = localStorage.getItem(themeItem);
+    if (theme) {
+      if (theme == 'light') {
+        document.getElementById('theme-dark').media = 'none';
+        document.getElementById('theme-light').media = '';
+      }
+      if (theme == 'dark') {
+        document.getElementById('theme-light').media = 'none';
+        document.getElementById('theme-dark').media = '';
+      }
+    }
+  }
+  checkTheme()
+  </script>
+</head>
+<body class="w3-theme-l5">
+<svg style="display: none;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<symbol fill="currentColor" id="open-menu" viewbox="0 0 10 10">
+<rect height="2" width="10" y="0"></rect>
+<rect height="2" width="10" y="4"></rect>
+<rect height="2" width="10" y="8"></rect>
+</symbol>
+<symbol fill="currentColor" id="drop-down" viewbox="0 0 10 10">
+<path d="m2 1h6l-3 8z"></path>
+</symbol>
+<symbol fill="currentColor" id="to-top" viewbox="0 0 10 10">
+<path d="m2 9h6l-3-8z"></path>
+</symbol>
+<symbol id="theme-toggle" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.35" ry="4.35" stroke="currentColor" stroke-width="1.2"></ellipse>
+<path d="M 5,0.5 A 4.5,4.5 0 0 1 9.5,5 4.5,4.5 0 0 1 5,9.5 V 5 Z" fill="currentColor"></path>
+</symbol>
+<symbol fill="none" id="close-menu" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m0.71 0.71 8.58 8.58" stroke-width="2"></path>
+<path d="m9.29 0.71-8.58 8.58" stroke-width="2"></path>
+</symbol>
+<symbol fill="none" id="toc" stroke="currentColor" stroke-width="1.5" viewbox="0 0 10 10">
+<path d="m2.75 1.25h6.75"></path>
+<path d="m0.5 1.25h1.5"></path>
+<path d="m5 6.13h4.5"></path>
+<path d="m2.75 6.13h1.5"></path>
+<path d="m2.75 3.87h6.75"></path>
+<path d="m0.5 3.87h1.5"></path>
+<path d="m2.75 8.75h6.75"></path>
+<path d="m0.5 8.75h1.5"></path>
+</symbol>
+<symbol fill="none" id="extlink" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m5 5 4-4" stroke-width=".75"></path>
+<path d="m9 4v-3h-3" stroke-width=".75"></path>
+<path d="m5 3h-3.5v5.5h5.5v-3.5" stroke-width="1.25"></path>
+</symbol>
+<symbol fill="none" id="i18n" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.63" ry="4.63" stroke-width=".732"></ellipse>
+<g fill="none" stroke-width=".75" transform="matrix(1 0 0 .989 0 .0527)">
+<path d="m0.5 5 9 5.1e-6"></path>
+<path d="m1.6 1.6c3.39 3.4 6.8 0 6.8 0"></path>
+<path d="m1.6 8.4c3.39-3.4 6.8 0 6.8 0"></path>
+<path d="m5 0.23s5.5 4.77 0 9.54"></path>
+<path d="m5 0.23s-5.5 4.77 0 9.54"></path>
+<path d="m5 0.452v9.1"></path>
+</g>
+</symbol>
+<symbol fill="none" id="search" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="3.25" cy="3.25" fill="none" rx="2.75" ry="2.75"></ellipse>
+<path d="m5 5 4.65 4.65" fill="none"></path>
+</symbol>
+<symbol id="encrypted" viewbox="0 0 10 10">
+<path d="m5.67 15.1v22.7h26.5v-22.7zm13.2 4.28c2.87 6.63e-4 5.19 1.88 5.19 4.21-6.29e-4 1.85-1.5 3.49-3.69 4.02l2.05 6.54h-7.1l2.05-6.54c-2.19-0.537-3.69-2.17-3.69-4.02 1.62e-4 -2.32 2.32-4.21 5.19-4.21z" fill="currentColor" stroke="none" transform="scale(.265)"></path>
+<path d="m5 0.874c-1.4-1.61e-4 -2.53 1.13-2.53 2.53 3.17e-4 0.179 0.0197 0.887 0.0579 1.06h4.94c0.0382-0.175 0.0576-0.883 0.0579-1.06 1.61e-4 -1.4-1.13-2.53-2.53-2.53z" fill="none" stroke="currentColor" stroke-width="1"></path>
+</symbol>
+</svg>
+<div class="w3-container w3-cell-row w3-top w3-theme w3-medium no-print" id="myTop" style="z-index:2;">
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small" onclick="w3_open()"><img class="svg-2em" src="../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-top">Javascript extensions</span>
+</div>
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-left w3-hide no-print" id="myToTop" onclick="topFunction()"><svg class="svg-1em"><use xlink:href="#to-top"></use></svg></button>
+</div>
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" id="myThemeToggle" onclick="toggleTheme(themeItem)"><svg class="svg-1em"><use xlink:href="#theme-toggle"></use></svg></button>
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" onclick="openSearch()"><svg class="svg-1em"><use xlink:href="#search"></use></svg></button>
+<a class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">&lt;/&gt;</a>
+</div>
+</div>
+<header class="w3-container w3-theme w3-medium">
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme w3-hover-theme w3-padding-small" style="background-color: transparent!important;"><img class="svg-2em" src="../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-head">Javascript extensions</span>
+</div>
+</header>
+<nav class="w3-sidebar w3-bar-block w3-collapse-custom w3-animate-left w3-theme-l4" id="mySidebar" style="z-index:3;width:300px;">
+<div id="myNav" style="font-weight: bold;">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../..">
+      Encryptcontent plugin V3
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../installation/">
+      Installation
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../usage/">
+      Usage
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../">
+      Features<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<div class="w3-animate-left" id="acc1">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../modifypages/" style="padding-left: 24px;">
+        Modify pages
+      </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../search/" style="padding-left: 24px;">
+        Search encryption
+      </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l2" href="./" style="padding-left: 24px;">
+        Javascript extensions
+      </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../security/" style="padding-left: 24px;">
+        Security
+      </a>
+</div>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../explanations/">
+      How does it work?
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../testbench/">
+      Test bench<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-overlay w3-hide-huge w3-animate-opacity" id="myOverlay" onclick="w3_close()" style="cursor:pointer;"></div>
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-animate-right w3-theme-l4" id="myTocbar" style="z-index:3;width:300px;right:0;">
+<div id="myToc">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="#javascript-extensions">Javascript extensions</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#reload-user-defined-scripts">Reload user-defined scripts</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#highlightjs-support">HighlightJS support</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#arithmatex-support">Arithmatex support</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#mermaidjs-support">Mermaid.js support</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#mkdocs-mermaid2-plugin" style="padding-left: 24px;">mkdocs-mermaid2-plugin</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#mkdocs-material" style="padding-left: 24px;">mkdocs-material</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#mkdocs-glightbox">mkdocs-glightbox</a>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-main-custom" id="main-view" style="margin-left:300px; margin-right:300px;">
+<div class="w3-container" style="padding: 32px;">
+<div class="w3-right w3-margin-bottom no-print">
+<div class="w3-dropdown-hover w3-hide-large" id="myTocButton" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3 w3-hover-theme"><svg class="svg-1em"><use xlink:href="#toc"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l3" href="#javascript-extensions">Javascript extensions</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#reload-user-defined-scripts">Reload user-defined scripts</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#highlightjs-support">HighlightJS support</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#arithmatex-support">Arithmatex support</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#mermaidjs-support">Mermaid.js support</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#mkdocs-mermaid2-plugin" style="padding-left: 24px;">mkdocs-mermaid2-plugin</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#mkdocs-material" style="padding-left: 24px;">mkdocs-material</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#mkdocs-glightbox">mkdocs-glightbox</a>
+</div>
+</div>
+<div class="w3-dropdown-hover" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3"><svg class="svg-1em"><use xlink:href="#i18n"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l2" href="/mkdocs-encryptcontent-plugin/features/jsext/">English</a>
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="/mkdocs-encryptcontent-plugin/de/features/jsext/">Deutsch</a>
+</div>
+</div>
+</div>
+<h2 id="javascript-extensions">Javascript extensions</h2>
+<h3 id="reload-user-defined-scripts">Reload user-defined scripts</h3>
+<p>Related to <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/14" target="_blank">issue #14<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></p>
+<p>You can set <code class="w3-codespan">reload_scripts:</code> in your <code class="w3-codespan">mkdocs.yml</code> with list of script sources
+or script ids, to reload and execute some js lib after decryption process.</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        reload_scripts:
+            - 'js/example.js'
+            - '#autoexec'
+</code></pre>
+<p>It is also possible to reload a script id like <code class="w3-codespan">&lt;script id="autoexec"&gt;console.log('test');&lt;/script&gt;</code>
+that was encrypted within the page
+(related to <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/30" target="_blank">issue #30<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>).</p>
+<h3 id="highlightjs-support">HighlightJS support</h3>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>Enable by default</strong></p>
+</div>
+<p>If HighlightJS module is detected in your theme to improve code color rendering, reload renderer after
+decryption process.
+If HighlightJS module is not correctly detected, you can force the detection by adding <code class="w3-codespan">hljs: True</code>
+on the plugin configuration
+or set <code class="w3-codespan">hljs: False</code> to disable this feature.</p>
+<p>When enabled the following part of the template is added to force reloading decrypted content.</p>
+<pre class="w3-code w3-responsive"><code class="language-jinja">{% if hljs %}
+document.getElementById("mkdocs-decrypted-content").querySelectorAll('pre code').forEach((block) =&gt; {
+    hljs.highlightElement(block);
+});
+{% endif %}
+</code></pre>
+<h3 id="arithmatex-support">Arithmatex support</h3>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>Enable by default</strong></p>
+</div>
+<p>Related to <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/12" target="_blank">issue #12<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></p>
+<p>If Arithmatex markdown extension is detected in your markdown extensions to improve math equations rendering,
+reload renderer after decryption process.
+If the Arithmatex markdown extension is not correctly detected, you can force the detection by adding
+<code class="w3-codespan">arithmatex: True</code> on the plugin configuration
+or set <code class="w3-codespan">arithmatex: False</code> to disable this feature.</p>
+<p>When enabled, the following part of the template is added to force math equations rendering on decrypted content.</p>
+<pre class="w3-code w3-responsive"><code class="language-jinja">{% if arithmatex %}
+MathJax.typesetPromise()
+{% endif %}
+</code></pre>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>NOTE</strong> It has been tested in Arithmatex <code class="w3-codespan">generic</code> mode only. </p>
+</div>
+<h3 id="mermaidjs-support">Mermaid.js support</h3>
+<h4 id="mkdocs-mermaid2-plugin">mkdocs-mermaid2-plugin</h4>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>Enable by default</strong></p>
+</div>
+<p>Related to <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/22" target="_blank">issue #22<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>.</p>
+<p>If mermaid2 plugin is detected in your configuration to generate graph from text, reload renderer after
+decryption process.
+If the Mermaid2 plugin is not correctly detected, you can force the detection by adding <code class="w3-codespan">mermaid2: True</code>
+on the plugin configuration
+or set <code class="w3-codespan">mermaid2: False</code> to disable this feature.</p>
+<p>When enabled, the following part of the template is added to force graph rendering on decrypted content.</p>
+<pre class="w3-code w3-responsive"><code class="language-jinja">{% if mermaid2 %}
+mermaid.contentLoaded();
+{% endif %}
+</code></pre>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>NOTE</strong> it currently only works with mermaid version &lt; 10. Also encryptcontent needs to be injected,
+because the mermaid2 plugin otherwise won't detect the page content correctly.</p>
+</div>
+<p>activate the plugin like this:</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - mermaid2:
+        version: 9.4.3
+
+markdown_extensions:
+    - pymdownx.blocks.html
+</code></pre>
+<p>Example usage:</p>
+<pre class="w3-code w3-responsive"><code>password: 1234
+inject_id: inject
+
+
+/// html | div#inject
+
+```mermaid
+graph LR
+    hello --&gt; world
+    world --&gt; again
+    again --&gt; hello
+```
+
+///
+</code></pre>
+<h4 id="mkdocs-material">mkdocs-material</h4>
+<p>Add support for mermaid graphs by adding the <code class="w3-codespan">pymdownx.superfences</code> to <code class="w3-codespan">markdown_extensions</code> as 
+described <a href="https://squidfunk.github.io/mkdocs-material/reference/diagrams/" target="_blank">here<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>.</p>
+<p>Copy the "material-encryptcontent.mjs" file from
+<a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/version3/fixes" target="_blank">here<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+to "/assets/javascripts/" and include it to "mkdocs.yml" like this:</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">extra_javascript:
+  - assets/javascripts/material-encryptcontent.mjs
+</code></pre>
+<p>The script is called after successful decryption and renders the mermaid graphs in a similar way as
+the theme would normally do.</p>
+<h3 id="mkdocs-glightbox">mkdocs-glightbox</h3>
+<p>Related to <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/issues/62" target="_blank">issue #62<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>.</p>
+<p>The plugin would add click events to all image of a page, but it can't do that if the page was encrypted.
+That's why we need to add it to <code class="w3-codespan">reload_scripts</code> section to call it after successful decryption.</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+  - glightbox:
+      zoomable: true
+      draggable: true
+      skip_classes:
+        - skip-lightbox
+  - encryptcontent:
+      reload_scripts:
+      - '#init-glightbox'
+</code></pre>
+<div class="w3-modal" id="mkdocs_search_modal">
+<div class="w3-modal-content">
+<div class="w3-theme-l4">
+<span class="w3-theme-l2 w3-button w3-hover-theme w3-display-topright" onclick="closeSearch();"><svg class="svg-1em"><use xlink:href="#close-menu"></use></svg></span>
+<span class="w3-display-topleft" style="padding: 8px 16px;"><svg class="svg-2em"><use xlink:href="#search"></use></svg></span>
+<form id="content_search">
+<div class="w3-container"> </div>
+<div class="w3-container"> </div>
+<div class="w3-container">
+<input class="w3-input w3-border w3-round w3-theme-l5 w3-hover-theme" id="mkdocs-search-query" placeholder="" type="search"/>
+</div>
+</form>
+<div class="w3-container search-results" data-no-results-text="-" id="mkdocs-search-results"> </div>
+</div>
+</div>
+</div>
+</div>
+<div class="w3-modal" id="zoom_img_modal" onclick="this.style.display='none'">
+<div class="w3-modal-content w3-animate-zoom">
+<img id="img_modal" style="width:100%;"/>
+</div>
+</div>
+<footer class="w3-container w3-theme no-print">
+<p class="w3-left w3-tiny">
+<a href="https://www.mkdocs.org" target="_blank">MkDocs<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+<span class="w3-hide-small"> / <a href="https://ultrabug.github.io/mkdocs-static-i18n/" target="_blank">static i18n<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">encryptcontent<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://www.w3schools.com/w3css/" target="_blank">w3.css<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+    / <a href="https://github.com/unverbuggt/mkdocs-risonia-theme" target="_blank">Risonia theme<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+</p>
+<p class="w3-right w3-tiny">
+<span id="show-user"></span>
+</p>
+</footer>
+</div>
+<script src="../../js/theme.js"></script>
+<script src="../../assets/javascripts/highlight.min.js"></script>
+<script src="../../assets/javascripts/languages/django.min.js"></script>
+<script src="../../assets/javascripts/tex-chtml.js"></script>
+<script src="../../assets/javascripts/mermaid.min.js"></script>
+<script src="../../search/main.js"></script>
+<script>
+  var DOMContentLoaded_fired = false;
+</script>
+<script id="theme">
+function runWhenDOMContentLoaded() {
+  document.querySelectorAll('pre code').forEach((el) => {
+    hljs.highlightElement(el);
+  });
+  MathJax.typesetPromise();
+  //small test for "additional variables in keystore"
+  username = sessionStorage.getItem('username');
+  if (username) {
+    document.getElementById('show-user').textContent = username;
+  }
+}
+if (DOMContentLoaded_fired) {
+  runWhenDOMContentLoaded();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  DOMContentLoaded_fired=true;
+  runWhenDOMContentLoaded();
+});
+</script>
+</body>
+</html>

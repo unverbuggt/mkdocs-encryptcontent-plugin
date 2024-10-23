@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="René Rüthlein" name="author"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/onlypasswords2/" rel="canonical"/>
+<link href="../../../img/logo.ico" rel="shortcut icon"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/onlypasswords2/" hreflang="x-default" rel="alternate"/>
+<title>Test2 - MkDocs Encryptcontent Plugin V3</title>
+<link href="../../../css/w3.css" rel="stylesheet"/>
+<link href="../../../css/w3-theme.css" id="theme-auto" rel="stylesheet"/>
+<link href="../../../css/w3-theme-light.css" id="theme-light" media="none" rel="stylesheet"/>
+<link href="../../../css/w3-theme-dark.css" id="theme-dark" media="none" rel="stylesheet"/>
+<link href="../../../css/theme.css" rel="stylesheet"/>
+<script>
+  var base_url = "../../..";
+  var themeItem = 'risonia_theme_'+encodeURIComponent('https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/');
+
+  function checkTheme() {
+    let theme = localStorage.getItem(themeItem);
+    if (theme) {
+      if (theme == 'light') {
+        document.getElementById('theme-dark').media = 'none';
+        document.getElementById('theme-light').media = '';
+      }
+      if (theme == 'dark') {
+        document.getElementById('theme-light').media = 'none';
+        document.getElementById('theme-dark').media = '';
+      }
+    }
+  }
+  checkTheme()
+  </script>
+</head>
+<body class="w3-theme-l5">
+<svg style="display: none;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<symbol fill="currentColor" id="open-menu" viewbox="0 0 10 10">
+<rect height="2" width="10" y="0"></rect>
+<rect height="2" width="10" y="4"></rect>
+<rect height="2" width="10" y="8"></rect>
+</symbol>
+<symbol fill="currentColor" id="drop-down" viewbox="0 0 10 10">
+<path d="m2 1h6l-3 8z"></path>
+</symbol>
+<symbol fill="currentColor" id="to-top" viewbox="0 0 10 10">
+<path d="m2 9h6l-3-8z"></path>
+</symbol>
+<symbol id="theme-toggle" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.35" ry="4.35" stroke="currentColor" stroke-width="1.2"></ellipse>
+<path d="M 5,0.5 A 4.5,4.5 0 0 1 9.5,5 4.5,4.5 0 0 1 5,9.5 V 5 Z" fill="currentColor"></path>
+</symbol>
+<symbol fill="none" id="close-menu" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m0.71 0.71 8.58 8.58" stroke-width="2"></path>
+<path d="m9.29 0.71-8.58 8.58" stroke-width="2"></path>
+</symbol>
+<symbol fill="none" id="toc" stroke="currentColor" stroke-width="1.5" viewbox="0 0 10 10">
+<path d="m2.75 1.25h6.75"></path>
+<path d="m0.5 1.25h1.5"></path>
+<path d="m5 6.13h4.5"></path>
+<path d="m2.75 6.13h1.5"></path>
+<path d="m2.75 3.87h6.75"></path>
+<path d="m0.5 3.87h1.5"></path>
+<path d="m2.75 8.75h6.75"></path>
+<path d="m0.5 8.75h1.5"></path>
+</symbol>
+<symbol fill="none" id="extlink" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m5 5 4-4" stroke-width=".75"></path>
+<path d="m9 4v-3h-3" stroke-width=".75"></path>
+<path d="m5 3h-3.5v5.5h5.5v-3.5" stroke-width="1.25"></path>
+</symbol>
+<symbol fill="none" id="i18n" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.63" ry="4.63" stroke-width=".732"></ellipse>
+<g fill="none" stroke-width=".75" transform="matrix(1 0 0 .989 0 .0527)">
+<path d="m0.5 5 9 5.1e-6"></path>
+<path d="m1.6 1.6c3.39 3.4 6.8 0 6.8 0"></path>
+<path d="m1.6 8.4c3.39-3.4 6.8 0 6.8 0"></path>
+<path d="m5 0.23s5.5 4.77 0 9.54"></path>
+<path d="m5 0.23s-5.5 4.77 0 9.54"></path>
+<path d="m5 0.452v9.1"></path>
+</g>
+</symbol>
+<symbol fill="none" id="search" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="3.25" cy="3.25" fill="none" rx="2.75" ry="2.75"></ellipse>
+<path d="m5 5 4.65 4.65" fill="none"></path>
+</symbol>
+<symbol id="encrypted" viewbox="0 0 10 10">
+<path d="m5.67 15.1v22.7h26.5v-22.7zm13.2 4.28c2.87 6.63e-4 5.19 1.88 5.19 4.21-6.29e-4 1.85-1.5 3.49-3.69 4.02l2.05 6.54h-7.1l2.05-6.54c-2.19-0.537-3.69-2.17-3.69-4.02 1.62e-4 -2.32 2.32-4.21 5.19-4.21z" fill="currentColor" stroke="none" transform="scale(.265)"></path>
+<path d="m5 0.874c-1.4-1.61e-4 -2.53 1.13-2.53 2.53 3.17e-4 0.179 0.0197 0.887 0.0579 1.06h4.94c0.0382-0.175 0.0576-0.883 0.0579-1.06 1.61e-4 -1.4-1.13-2.53-2.53-2.53z" fill="none" stroke="currentColor" stroke-width="1"></path>
+</symbol>
+</svg>
+<div class="w3-container w3-cell-row w3-top w3-theme w3-medium no-print" id="myTop" style="z-index:2;">
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small" onclick="w3_open()"><img class="svg-2em" src="../../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-top">Nur Passwörter 2</span>
+</div>
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-left w3-hide no-print" id="myToTop" onclick="topFunction()"><svg class="svg-1em"><use xlink:href="#to-top"></use></svg></button>
+</div>
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" id="myThemeToggle" onclick="toggleTheme(themeItem)"><svg class="svg-1em"><use xlink:href="#theme-toggle"></use></svg></button>
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" onclick="openSearch()"><svg class="svg-1em"><use xlink:href="#search"></use></svg></button>
+<a class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">&lt;/&gt;</a>
+</div>
+</div>
+<header class="w3-container w3-theme w3-medium">
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme w3-hover-theme w3-padding-small" style="background-color: transparent!important;"><img class="svg-2em" src="../../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-head">Nur Passwörter 2</span>
+</div>
+</header>
+<nav class="w3-sidebar w3-bar-block w3-collapse-custom w3-animate-left w3-theme-l4" id="mySidebar" style="z-index:3;width:300px;">
+<div id="myNav" style="font-weight: bold;">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../">
+      Encryptcontent Plugin V3
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../installation/">
+      Installation
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../usage/">
+      Usage
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../features/">
+      Features<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../explanations/">
+      How does it work?
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../">
+      Testaufbau<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<div class="w3-animate-left" id="acc1">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="javascript:void(0)" onclick="myAccordion('acc2')" style="padding-left: 24px;">
+        Passwörter<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<div class="w3-animate-left" id="acc2">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../onlypasswords1/" style="padding-left: 32px;">
+          Test1 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l2" href="./" style="padding-left: 32px;">
+          Test2 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../onlypasswords3/" style="padding-left: 32px;">
+          Test3 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+</div>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="javascript:void(0)" onclick="myAccordion('acc3')" style="padding-left: 24px;">
+        Benutzername/Passwort<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<div class="w3-animate-left w3-hide" id="acc3">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../userpass1/" style="padding-left: 32px;">
+          Test1 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../userpass2/" style="padding-left: 32px;">
+          Test2 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../anchor/" style="padding-left: 32px;">
+          Anchors <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+</div>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../obfuscate/" style="padding-left: 24px;">
+        Verschleiern <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../jstest/" style="padding-left: 24px;">
+        JS test <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../search/" style="padding-left: 24px;">
+        Search encryption
+      </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../share/" style="padding-left: 24px;">
+        Share Link
+      </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../hashfilenames/" style="padding-left: 24px;">
+        Hash files
+      </a>
+</div>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-overlay w3-hide-huge w3-animate-opacity" id="myOverlay" onclick="w3_close()" style="cursor:pointer;"></div>
+<div class="w3-main-custom" id="main-view" style="margin-left:300px;">
+<div class="w3-container" style="padding: 32px;">
+<div class="w3-right w3-margin-bottom no-print">
+<div class="w3-dropdown-hover" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3"><svg class="svg-1em"><use xlink:href="#i18n"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="/mkdocs-encryptcontent-plugin/testbench/onlypasswords2/">English</a>
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l2" href="/mkdocs-encryptcontent-plugin/de/testbench/onlypasswords2/">Deutsch</a>
+</div>
+</div>
+</div>
+<div id="teaser">
+<p>Es ist möglich diese Seite mit einem der folgenden Passwörter zu entschlüsseln:</p>
+<ul>
+<li>moist:W00l:kept:royal</li>
+<li>SpotChestOilCycle22</li>
+<li>m00dy#augmented#Arsonist</li>
+<li><strong>Hatless,hertz,C4lzone</strong></li>
+</ul>
+<p>Wenn eines dieser Passwörter eingegeben wird, dann ist auch <a href="../onlypasswords1/">Nur Passwörter 1</a> entschlüsselt.<br/>
+Falls das Passwort "Hatless,hertz,C4lzone" verwendet wird, dann ist auch <a href="../onlypasswords3/">Nur Passwörter 3</a> entschlüsselt.</p>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>Hinweis:</strong> Es wird länger dauern wenn das Passwort "Hatless,hertz,C4lzone" gewählt wird,
+weil es siebenmal an den anderen Proben scheitern wird.</p>
+</div>
+</div>
+<div><div id="mkdocs-encrypted-content" style="display:none">orVu0lS5GmpTbSdbVo/xdw==;OlbBxYkv/PCREbAFuCS6YA==</div>
+<div id="mkdocs-decrypted-content">
+<form id="mkdocs-decrypt-form">
+<h1></h1>
+<p>Legitimation erforderlich.</p>
+<div class="w3-row-padding" style="padding-left: 0px;">
+<div class="w3-third">
+<input class="w3-input" id="mkdocs-content-password" placeholder="Passwort" type="password"/>
+</div>
+<div class="w3-third">
+<button class="w3-button w3-theme-l1 w3-hover-theme" id="mkdocs-decrypt-button">ENTER</button>
+</div>
+</div>
+<p id="mkdocs-decrypt-msg"></p>
+</form>
+</div>
+<div id="encryptcontent-info"></div>
+<script type="text/javascript">
+var encryptcontent_id = "encryptcontent_plugin_2";
+var encryptcontent_path = "mkdocs-encryptcontent-plugin/de/testbench/onlypasswords2/";
+var decryption_failure_message = "Falscher Benutzer oder Passwort.";
+var encryptcontent_keystore = ["qwcqKx+enA5Bny4zKMh22w==;gBQVX7CD9UDG98SSdZpdpD/U7dctFiZ+8EKDV3cz0tioGBIynETXfB39A4fu+REgBsyPnqyGH6AJjSwY2/iPl6UNdQYAZ03oaiNYpFh+kS+va+PIadttHjWf8yop4MQxE2RctN+zhzVPFMQpXSTxOluh3weeiDb7y8nUy2VmvKl2eqF7o7Y3+8Rv06SNLRCw6X21+u8nBekWoSNocEYDwS3HINlDHMfC58SQdfMT9Maco9++FtkjAAOip1KDS5XhbcunJ1ohr/at3ZFzDQD9mBtwcmEt/IaXzgssH6b8khzfiEQ5levMmmouBUEu2/gusjk0mYJiLBY2uAx9g0K9YHZUOyO5xLBLZQT78caD6aoqVrJiNnYdY+6+lKWWVEiqVHnnPDEn01PPy0m8g/YYi3eJqxK9XooutFlcD7R+VOIbR2sqZNxvktEul2nAlmoxcJyw/SrbsG/KiZEpfEWpVIIsbTcyoIH5WGviNmFoMnnkA7IKCDxtpHCAIxPakVkk1ryzCUuVHe3MrHVZkA/INEFColCRmtFJek3YYQCccv34HUKowHc7htcAL3YSU4RU;4lBkvrZnTVY+aiv8KaDN6w==", "0tuKXfSqNQ7qdiu9K6+T9w==;yZBWX7NrGEsbUmqNpmCNQOOaJ3ENndhMyMyzkJefYHpBCM/aUVowPKhvZ+EjdFRBBk/kogwiwUQN+LVD/Xy4F8tAw9mXQLUeimetQ1JeLgu+nWN7IJ85gcajv0589hmmdNpSFRNQoTNedbJnxQWRzaM7//rRR1rFV2Vo3PVJSawjZLX60CiTpiZ1OGOu+hfMWY9MAUOO4S7agbUy2B8iuK55fVxHjygGCINIHdrtgoO487cPeqjyMtqScPItLO7/433d3/eMpJctVrtKFwWq+loWb1ChLLzqeK57dRT6Pw3N5uuyBjiG/X5maaer6pG4f4X9NH2P7u0CgaD9vMPZtS4dBWYq/MFxbLjvRTCEzJKGil1fFSWrpERhgkNKQL8Ad+z76I87Dom4nAprxQA96X7PAbSgOuxEjP87WOI6p44KNLaXyxbiUFTlhsO4UrvZgvIZM1sDWTgO2g5oEkMpmYTYLtZmtbIP6MGvp8GYF9/qclUUUiPCLl0JqvODoFC0lKyTglwIp+GjUb7xO7B4DmX1fpjjGF3kxMoGpOWJkzVfvKXr0cufDhZDMxkZXiGJ;oWa3CiWGIj7HdMg4QPVw+w==", "ItY57LBDG3vr6b1xaMZg1g==;eZYl+O64IjmFY/ndEd8CUx3c2bmiZDsR3vZyFFfn0TTvaY3TQ7XDJAx6d60s7bRGq34rNw2XV5otqJUsyLoKoVQNeNCek3O9E3XVsOoRan09I2n9D8ydO83pxuHy0vndipnwSOaB3ivirodwdtIyxdyuAX+JG4UYrccnJ2nKMYiFWSS7YdUs7nqlBtIu6BXGepEwpU7dCsW/3Polo3MvIkOlVg8/cDphRYCvX6a0y/7xLaIgHRceaHAKw1J70M+rHrJwDC0GqNB/PmLSLAYKHhEdeyaSTz3MSzIZ9aTluBA7wi46VqLzV2tOMTo3MnsSULehxAqEt7nJ1O3JEswGOKOH5yamHtjyYnwxgurupjW0/EEeZMq04u8z47vOMbZd750uLf7frambUzB9DXx2w1jcF8v2SWkpZE1jpkROd3LPfhgXrTmGrMGxthlbS5zHokd6syqDZNhHIbVIychkdpEqxAn0YwyWWOBgvbC0wuwj0zNehn+JWI7NZr9fxEHyHhw1Wxt4jvYGxTJ0cLwJxbQguJS0y+Fsledii/ADZNRrJSbVFNvmHYatEShhi4Ao;5hbhVtsIcxhVvmGuLjV/mw==", "io5oIKl6IrsgQTK5lM8BCA==;9PjtfyRYVQOCTk0TcY4Tg58wPCYRmrH6MGCBpE5cWVZK59eLtE486TqPt4CPVOag+uFqXKolCZL30fUoR/zyXrutn3zqk4lnkDZR4e0GRZ+61uUQ03Qxxm0eYXzQf5YIUwKSagndgKQG6IuJRemhytdpc2C32ebWrvTh2fxctxWhXSGWVmJH3o/OoMqUGNUp/gWawPST1EXNIOmnnL+3NUrRk4GXj5j0RkRU3jJuTJozWtpOukFtYhn7hLEe7VkTDuiYerOldap4EJCatcfE3amKnTbJ6ZYwrEG5vG0uZYa3rMku5HRJX7XXKFzgAK2Fg0QgE0eTexbXdSNcYPXTbFROJ1xkQC73Vr7ueqv/EHx7E+YUq69aKvm8GPIP6TwORQczj24klaoXwGpRrPv6xXywIvi4v/MfGe+73XJISjX19xIoiVLr88BCrgb6HZYexVE0TqfWZuV9If9wXikHxxtrEO/AHYPYDDYhHtX7IMUkP98qeiKCsSNoRkfu3gz7Yb7OZFkuENYWsKKMpCqc8zOKJi075pyZCgK0n9qE6LmcUian8N2Q5NHo6D3pIACO;tbuh5HhB1MH5LUixx6VozA=="];
+var encryptcontent_obfuscate = 0;
+var inject_something = {'protected': ['div', 'id']};var delete_something = "teaser";
+</script>
+<script type="module">
+if (!window.hasOwnProperty("init_decryptor")) {
+    import("../../../assets/javascripts/decrypt-contents.js");
+} else {
+    init_decryptor();
+}
+</script>
+<script>
+var encryptcontent_info = document.getElementById('encryptcontent-info');
+encryptcontent_info.innerHTML = '<b>keystore length:</b> '+ encryptcontent_keystore.length + '<br>encryptcontent id:<b>:</b> ' + encryptcontent_id;
+</script></div><div id="protected" style="display:none">mA9izD1mqqJtYOPy1dJbSw==;WVwG2n3i1pQYG3RhUFHhm8WfWGE86sCIoJ91nmyvPDaLhSxW5uB1btq32LJHwli043HfjavNYSJB+1a6JF8s9RUOejtutU9cCF9zwrNY0stZVCcwrvfC+FX4gbobOqS4NREIneAc4Z9WplC9pUhYbulnGPUifZHQLBUDtIck5sbkwJVUe2dZlrF/65XDP++nPW99ZNcrs/Sdi9IFoyjogIVdj4YEyARz2OltHviP3iNysFDZcPyG/WMjZH5iNZ7oM4rjXNYU161pI0NQeAuPE94ZMr2W/zfyfvtp7aFzYK0t7A83r61HGc4S3yxi1nfrpJ3UMlN2J5fmCY3KQgrRL9l0Xaj3OIEIMWh10HSTAkbVJ+qFW3cApI8cAlfH+ICdhsXrrBLGSP1Y6TtoYCd2e/mysskhLgDEsAoZC7d/8DWPGI9/u6iP6LjkgLEbuGS4TCd0S9KRmOL4f6NHkLj5b7LrPWo+1JIN80/HNO65BL+inGIUAHL2DGrwcSr632OzPa0mELqP74ysEH9mqfBMcqt2TIONcm5FpUhAMeotNHIXGpCZNyLLNA2/PMtIpVpc10Gvd4ln8wUc39gj8WA/n33EddCoCkfMlDi6MZldVQNN387SmthphU10yItb1HW3f4IdFA54vibDNfk2P+TczTdZChaQdyGKP8duIuHXgFzdx2VWpy7l0HyQD/5DUSuKJQwohmZ9SkJuW9lHS1x+16C8v+OKN9XIUgilOrmWf4CZJZ9r+xJRxKL62IXPmgveCpbceJpqnaPZewPMRYvQ+G7KObq5gTi5M3Dmtg8v8IhROXTx0RbLI/LfP4W92BdT73scvYZDJ/on6nKs/YGhCoDLTBcYiNG7mlo4JTDmFZcCgay/K5XyaRXTSv+Ajg6SKW/05/HTRZogenp0JAW9CddBiJVMXfMrBbi1OtdLwDUz4faKbmeH+rKv3dpGawCJumvcUVQKxVpQVikKSaIXnjwmuvwmRe17igjpb+bx5E5FAOJ5GlNBhYXDGUVBAFfitENSKmlyD8jRguvD/1FS3m7elkJKGU6KVY+6ZX6KrhCo/2v2PJv2b7LDswKePAHogf9Liao/OB6wT3+HfF/vsqp7xonT1wEt3UTtwgp5eR5mvHIqeJwKnOT8NvQ+AtgENYofJNtZRe0dQSZ6QgcOYA4R2376o1IZbCpn4vqIDwBbOWin2ZTFtaYO/Y7gq07RXhT5k7eES0XTBUej5VI1XMSJbTChRfu7ooF0YdMkFN97myVttjJ3AsoiVT9B3zLDfes+d9DIstObmYO9jJclfSU05+oDpx9gmVzjYzXr6BLNVASIiYXBWfV+PrvqmkPGG+ZJKxGE9ilDchLrIKwEkzDWZIxDt4r29bmQeULWzBh+FXIymhjBlb2NeEfubnZapCHdChHBh1m+sOS18TkBRg==</div>
+<div class="w3-modal" id="mkdocs_search_modal">
+<div class="w3-modal-content">
+<div class="w3-theme-l4">
+<span class="w3-theme-l2 w3-button w3-hover-theme w3-display-topright" onclick="closeSearch();"><svg class="svg-1em"><use xlink:href="#close-menu"></use></svg></span>
+<span class="w3-display-topleft" style="padding: 8px 16px;"><svg class="svg-2em"><use xlink:href="#search"></use></svg></span>
+<form id="content_search">
+<div class="w3-container"> </div>
+<div class="w3-container"> </div>
+<div class="w3-container">
+<input class="w3-input w3-border w3-round w3-theme-l5 w3-hover-theme" id="mkdocs-search-query" placeholder="" type="search"/>
+</div>
+</form>
+<div class="w3-container search-results" data-no-results-text="-" id="mkdocs-search-results"> </div>
+</div>
+</div>
+</div>
+</div>
+<div class="w3-modal" id="zoom_img_modal" onclick="this.style.display='none'">
+<div class="w3-modal-content w3-animate-zoom">
+<img id="img_modal" style="width:100%;"/>
+</div>
+</div>
+<footer class="w3-container w3-theme no-print">
+<p class="w3-left w3-tiny">
+<a href="https://www.mkdocs.org" target="_blank">MkDocs<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+<span class="w3-hide-small"> / <a href="https://ultrabug.github.io/mkdocs-static-i18n/" target="_blank">static i18n<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">encryptcontent<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://www.w3schools.com/w3css/" target="_blank">w3.css<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+    / <a href="https://github.com/unverbuggt/mkdocs-risonia-theme" target="_blank">Risonia theme<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+</p>
+<p class="w3-right w3-tiny">
+<span id="show-user"></span>
+</p>
+</footer>
+</div>
+<script src="../../../js/theme.js"></script>
+<script src="../../../assets/javascripts/highlight.min.js"></script>
+<script src="../../../assets/javascripts/languages/django.min.js"></script>
+<script src="../../../assets/javascripts/tex-chtml.js"></script>
+<script src="../../../assets/javascripts/mermaid.min.js"></script>
+<script src="../../../search/main.js"></script>
+<script>
+  var DOMContentLoaded_fired = false;
+</script>
+<script id="theme">
+function runWhenDOMContentLoaded() {
+  document.querySelectorAll('pre code').forEach((el) => {
+    hljs.highlightElement(el);
+  });
+  MathJax.typesetPromise();
+  //small test for "additional variables in keystore"
+  username = sessionStorage.getItem('username');
+  if (username) {
+    document.getElementById('show-user').textContent = username;
+  }
+}
+if (DOMContentLoaded_fired) {
+  runWhenDOMContentLoaded();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  DOMContentLoaded_fired=true;
+  runWhenDOMContentLoaded();
+});
+</script>
+</body>
+</html>

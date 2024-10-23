@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="René Rüthlein" name="author"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/features/security/" rel="canonical"/>
+<link href="../../../img/logo.ico" rel="shortcut icon"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/features/security/" hreflang="x-default" rel="alternate"/>
+<title>Security - MkDocs Encryptcontent Plugin V3</title>
+<link href="../../../css/w3.css" rel="stylesheet"/>
+<link href="../../../css/w3-theme.css" id="theme-auto" rel="stylesheet"/>
+<link href="../../../css/w3-theme-light.css" id="theme-light" media="none" rel="stylesheet"/>
+<link href="../../../css/w3-theme-dark.css" id="theme-dark" media="none" rel="stylesheet"/>
+<link href="../../../css/theme.css" rel="stylesheet"/>
+<script>
+  var base_url = "../../..";
+  var themeItem = 'risonia_theme_'+encodeURIComponent('https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/');
+
+  function checkTheme() {
+    let theme = localStorage.getItem(themeItem);
+    if (theme) {
+      if (theme == 'light') {
+        document.getElementById('theme-dark').media = 'none';
+        document.getElementById('theme-light').media = '';
+      }
+      if (theme == 'dark') {
+        document.getElementById('theme-light').media = 'none';
+        document.getElementById('theme-dark').media = '';
+      }
+    }
+  }
+  checkTheme()
+  </script>
+</head>
+<body class="w3-theme-l5">
+<svg style="display: none;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<symbol fill="currentColor" id="open-menu" viewbox="0 0 10 10">
+<rect height="2" width="10" y="0"></rect>
+<rect height="2" width="10" y="4"></rect>
+<rect height="2" width="10" y="8"></rect>
+</symbol>
+<symbol fill="currentColor" id="drop-down" viewbox="0 0 10 10">
+<path d="m2 1h6l-3 8z"></path>
+</symbol>
+<symbol fill="currentColor" id="to-top" viewbox="0 0 10 10">
+<path d="m2 9h6l-3-8z"></path>
+</symbol>
+<symbol id="theme-toggle" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.35" ry="4.35" stroke="currentColor" stroke-width="1.2"></ellipse>
+<path d="M 5,0.5 A 4.5,4.5 0 0 1 9.5,5 4.5,4.5 0 0 1 5,9.5 V 5 Z" fill="currentColor"></path>
+</symbol>
+<symbol fill="none" id="close-menu" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m0.71 0.71 8.58 8.58" stroke-width="2"></path>
+<path d="m9.29 0.71-8.58 8.58" stroke-width="2"></path>
+</symbol>
+<symbol fill="none" id="toc" stroke="currentColor" stroke-width="1.5" viewbox="0 0 10 10">
+<path d="m2.75 1.25h6.75"></path>
+<path d="m0.5 1.25h1.5"></path>
+<path d="m5 6.13h4.5"></path>
+<path d="m2.75 6.13h1.5"></path>
+<path d="m2.75 3.87h6.75"></path>
+<path d="m0.5 3.87h1.5"></path>
+<path d="m2.75 8.75h6.75"></path>
+<path d="m0.5 8.75h1.5"></path>
+</symbol>
+<symbol fill="none" id="extlink" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m5 5 4-4" stroke-width=".75"></path>
+<path d="m9 4v-3h-3" stroke-width=".75"></path>
+<path d="m5 3h-3.5v5.5h5.5v-3.5" stroke-width="1.25"></path>
+</symbol>
+<symbol fill="none" id="i18n" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.63" ry="4.63" stroke-width=".732"></ellipse>
+<g fill="none" stroke-width=".75" transform="matrix(1 0 0 .989 0 .0527)">
+<path d="m0.5 5 9 5.1e-6"></path>
+<path d="m1.6 1.6c3.39 3.4 6.8 0 6.8 0"></path>
+<path d="m1.6 8.4c3.39-3.4 6.8 0 6.8 0"></path>
+<path d="m5 0.23s5.5 4.77 0 9.54"></path>
+<path d="m5 0.23s-5.5 4.77 0 9.54"></path>
+<path d="m5 0.452v9.1"></path>
+</g>
+</symbol>
+<symbol fill="none" id="search" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="3.25" cy="3.25" fill="none" rx="2.75" ry="2.75"></ellipse>
+<path d="m5 5 4.65 4.65" fill="none"></path>
+</symbol>
+<symbol id="encrypted" viewbox="0 0 10 10">
+<path d="m5.67 15.1v22.7h26.5v-22.7zm13.2 4.28c2.87 6.63e-4 5.19 1.88 5.19 4.21-6.29e-4 1.85-1.5 3.49-3.69 4.02l2.05 6.54h-7.1l2.05-6.54c-2.19-0.537-3.69-2.17-3.69-4.02 1.62e-4 -2.32 2.32-4.21 5.19-4.21z" fill="currentColor" stroke="none" transform="scale(.265)"></path>
+<path d="m5 0.874c-1.4-1.61e-4 -2.53 1.13-2.53 2.53 3.17e-4 0.179 0.0197 0.887 0.0579 1.06h4.94c0.0382-0.175 0.0576-0.883 0.0579-1.06 1.61e-4 -1.4-1.13-2.53-2.53-2.53z" fill="none" stroke="currentColor" stroke-width="1"></path>
+</symbol>
+</svg>
+<div class="w3-container w3-cell-row w3-top w3-theme w3-medium no-print" id="myTop" style="z-index:2;">
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small" onclick="w3_open()"><img class="svg-2em" src="../../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-top">Security</span>
+</div>
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-left w3-hide no-print" id="myToTop" onclick="topFunction()"><svg class="svg-1em"><use xlink:href="#to-top"></use></svg></button>
+</div>
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" id="myThemeToggle" onclick="toggleTheme(themeItem)"><svg class="svg-1em"><use xlink:href="#theme-toggle"></use></svg></button>
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" onclick="openSearch()"><svg class="svg-1em"><use xlink:href="#search"></use></svg></button>
+<a class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">&lt;/&gt;</a>
+</div>
+</div>
+<header class="w3-container w3-theme w3-medium">
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme w3-hover-theme w3-padding-small" style="background-color: transparent!important;"><img class="svg-2em" src="../../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-head">Security</span>
+</div>
+</header>
+<nav class="w3-sidebar w3-bar-block w3-collapse-custom w3-animate-left w3-theme-l4" id="mySidebar" style="z-index:3;width:300px;">
+<div id="myNav" style="font-weight: bold;">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../">
+      Encryptcontent Plugin V3
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../installation/">
+      Installation
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../usage/">
+      Usage
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../">
+      Features<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<div class="w3-animate-left" id="acc1">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../modifypages/" style="padding-left: 24px;">
+        Modify pages
+      </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../search/" style="padding-left: 24px;">
+        Search encryption
+      </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../jsext/" style="padding-left: 24px;">
+        Javascript extensions
+      </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l2" href="./" style="padding-left: 24px;">
+        Security
+      </a>
+</div>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../explanations/">
+      How does it work?
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../testbench/">
+      Testaufbau<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-overlay w3-hide-huge w3-animate-opacity" id="myOverlay" onclick="w3_close()" style="cursor:pointer;"></div>
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-animate-right w3-theme-l4" id="myTocbar" style="z-index:3;width:300px;right:0;">
+<div id="myToc">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="#security">Security</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#crypto-js-or-crypto-es-or-webcrypto">Crypto-js or crypto-es or webcrypto?</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#self-host-crypto-js-or-crypto-es" style="padding-left: 24px;">Self-host Crypto-js or Crypto-es</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#kdf-key-generation-caching" style="padding-left: 24px;">KDF key generation caching</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#file-name-obfuscation">File name obfuscation</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#signing-of-generated-files">Signing of generated files</a>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-main-custom" id="main-view" style="margin-left:300px; margin-right:300px;">
+<div class="w3-container" style="padding: 32px;">
+<div class="w3-right w3-margin-bottom no-print">
+<div class="w3-dropdown-hover w3-hide-large" id="myTocButton" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3 w3-hover-theme"><svg class="svg-1em"><use xlink:href="#toc"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l3" href="#security">Security</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#crypto-js-or-crypto-es-or-webcrypto">Crypto-js or crypto-es or webcrypto?</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#self-host-crypto-js-or-crypto-es" style="padding-left: 24px;">Self-host Crypto-js or Crypto-es</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#kdf-key-generation-caching" style="padding-left: 24px;">KDF key generation caching</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#file-name-obfuscation">File name obfuscation</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#signing-of-generated-files">Signing of generated files</a>
+</div>
+</div>
+<div class="w3-dropdown-hover" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3"><svg class="svg-1em"><use xlink:href="#i18n"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="/mkdocs-encryptcontent-plugin/features/security/">English</a>
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l2" href="/mkdocs-encryptcontent-plugin/de/features/security/">Deutsch</a>
+</div>
+</div>
+</div>
+<h2 id="security">Security</h2>
+<h3 id="crypto-js-or-crypto-es-or-webcrypto">Crypto-js or crypto-es or webcrypto?</h3>
+<p>By default the plugin uses the crypto-js library for page decryption, but using
+the browser's built-in webcrypto engine is also possible (set <code class="w3-codespan">webcrypto: true</code>).</p>
+<p>The main advantage of webcrypto over crypto-js is that it is much faster, allowing higher
+calculation difficulty for key derivation (<code class="w3-codespan">kdf_pow</code>). Also it may be easier to implement
+key derivation functions other than PBKDF2 with webcrypto in the future.</p>
+<p>On the other hand crypto-js is implemented in pure Javascript without any dependencies and well
+tested (but it probably won't receive any updates as development stalled in 2021, see <a href="https://github.com/brix/crypto-js/#discontinued" target="_blank">here<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>)
+and we know nothing about how good or bad webcrypto is implemented in different browsers.</p>
+<p>There is a new variation of <a href="https://github.com/brix/crypto-js" target="_blank">crypto-js<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>, called <a href="https://github.com/entronad/crypto-es" target="_blank">crypto-es<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>.
+It provides the same functions, but is implemented in modern javascript and can be activated by setting <code class="w3-codespan">esm: true</code>.<br/>
+If <code class="w3-codespan">webcrypto: true</code> and <code class="w3-codespan">esm: true</code> is set, then webcrypto will be loaded as a
+javascript module (speeding up material theme with instant loading feature).</p>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p>Crypto-js causes a bug when browsing through encrypted pages,
+if used in <code class="w3-codespan">mkdocs-material</code> together with the <code class="w3-codespan">navigation.instant</code> feature.
+It is advised to use <code class="w3-codespan">webcrypto: true</code> or crypto-es with <code class="w3-codespan">esm: true</code> in this case.</p>
+</div>
+<h4 id="self-host-crypto-js-or-crypto-es">Self-host Crypto-js or Crypto-es</h4>
+<p>If you enable <code class="w3-codespan">selfhost</code> then you'll choose to upload crypto-js to your web server rather than using cloudflare CDN.
+The self-host location is "SITE_URL/assets/javascripts/cryptojs/".</p>
+<p>Additionally if you set <code class="w3-codespan">selfhost_download</code> then the required files will be automatically downloaded if needed.
+The files are checked for their MD5 hash and saved to <code class="w3-codespan">docs_dir</code> or <code class="w3-codespan">selfhost_dir</code> (relative to <code class="w3-codespan">mkdocs.yml</code>).</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        selfhost: True
+        selfhost_download: False
+        selfhost_dir: 'theme_overrides'
+</code></pre>
+<h4 id="kdf-key-generation-caching">KDF key generation caching</h4>
+<p>Either way (webcrypto or crypto-js) the <a href="https://en.wikipedia.org/wiki/Key_derivation_function" target="_blank">KDF<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+key generation needs to be done for each credential.
+This may take some additional time when building the site, especially when there are many different ones.
+That's why these keys and salt are cached by default to a yaml file named "encryptcontent.cache".</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        cache_file: 'encryptcontent.cache' # change file name if needed
+</code></pre>
+<p>Caching can be disabled by setting <code class="w3-codespan">cache_file: ''</code>.</p>
+<h3 id="file-name-obfuscation">File name obfuscation</h3>
+<p>Imagine your pages contain many images and you labeled them "1.jpg", "2.jpg" and so on for some reason.
+If you'd like to encrypt one of these pages, an attacker could try guessing the image file names
+and would be able to download them despite not having the password to the page.</p>
+<p>This feature should make it impossible or at least way harder for an external attacker to guess the file names.
+Please also check and disable directory listing for that matter.
+Keep in mind that your hosting provider is still able to see all your images and files.</p>
+<p>To counter file name guessing you could activate the feature like this:</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        selfhost: true
+        selfhost_download: false
+        hash_filenames:
+          extensions:
+            - 'png'
+            - 'jpg'
+            - 'jpeg'
+            - 'svg'
+          except:
+            - 'lilien.svg'
+</code></pre>
+<p>At <code class="w3-codespan">extensions</code> we define which file name extensions to obfuscate
+(extension is taken from the part after the last ".",
+so the extension of "image.jpg" is "jpg" and of "archive.tar.gz" is "gz").</p>
+<p>You can define multiple exceptions at the <code class="w3-codespan">except</code> list.
+The file names that end with these strings will be skipped.
+You should use this if some images are used by themes or other plugins.
+Otherwise, you'd need to change these file names to the obfuscated ones.</p>
+<p>The file names are obfuscated in a way that the corresponding file is hashed with MD5
+and the hash is added to the file name
+(If the file content is not changed the file name remains the same), like this:</p>
+<p>some_image_1_bb80db433751833b8f8b4ad23767c0fc.jpg
+("bb80db433751833b8f8b4ad23767c0fc" being the MD5 hash of said image.)</p>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p>The file name obfuscation is currently applied to the whole site - not just the encrypted pages...</p>
+</div>
+<h3 id="signing-of-generated-files">Signing of generated files</h3>
+<p>An attacker would most likely have a hard time brute forcing your encrypted content, given a good
+password entropy. It would be much easier for him to fish for passwords by modifying the
+generated pages, if he is able to hack your web space.</p>
+<p>This feature will sign all encrypted pages and used javascript files with Ed25519. It will also generate
+an example <a href="https://en.wikipedia.org/wiki/Domestic_canary#Miner's_canary" target="_blank">canary script<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>, which can be
+customized to alert if files were modified.</p>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>NOTE</strong> If Mkdocs is running with <code class="w3-codespan">mkdocs serve</code>, then signature verification of encrypted pages
+will fail, because the files are modified by Mkdocs to enable live reload.</p>
+</div>
+<pre class="w3-code w3-responsive"><code class="language-yaml">      sign_files: 'signatures.json'
+      sign_key: 'encryptcontent.key' #optional
+      canary_template_path: '/path/to/canary.tpl.py' #optional
+</code></pre>
+<p>First an Ed25519 private key is generated at "encryptcontent.key" (besides <code class="w3-codespan">mkdocs.yml</code>), however you can supply an
+existing private key as long as it's in PEM format.</p>
+<p>After generation the signatures are saved to "signatures.json" in <code class="w3-codespan">site_dir</code>, so this file also needs to be uploaded
+to the web space. The canary script will download this file and compare the URLs to its own list and then download
+all files and verify the signatures.</p>
+<p>As long as the private key used for signing remains secret, the canary script will be able to determine
+if someone tampered with the files on the server. But you should run the canary script from another machine
+that is not related to the server, otherwise the attacker could also modify the canary script and sign with his
+private key instead.</p>
+<div class="w3-modal" id="mkdocs_search_modal">
+<div class="w3-modal-content">
+<div class="w3-theme-l4">
+<span class="w3-theme-l2 w3-button w3-hover-theme w3-display-topright" onclick="closeSearch();"><svg class="svg-1em"><use xlink:href="#close-menu"></use></svg></span>
+<span class="w3-display-topleft" style="padding: 8px 16px;"><svg class="svg-2em"><use xlink:href="#search"></use></svg></span>
+<form id="content_search">
+<div class="w3-container"> </div>
+<div class="w3-container"> </div>
+<div class="w3-container">
+<input class="w3-input w3-border w3-round w3-theme-l5 w3-hover-theme" id="mkdocs-search-query" placeholder="" type="search"/>
+</div>
+</form>
+<div class="w3-container search-results" data-no-results-text="-" id="mkdocs-search-results"> </div>
+</div>
+</div>
+</div>
+</div>
+<div class="w3-modal" id="zoom_img_modal" onclick="this.style.display='none'">
+<div class="w3-modal-content w3-animate-zoom">
+<img id="img_modal" style="width:100%;"/>
+</div>
+</div>
+<footer class="w3-container w3-theme no-print">
+<p class="w3-left w3-tiny">
+<a href="https://www.mkdocs.org" target="_blank">MkDocs<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+<span class="w3-hide-small"> / <a href="https://ultrabug.github.io/mkdocs-static-i18n/" target="_blank">static i18n<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">encryptcontent<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://www.w3schools.com/w3css/" target="_blank">w3.css<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+    / <a href="https://github.com/unverbuggt/mkdocs-risonia-theme" target="_blank">Risonia theme<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+</p>
+<p class="w3-right w3-tiny">
+<span id="show-user"></span>
+</p>
+</footer>
+</div>
+<script src="../../../js/theme.js"></script>
+<script src="../../../assets/javascripts/highlight.min.js"></script>
+<script src="../../../assets/javascripts/languages/django.min.js"></script>
+<script src="../../../assets/javascripts/tex-chtml.js"></script>
+<script src="../../../assets/javascripts/mermaid.min.js"></script>
+<script src="../../../search/main.js"></script>
+<script>
+  var DOMContentLoaded_fired = false;
+</script>
+<script id="theme">
+function runWhenDOMContentLoaded() {
+  document.querySelectorAll('pre code').forEach((el) => {
+    hljs.highlightElement(el);
+  });
+  MathJax.typesetPromise();
+  //small test for "additional variables in keystore"
+  username = sessionStorage.getItem('username');
+  if (username) {
+    document.getElementById('show-user').textContent = username;
+  }
+}
+if (DOMContentLoaded_fired) {
+  runWhenDOMContentLoaded();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  DOMContentLoaded_fired=true;
+  runWhenDOMContentLoaded();
+});
+</script>
+</body>
+</html>
