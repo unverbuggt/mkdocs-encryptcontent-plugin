@@ -89,6 +89,7 @@ class encryptContentPlugin(BasePlugin):
         ('sharelinks', config_options.Type(bool, default=False)),
         ('sharelinks_incomplete', config_options.Type(bool, default=False)),
         ('sharelinks_output', config_options.Type(string_types, default='sharelinks.txt')),
+        ('threshold_warning_min_entropy', config_options.Type(int, default=100)),
         # default features enabled
         ('arithmatex', config_options.Type(bool, default=None)),
         ('hljs', config_options.Type(bool, default=None)),
@@ -1165,7 +1166,7 @@ class encryptContentPlugin(BasePlugin):
                 os._exit(1)
             logger.info('Modified search_index.')
 
-        if self.setup['min_enttropy_spied_on'] < 100 and self.setup['min_enttropy_spied_on'] > 0:
+        if self.setup['min_enttropy_spied_on'] < self.config['threshold_warning_min_entropy'] and self.setup['min_enttropy_spied_on'] > 0:
             logger.warning('mkdocs-encryptcontent-plugin will always be vulnerable to brute-force attacks!'
                            ' Your weakest password only got {spied_on} bits of entropy, if someone watched you while typing'
                            ' (and a maximum of {secret} bits total)!'.format(spied_on = math.ceil(self.setup['min_enttropy_spied_on']), secret = math.ceil(self.setup['min_enttropy_secret']))
