@@ -347,6 +347,7 @@ plugins:
         #reload_scripts:
         #  - '#theme'
         password_file: 'passwords.yml' # file with password inventory
+        threshold_warning_min_entropy: 100 # warn if password entropy is below this value
         #kdf_pow: 4 # default for crypto-js: 4, default for webcrypto: 5
         sign_files: 'encryptcontent-plugin.json' # save ed25519 signatures here
         #hash_filenames: # add hash to file names of assets (to make them impossible to guess
