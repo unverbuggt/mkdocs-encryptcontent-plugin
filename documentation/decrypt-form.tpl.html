@@ -32,8 +32,9 @@ var encryptcontent_path = "{{ encryptcontent_path }}";
 var decryption_failure_message = {{ decryption_failure_message }};
 var encryptcontent_keystore = {{ encryptcontent_keystore }};
 var encryptcontent_obfuscate = {{ obfuscate }};
-{% if inject_something %}var inject_something = {{ inject_something }};{% endif -%}
+{% if inject_something %}var inject_something = {{ inject_something }};{%- endif %}
 {% if delete_something %}var delete_something = "{{ delete_something }}";{%- endif %}
+const event_decrypted = new Event("event_decrypted");
 </script>
 {%- if esm %}
 <script type="module">
