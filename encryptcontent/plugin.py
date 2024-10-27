@@ -114,7 +114,7 @@ class encryptContentPlugin(BasePlugin):
         ('kdf_pow', config_options.Type(int, default=int(-1))), # -1: default on whether webcrypto is set or not
         ('sign_files', config_options.Type(string_types, default=None)),
         ('sign_key', config_options.Type(string_types, default='encryptcontent.key')),
-        ('webcrypto', config_options.Type(bool, default=False)),
+        ('webcrypto', config_options.Type(bool, default=True)),
         ('esm', config_options.Type(bool, default=False)),
         ('insecure_test', config_options.Type(bool, default=False)), # insecure test build
         # legacy features
