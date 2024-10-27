@@ -43,7 +43,12 @@ def get_external_assets(config, **kwargs):
     download_and_check('theme_override/assets/javascripts/tex-chtml.js',
         'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js',
         '1d4e370eb01c3768d4304e3245b0afa6')
-    
+    download_and_check('theme_override/assets/javascripts/output/svg.js',
+        'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/svg.js',
+        '4f55967d16197ebb01b86356d8ab179a')
+    download_and_check('theme_override/assets/javascripts/output/svg/fonts/tex.js',
+        'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/svg/fonts/tex.js',
+        '6eab785a3788ea805bd2b552d1f0aab8')
     download_and_check('theme_override/assets/javascripts/output/chtml/fonts/woff-v2/MathJax_Zero.woff',
         'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2/MathJax_Zero.woff',
         'b26f96047d1cb466c83e9b27bf353c1f')
