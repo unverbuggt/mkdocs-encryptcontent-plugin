@@ -1,9 +1,12 @@
+/* encryptcontent/contrib/templates/search/lunr.js */
+
 var base_path = 'function' === typeof importScripts ? '.' : '/search/';
 var allowSearch = false;
 var index;
 var documents = {};
 var lang = ['en'];
 var data;
+var encryption_keys = {};
 
 function getScript(script, callback) {
   console.log('Loading script: ' + script);
@@ -35,6 +38,109 @@ function loadScripts(urls, callback) {
 
 function onJSONLoaded () {
   data = JSON.parse(this.responseText);
+  if (Object.keys(encryption_keys).length !== 0){
+    //Load encrypted_index if encryption keys exist
+    var eReq = new XMLHttpRequest();
+    eReq.addEventListener("load", onEncryptedJSONLoaded);
+    eReq.addEventListener("error", getScripts); //if not found
+    var index_path = base_path + '/encrypted_index.json';
+    if( 'function' === typeof importScripts ){
+      index_path = 'encrypted_index.json';
+    }
+    eReq.open("GET", index_path);
+    eReq.send();
+  } else {
+    getScripts();
+  }
+}
+
+function fromBase64(base64String) { // https://stackoverflow.com/a/41106346
+    return Uint8Array.from(atob(base64String), c => c.charCodeAt(0));
+}
+
+async function getKey(rawKey) {
+  return await crypto.subtle.importKey(
+    "raw",
+    rawKey,
+    "AES-CBC",
+    true,
+    ["decrypt"]
+  );
+}
+
+/* Split cyphertext bundle and try to decrypt it */
+async function decrypt_content_from_bundle(key, ciphertext_bundle) {
+  // grab the ciphertext bundle and try to decrypt it
+  if (ciphertext_bundle) {
+    let parts = ciphertext_bundle.split(';');
+    if (parts.length == 2) {
+      return await decrypt_content(key, parts[0], parts[1]);
+    }
+  }
+  return false;
+};
+
+/* Decrypts the content from the ciphertext bundle. */
+async function decrypt_content(key, iv_b64, ciphertext_b64) {
+    const iv = fromBase64(iv_b64);
+    const ciphertext = fromBase64(ciphertext_b64);
+    try {
+        const decrypted = await crypto.subtle.decrypt(
+            {
+                name: "AES-CBC",
+                iv: iv
+            },
+            key,
+            ciphertext
+        );
+        const decoder = new TextDecoder();
+        return decoder.decode(decrypted);
+    }
+    catch (err) {
+        // encoding failed; wrong key
+        return false;
+    }
+};
+
+async function onEncryptedJSONLoaded () {
+  let encrypted_docs = JSON.parse(this.responseText);
+  let could_decrypt = false;
+  let keys = {}; //crypto keys
+  for (let i = 0; i < encrypted_docs.length; i++) {
+    let doc = encrypted_docs[i];
+    let location_sep = doc.location.indexOf(';');
+    if (location_sep !== -1) {
+      let location_id = doc.location.substring(0,location_sep);
+      let location_bundle = doc.location.substring(location_sep+1);
+      if (location_id in encryption_keys) {
+        let key;
+        if (location_id in keys) {
+            key = keys[location_id];
+        } else {
+            keys[location_id] = await getKey(encryption_keys[location_id]);
+        }
+        if (key) { //we got a valid key
+          let location_decrypted = await decrypt_content_from_bundle(key, location_bundle);
+          if (location_decrypted) {
+            could_decrypt = true;
+            doc.location = location_decrypted;
+            doc.text = await decrypt_content_from_bundle(key, doc.text);
+            doc.title = await decrypt_content_from_bundle(key, doc.title);
+            data.docs.push(doc); //add decrypted entry to docs
+          } else {
+            keys[location_id] = null; //set key to invalid
+          }
+        }
+      }
+    }
+  }
+  if (could_decrypt) {
+    console.log('Could decrypt entries from encrypted_index');
+  }
+  getScripts();
+}
+
+function getScripts () {
   var scriptsToLoad = ['lunr.js'];
   if (data.config && data.config.lang && data.config.lang.length) {
     lang = data.config.lang;
@@ -92,7 +198,8 @@ function onScriptsLoaded () {
   postMessage({allowSearch: allowSearch});
 }
 
-function init () {
+function init (keys) {
+  encryption_keys = keys;
   var oReq = new XMLHttpRequest();
   oReq.addEventListener("load", onJSONLoaded);
   var index_path = base_path + '/search_index.json';
@@ -123,7 +230,7 @@ function search (query) {
 if( 'function' === typeof importScripts ) {
   onmessage = function (e) {
     if (e.data.init) {
-      init();
+      init(e.data.encryption_keys);
     } else if (e.data.query) {
       postMessage({ results: search(e.data.query) });
     } else {

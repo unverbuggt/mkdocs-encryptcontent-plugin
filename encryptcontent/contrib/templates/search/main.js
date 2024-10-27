@@ -1,3 +1,5 @@
+/* encryptcontent/contrib/templates/search/lunr.js */
+
 function getSearchTermFromLocation() {
   var sPageURL = window.location.search.substring(1);
   var sURLVariables = sPageURL.split('&');
@@ -89,21 +91,43 @@ function onWorkerMessage (e) {
   }
 }
 
-if (!window.Worker) {
-  console.log('Web Worker API not supported');
-  // load index in main thread
-  $.getScript(joinUrl(base_url, "search/worker.js")).done(function () {
-    console.log('Loaded worker');
-    init();
-    window.postMessage = function (msg) {
-      onWorkerMessage({data: msg});
-    };
-  }).fail(function (jqxhr, settings, exception) {
-    console.error('Could not load worker.js');
+function fromHex(hexString) { // https://stackoverflow.com/a/50868276
+  try {
+    return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+  } catch (err) {
+    return false;
+  }
+}
+
+function getKeysFromSession () {
+  let keys = {};
+  let value;
+  Object.keys(sessionStorage).forEach((id) => {
+    value = sessionStorage.getItem(id);
+    if (value.length == 64) {
+      let rawKey = fromHex(value);
+      if (rawKey) {
+        keys[id] = rawKey;
+      }
+    }
   });
-} else {
+  return keys;
+}
+
+var searchWorker;
+
+function startSearchWorker() {
+  let keys = getKeysFromSession(); //try to get encryption keys from sessionStorage
   // Wrap search in a web worker
-  var searchWorker = new Worker(joinUrl(base_url, "search/worker.js"));
-  searchWorker.postMessage({init: true});
+  searchWorker = new Worker(joinUrl(base_url, "search/worker.js"));
+  searchWorker.postMessage({init: true, encryption_keys: keys});
   searchWorker.onmessage = onWorkerMessage;
+}
+
+if (typeof(event_decrypted) == "undefined") {
+  //A normal page. No decrypt-form.tpl got injected
+  startSearchWorker();
+} else {
+  //Wait for the decryption event to get dispatched.
+  window.addEventListener("event_decrypted", startSearchWorker);
 }
