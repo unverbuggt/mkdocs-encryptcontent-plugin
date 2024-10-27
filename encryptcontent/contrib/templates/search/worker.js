@@ -1,12 +1,9 @@
-/* encryptcontent/contrib/templates/search/worker.js */
-
 var base_path = 'function' === typeof importScripts ? '.' : '/search/';
 var allowSearch = false;
 var index;
 var documents = {};
 var lang = ['en'];
 var data;
-var session = false;
 
 function getScript(script, callback) {
   console.log('Loading script: ' + script);
@@ -37,9 +34,7 @@ function loadScripts(urls, callback) {
 }
 
 function onJSONLoaded () {
-  if (!data) {
-    data = JSON.parse(this.responseText);
-  }
+  data = JSON.parse(this.responseText);
   var scriptsToLoad = ['lunr.js'];
   if (data.config && data.config.lang && data.config.lang.length) {
     lang = data.config.lang;
@@ -95,26 +90,17 @@ function onScriptsLoaded () {
   allowSearch = true;
   postMessage({config: data.config});
   postMessage({allowSearch: allowSearch});
-  // Skip data return if searchIndex exist on sessionStorage
-  if (!session) {
-    postMessage({saveIndex: JSON.stringify(data)});
-  }
 }
 
-function init (sessionIndex) {
-  if (!session) {
-    var oReq = new XMLHttpRequest();
-    oReq.addEventListener("load", onJSONLoaded);
-    var index_path = base_path + '/search_index.json';
-    if ( 'function' === typeof importScripts ) {
-        index_path = 'search_index.json';
-    }
-    oReq.open("GET", index_path);
-    oReq.send();
-  } else {
-    data = JSON.parse(sessionIndex);
-    onJSONLoaded();
+function init () {
+  var oReq = new XMLHttpRequest();
+  oReq.addEventListener("load", onJSONLoaded);
+  var index_path = base_path + '/search_index.json';
+  if( 'function' === typeof importScripts ){
+      index_path = 'search_index.json';
   }
+  oReq.open("GET", index_path);
+  oReq.send();
 }
 
 function search (query) {
@@ -137,12 +123,7 @@ function search (query) {
 if( 'function' === typeof importScripts ) {
   onmessage = function (e) {
     if (e.data.init) {
-      if (e.data.sessionIndex) {
-        session = true;
-        init(e.data.sessionIndex);
-      } else {
-        init();
-      }
+      init();
     } else if (e.data.query) {
       postMessage({ results: search(e.data.query) });
     } else {
