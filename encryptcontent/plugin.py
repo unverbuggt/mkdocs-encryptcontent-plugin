@@ -274,7 +274,7 @@ class encryptContentPlugin(BasePlugin):
 
     def __encrypt_content__(self, content, base_path, encryptcontent_path, encryptcontent):
         """ Replaces page or article content with decrypt form. """
-        
+
         # optionally selfhost cryptojs
         js_libraries = []
         if not self.config['webcrypto']:
@@ -644,13 +644,13 @@ class encryptContentPlugin(BasePlugin):
                 storage_file = self.setup['config_path'].joinpath(self.config['additional_storage_file'])
                 with open(storage_file, 'r') as stream:
                     self.setup['additional_storage'] = yaml_load(stream)
-                
+
                 #init empty if missing
                 if 'userpass' not in self.setup['additional_storage']:
                     self.setup['additional_storage']['userpass'] = {}
                 if 'password' not in self.setup['additional_storage']:
                     self.setup['additional_storage']['password'] = {}
-                
+
                 for entry in self.setup['keystore'].copy():
                     if entry[0] == KS_PASSWORD:
                         if entry[1] in self.setup['additional_storage']['password']:
@@ -884,7 +884,7 @@ class encryptContentPlugin(BasePlugin):
                             self.setup['sharelinks'][page.url] = ('', credentials)
                     elif page.encryptcontent.get('obfuscate'):
                         self.setup['sharelinks'][page.url] = ('', page.encryptcontent['obfuscate'])
-                    
+
 
         return markdown
 
@@ -999,12 +999,12 @@ class encryptContentPlugin(BasePlugin):
             if 'encryption_info_message' not in page.encryptcontent:
                 page.encryptcontent['encryption_info_message'] = self.config['encryption_info_message']
 
-            if page.encryptcontent['title_prefix']: 
+            if page.encryptcontent['title_prefix']:
                 page.title = str(self.config['title_prefix']) + str(page.title)
 
             if 'html_to_encrypt' in page.encryptcontent:
                 page.content = self.__encrypt_content__(
-                    page.encryptcontent['html_to_encrypt'], 
+                    page.encryptcontent['html_to_encrypt'],
                     context['base_url']+'/',
                     self.setup['site_path']+page.url,
                     page.encryptcontent
@@ -1013,7 +1013,7 @@ class encryptContentPlugin(BasePlugin):
 
             if 'inject' in page.encryptcontent:
                 page.encryptcontent['decrypt_form'] = self.__encrypt_content__(
-                    '<!-- dummy -->', 
+                    '<!-- dummy -->',
                     context['base_url']+'/',
                     self.setup['site_path']+page.url,
                     page.encryptcontent
@@ -1038,13 +1038,13 @@ class encryptContentPlugin(BasePlugin):
             encrypted_something = {**page.encryptcontent['inject'], **self.config['encrypted_something']}
         else:
             encrypted_something = self.config['encrypted_something']
-        
+
         if (encrypted_something and hasattr(page, 'encryptcontent')
                 and len(encrypted_something) > 0):  # noqa: W503
             soup = BeautifulSoup(output_content, 'html.parser')
             for name, tag in encrypted_something.items():
                 # logger.debug({'name': name, 'html tag': tag[0], 'type': tag[1]})
-                something_search = soup.findAll(tag[0], {tag[1]: name})
+                something_search = soup.find_all(tag[0], {tag[1]: name})
                 if something_search is not None and len(something_search) > 0:
                     # Loop for multi child tags on target element
                     for item in something_search:
@@ -1107,7 +1107,7 @@ class encryptContentPlugin(BasePlugin):
 
         :param config: global configuration object
         """
-        
+
         Path(config.data["site_dir"] + '/assets/javascripts/').mkdir(parents=True, exist_ok=True)
         decrypt_js_path = Path(config.data["site_dir"]).joinpath('assets/javascripts/decrypt-contents.js')
         with open(decrypt_js_path, "w") as file:
