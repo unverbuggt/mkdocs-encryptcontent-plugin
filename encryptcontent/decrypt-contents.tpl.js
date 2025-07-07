@@ -611,6 +611,7 @@ function base64url_decode(input) {
             decryptor_reaction(content_decrypted, password_input, decrypted_content);
         }
     });
+    decrypted_content.style.display = '';
 }
 
 {%- if material %}
