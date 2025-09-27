@@ -352,7 +352,7 @@ function base64url_decode(input) {
         if (html_item[0]) {
             for (let i = 0; i < html_item.length; i++) {
                 // grab the cipher bundle if something exist
-                if (html_item[i].style.display == "none") {
+                if (String(html_item[i].style.display).startsWith("none")) {
                     let content = {% if webcrypto %}await {% endif %}decrypt_content_from_bundle(key, html_item[i].innerHTML);
                     if (content !== false) {
                         // success; display the decrypted content

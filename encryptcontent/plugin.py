@@ -1066,12 +1066,12 @@ class encryptContentPlugin(BasePlugin):
                         item.string = encrypted_content
                         if item.has_attr('style'):
                             if isinstance(item['style'], list):
-                                item['style'].append("display:none")
+                                item['style'].append("display:none !important")
                             else:
                                 # if style contains a single element (str)
-                                item['style'] = item['style'] + "display:none"
+                                item['style'] = item['style'] + "display:none !important"
                         else:
-                            item['style'] = "display:none"
+                            item['style'] = "display:none !important"
 
             if 'inject' in page.encryptcontent:
                 name, tag = list(page.encryptcontent['inject'].items())[0]
