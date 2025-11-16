@@ -41,15 +41,15 @@ theme:
 #  - 'assets/javascripts/mermaid.min.js'
   
 nav:
-    - 'index.md'
+    - Encryptcontent plugin V3: 'index.md'
     - 'installation.md'
     - 'usage.md'
     - Features:
       - 'features/index.md'
-      - 'features/modifypages.md'
-      - 'features/search.md'
-      - 'features/jsext.md'
-      - 'features/security.md'
+      - Modify pages: 'features/modifypages.md'
+      - Search encryption: 'features/search.md'
+      - Javascript extensions: 'features/jsext.md'
+      - Security: 'features/security.md'
     - How does it work?: 'explanations.md'
     - Test bench: 
       - 'testbench/index.md'
@@ -93,6 +93,7 @@ plugins:
               Passwords: Passwörter
               Test bench: Testaufbau
               User/Password: Benutzername/Passwort
+              Encryptcontent plugin V3: Encryptcontent Plugin V3
             site_name: MkDocs Encryptcontent Plugin V3
         reconfigure_material: true
         reconfigure_search: true
@@ -137,10 +138,15 @@ plugins:
         reload_scripts:
           - '#autostart'
         password_file: 'passwords.yml'
+        additional_storage_file: 'additional_storage.yaml'
         sharelinks: true
+        sharelinks_incomplete: true
         #kdf_pow: 4
         webcrypto: true
+        esm: true
         sign_files: 'encryptcontent-plugin.json'
+        cache_file: 'encryptcontent.cache'
+        sharelinks_output: 'sharelinks.txt'
         hash_filenames:
           extensions:
             - 'png'
@@ -149,6 +155,7 @@ plugins:
             - 'svg'
           except:
             - 'logo.svg'
+        insecure_test: !ENV [MKDOCS_ENCRYPTCONTENT_INSECURE_TEST, false]
 
 repo_url: https://github.com/unverbuggt/mkdocs-encryptcontent-plugin
 

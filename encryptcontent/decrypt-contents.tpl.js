@@ -387,8 +387,10 @@ function base64url_decode(input) {
                 el.remove();
             }
         }
-
         // any post processing on the decrypted content should be done here
+    {%- if material %}
+        document$.next(document);
+    {%- else %}
         {% if arithmatex -%}
         if (typeof MathJax === 'object') { MathJax.typesetPromise();};
         {%- endif %}
@@ -400,6 +402,7 @@ function base64url_decode(input) {
             hljs.highlightElement(block);
         });
         {%- endif %}
+    {%- endif %}
         {% if reload_scripts | length > 0 -%}
         let reload_scripts = {{ reload_scripts }};
         for (let i = 0; i < reload_scripts.length; i++) { 
@@ -565,6 +568,7 @@ function base64url_decode(input) {
             decryptor_reaction(content_decrypted, password_input, decrypted_content);
         }
     });
+    decrypted_content.style.display = '';
 }
 
 {%- if material %}

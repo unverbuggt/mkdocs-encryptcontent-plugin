@@ -106,7 +106,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.3-py3-none-any.whl
+pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.5-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
@@ -926,20 +926,20 @@ graph LR
 
 #### mkdocs-material
 
+> **Enable by default**
+
 Add support for mermaid graphs by adding the `pymdownx.superfences` to `markdown_extensions` as 
 described [here]( https://squidfunk.github.io/mkdocs-material/reference/diagrams/).
 
-Copy the "material-encryptcontent.mjs" file from
-[here](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/version3/fixes)
-to "/assets/javascripts/" and include it to "mkdocs.yml" like this:
+After successful decryption all subscriptions of the document are recalled to render the marmaid graph,
+see [here](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/pull/81).
 
-```yaml
-extra_javascript:
-  - assets/javascripts/material-encryptcontent.mjs
+```jinja
+{%- if material %}
+document$.next(document);
+{%- endif %}
 ```
 
-The script is called after successful decryption and renders the mermaid graphs in a similar way as
-the theme would normally do.
 
 ### mkdocs-glightbox
 
