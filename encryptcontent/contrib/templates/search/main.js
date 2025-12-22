@@ -92,11 +92,7 @@ function onWorkerMessage (e) {
 }
 
 function fromHex(hexString) { // https://stackoverflow.com/a/50868276
-  try {
-    return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-  } catch (err) {
-    return false;
-  }
+  return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
 }
 
 function getKeysFromSession () {
@@ -105,10 +101,7 @@ function getKeysFromSession () {
   Object.keys(sessionStorage).forEach((id) => {
     value = sessionStorage.getItem(id);
     if (value.length == 64) {
-      let rawKey = fromHex(value);
-      if (rawKey) {
-        keys[id] = rawKey;
-      }
+      keys[id] = fromHex(value);
     }
   });
   return keys;
