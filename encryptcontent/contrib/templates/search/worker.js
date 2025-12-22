@@ -117,7 +117,8 @@ async function onEncryptedJSONLoaded () {
         if (location_id in keys) {
             key = keys[location_id];
         } else {
-            keys[location_id] = await getKey(encryption_keys[location_id]);
+            key = await getKey(encryption_keys[location_id]);
+            keys[location_id] = key;
         }
         if (key) { //we got a valid key
           let location_decrypted = await decrypt_content_from_bundle(key, location_bundle);
