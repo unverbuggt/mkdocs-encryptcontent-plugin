@@ -58,7 +58,7 @@ function fromBase64(base64String) { // https://stackoverflow.com/a/41106346
     return Uint8Array.from(atob(base64String), c => c.charCodeAt(0));
 }
 
-async function getKey(rawKey) {
+async function getCryptoKey(rawKey) {
   return await crypto.subtle.importKey(
     "raw",
     rawKey,
@@ -117,7 +117,7 @@ async function onEncryptedJSONLoaded () {
         if (location_id in keys) {
             key = keys[location_id];
         } else {
-            key = await getKey(encryption_keys[location_id]);
+            key = await getCryptoKey(encryption_keys[location_id]);
             keys[location_id] = key;
         }
         if (key) { //we got a valid key
