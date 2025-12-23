@@ -415,7 +415,9 @@ function base64url_decode(input) {
         if (window.location.hash) { //jump to anchor if hash given after decryption
             window.location.href = window.location.hash;
         }
-        window.dispatchEvent(event_decrypted); //If we got keys then dispatch event_decrypted
+        //If we got keys then dispatch encryptcontent_event
+        encryptcontent_done = true;
+        window.dispatchEvent(encryptcontent_event);
     } else {
         // remove item on sessionStorage if decryption process fail (Invalid item)
         if (!fallback_used) {
@@ -531,7 +533,9 @@ function base64url_decode(input) {
     }
     {%- endif %}
     if (!content_decrypted) {
-        window.dispatchEvent(event_decrypted); //If nothing got decrypted, still dispatch event_decrypted
+        //If nothing got decrypted, still dispatch encryptcontent_event
+        encryptcontent_done = true;
+        window.dispatchEvent(encryptcontent_event);
     }
     {% if password_button -%}
     /* If password_button is set, try decrypt content when button is press */

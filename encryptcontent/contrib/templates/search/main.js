@@ -117,10 +117,15 @@ function startSearchWorker() {
   searchWorker.onmessage = onWorkerMessage;
 }
 
-if (typeof(event_decrypted) == "undefined") {
+if (typeof(encryptcontent_event) == "undefined") {
   //A normal page. No decrypt-form.tpl got injected
   startSearchWorker();
 } else {
-  //Wait for the decryption event to get dispatched.
-  window.addEventListener("event_decrypted", startSearchWorker);
+  if (encryptcontent_done) {
+    //encryptcontent event already dispatched.
+    startSearchWorker();
+  } else {
+    //Wait for the encryptcontent event to get dispatched.
+    window.addEventListener("encryptcontent_event", startSearchWorker);
+  }
 }
