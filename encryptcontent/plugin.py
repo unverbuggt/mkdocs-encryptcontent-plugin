@@ -1137,8 +1137,8 @@ class encryptContentPlugin(BasePlugin):
         if self.setup['search_plugin_found'] and self.config['search_index'] != 'clear':
             search_index_filename = Path(config.data["site_dir"]).joinpath('search/search_index.json')
             if self.config['search_index'] == 'dynamically':
-                encrypted_index_filename = Path(config.data["site_dir"]).joinpath('search/encrypted_index.json')
-                encrypted_entries = []
+                encrypted_search_index_filename = Path(config.data["site_dir"]).joinpath('search/encrypted_search_index.json')
+                encrypted_search = {}
 
             try:
                 with open(search_index_filename, "r") as f:
@@ -1155,26 +1155,22 @@ class encryptContentPlugin(BasePlugin):
                         if self.config['search_index'] == 'encrypted':
                             search_entries['docs'].remove(entry) #remove encrypted entries from search-index
                         elif self.config['search_index'] == 'dynamically' and page_key is not None:
-                            #encrypt text/title/location
-                            text = entry['text']
-                            title = entry['title']
-                            location = entry['location']
+                            if page_id not in encrypted_search:
+                                encrypted_search[page_id] = (page_key, [])
+                            encrypted_search[page_id][1].append(entry)
                             search_entries['docs'].remove(entry) #remove encrypted entries from search-index
-                            new_entry = {}
-                            code = self.__encrypt_text__(location, page_key)
-                            new_entry['location'] = page_id + ';' + ';'.join(code) # add encryptcontent_id
-                            code = self.__encrypt_text__(text, page_key )
-                            new_entry['text'] = ';'.join(code)
-                            code = self.__encrypt_text__(title, page_key)
-                            new_entry['title'] = ';'.join(code)
-                            encrypted_entries.append(new_entry)
                         break
             try:
                 with open(search_index_filename, "w") as f:
                     json.dump(search_entries, f)
                 if self.config['search_index'] == 'dynamically':
-                    with open(encrypted_index_filename, "w") as f:
-                        json.dump(encrypted_entries, f)
+                    for key_id in encrypted_search:
+                        key = encrypted_search[key_id][0]
+                        entries = json.dumps(encrypted_search[key_id][1])
+                        code = self.__encrypt_text__(entries, key)
+                        encrypted_search[key_id] = ';'.join(code)
+                    with open(encrypted_search_index_filename, "w") as f:
+                        json.dump(encrypted_search, f)
             except:
                 logger.error('Search index needs modification, but could not write "search_index.json"!')
                 os._exit(1)

@@ -103,34 +103,27 @@ async function decrypt_content(key, iv_b64, ciphertext_b64) {
 };
 
 async function onEncryptedJSONLoaded () {
-  let encrypted_docs = JSON.parse(this.responseText);
   let could_decrypt = false;
-  let keys = {}; //crypto keys
-  for (let i = 0; i < encrypted_docs.length; i++) {
-    let doc = encrypted_docs[i];
-    let location_sep = doc.location.indexOf(';');
-    if (location_sep !== -1) {
-      let location_id = doc.location.substring(0,location_sep);
-      let location_bundle = doc.location.substring(location_sep+1);
-      if (location_id in encryption_keys) {
-        let key;
-        if (location_id in keys) {
-            key = keys[location_id];
-        } else {
-            key = await getCryptoKey(encryption_keys[location_id]);
-            keys[location_id] = key;
-        }
-        if (key) { //we got a valid key
-          let location_decrypted = await decrypt_content_from_bundle(key, location_bundle);
-          if (location_decrypted) {
-            could_decrypt = true;
-            doc.location = location_decrypted;
-            doc.text = await decrypt_content_from_bundle(key, doc.text);
-            doc.title = await decrypt_content_from_bundle(key, doc.title);
-            data.docs.push(doc); //add decrypted entry to docs
-          } else {
-            keys[location_id] = null; //set key to invalid
+  let encrypted_search = JSON.parse(this.responseText);
+  for (let key_id in encrypted_search) {
+    let keys = {}; //crypto keys
+    if (key_id in encryption_keys) {
+      let key;
+      if (key_id in keys) {
+          key = keys[key_id];
+      } else {
+          key = await getCryptoKey(encryption_keys[key_id]);
+          keys[key_id] = key;
+      }
+      if (key) { //we got a valid key
+        let entries_decrypted = await decrypt_content_from_bundle(key, encrypted_search[key_id]);
+        if (entries_decrypted) {
+          const encrypted_docs = JSON.parse(entries_decrypted);
+          for (let i = 0; i < encrypted_docs.length; i++) {
+            data.docs.push(encrypted_docs[i]);
           }
+        } else {
+          keys[key_id] = null; //set key to invalid
         }
       }
     }
