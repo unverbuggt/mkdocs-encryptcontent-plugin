@@ -50,7 +50,7 @@ In order to be able to decrypt the search index (`dynamically`) `mkdocs-material
 
 Patches for different versions can be found [here](https://github.com/unverbuggt/mkdocs-encryptcontent-plugin/tree/version3/patches).
 
-#### Material 8.x
+#### Material 9.7
 
 You'll need some [prerequisites](https://squidfunk.github.io/mkdocs-material/customization/#environment-setup)
 and also execute these commands:
@@ -58,26 +58,21 @@ and also execute these commands:
 ```bash
 git clone https://github.com/squidfunk/mkdocs-material
 cd mkdocs-material
+
+python -m venv venv
+source venv/bin/activate
+pip install -e ".[git, recommended, imaging]"
 pip install mkdocs-minify-plugin
-pip install mkdocs-redirects
+pip install nodeenv
+
+nodeenv -p -n lts
 npm install
 
-#copy material_search_worker.patch to mkdocs-material
-patch -p 0 < material_search_worker8.patch
+#copy material_bundle9_7.patch to mkdocs-material
+patch -p 0 < material_bundle9_7.patch
+
+npm run build
 
 pip install --force-reinstall .
 #pip install --force-reinstall --no-deps . #faster if mkdocs-material was already installed
 ```
-
-#### Material 9.x
-
-Follow the instructions for [Theme development](https://squidfunk.github.io/mkdocs-material/customization/#theme-development) carefully.
-
-Apply the patch before [Building the theme](https://squidfunk.github.io/mkdocs-material/customization/#building-the-theme):
-
-```bash
-patch -p 0 < material_browser_request9.patch # until Material 9.3
-patch -p 0 < material_browser_request9_4p.patch # Material 9.4+
-patch -p 0 < material_bundle9_7.patch # Material 9.7+
-```
-
