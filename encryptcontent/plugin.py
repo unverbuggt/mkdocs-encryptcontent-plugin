@@ -510,6 +510,11 @@ class encryptContentPlugin(BasePlugin):
             logger.error('DEPRECATED: Feature "use_secret" is no longer supported. Please use !ENV at password_inventory instead.')
             os._exit(1)                                 # prevent build without password to avoid leak0
 
+        # Warn about deprecated features on Version 3.2.x
+        if not (self.config['webcrypto'] or self.config['esm']):
+            logger.warning('DEPRECATED: crypto-js support will be removed in the 3.2.x release')
+            deprecated_options_detected = True
+
         # Enable experimental code .. :popcorn:
         if self.config['search_index'] == 'dynamically':
             logger.info("EXPERIMENTAL search index encryption enabled.")
