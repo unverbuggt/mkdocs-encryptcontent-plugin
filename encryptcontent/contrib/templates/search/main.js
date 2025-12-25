@@ -1,4 +1,4 @@
-/* encryptcontent/contrib/templates/search/main.js */
+/* encryptcontent/contrib/templates/search/lunr.js */
 
 function getSearchTermFromLocation() {
   var sPageURL = window.location.search.substring(1);
@@ -88,31 +88,47 @@ function onWorkerMessage (e) {
     displayResults(results);
   } else if (e.data.config) {
     min_search_length = e.data.config.min_search_length-1;
-  } else if (e.data.saveIndex) {
-    var saveIndex = e.data.saveIndex;
-    sessionStorage.setItem('encryptcontent-index', saveIndex)
   }
 }
 
-if (!window.Worker) {
-  console.log('Web Worker API not supported');
-  // load index in main thread
-  $.getScript(joinUrl(base_url, "search/worker.js")).done(function () {
-    console.log('Loaded worker');
-    // reload index from session Storage if exist
-    var sessionIndex = sessionStorage.getItem('encryptcontent-index')
-    init(sessionIndex);
-    window.postMessage = function (msg) {
-      onWorkerMessage({data: msg});
-    };
-  }).fail(function (jqxhr, settings, exception) {
-    console.error('Could not load worker.js');
+function fromHex(hexString) { // https://stackoverflow.com/a/50868276
+  return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+}
+
+function getKeysFromSession () {
+  let keys = {};
+  let value;
+  Object.keys(sessionStorage).forEach((id) => {
+    value = sessionStorage.getItem(id);
+    if (value.length == 64) {
+      keys[id] = fromHex(value);
+    }
   });
-} else {
+  return keys;
+}
+
+var searchWorker;
+
+function startSearchWorker() {
+  let keys = getKeysFromSession(); //try to get encryption keys from sessionStorage
   // Wrap search in a web worker
-  var searchWorker = new Worker(joinUrl(base_url, "search/worker.js"));
-  // reload index from session Storage if exist
-  var sessionIndex = sessionStorage.getItem('encryptcontent-index')
-  searchWorker.postMessage({init: true, sessionIndex: sessionIndex});
+  searchWorker = new Worker(joinUrl(base_url, "search/worker.js"));
+  searchWorker.postMessage({init: true, encryption_keys: keys});
   searchWorker.onmessage = onWorkerMessage;
+}
+
+if (typeof(encryptcontent_event) == "undefined") {
+  //A normal page. No decrypt-form.tpl got injected
+  console.log('A normal page. No decrypt-form.tpl got injected');
+  startSearchWorker();
+} else {
+  if (encryptcontent_done) {
+    //encryptcontent event already dispatched.
+    console.log('encryptcontent event already dispatched.');
+    startSearchWorker();
+  } else {
+    //Wait for the encryptcontent event to get dispatched.
+    console.log('Wait for the encryptcontent event to get dispatched.');
+    window.addEventListener("encryptcontent_event", startSearchWorker);
+  }
 }

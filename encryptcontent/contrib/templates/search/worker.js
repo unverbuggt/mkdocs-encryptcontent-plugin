@@ -1,4 +1,4 @@
-/* encryptcontent/contrib/templates/search/worker.js */
+/* encryptcontent/contrib/templates/search/lunr.js */
 
 var base_path = 'function' === typeof importScripts ? '.' : '/search/';
 var allowSearch = false;
@@ -6,7 +6,7 @@ var index;
 var documents = {};
 var lang = ['en'];
 var data;
-var session = false;
+var encryption_keys = {};
 
 function getScript(script, callback) {
   console.log('Loading script: ' + script);
@@ -37,9 +37,104 @@ function loadScripts(urls, callback) {
 }
 
 function onJSONLoaded () {
-  if (!data) {
-    data = JSON.parse(this.responseText);
+  data = JSON.parse(this.responseText);
+  if (Object.keys(encryption_keys).length !== 0){
+    //Load encrypted_index if encryption keys exist
+    var eReq = new XMLHttpRequest();
+    eReq.addEventListener("load", onEncryptedJSONLoaded);
+    eReq.addEventListener("error", getScripts); //if not found
+    var index_path = base_path + '/encrypted_search_index.json';
+    if( 'function' === typeof importScripts ){
+      index_path = 'encrypted_search_index.json';
+    }
+    eReq.open("GET", index_path);
+    eReq.send();
+  } else {
+    getScripts();
   }
+}
+
+function fromBase64(base64String) { // https://stackoverflow.com/a/41106346
+    return Uint8Array.from(atob(base64String), c => c.charCodeAt(0));
+}
+
+async function getCryptoKey(rawKey) {
+  return await crypto.subtle.importKey(
+    "raw",
+    rawKey,
+    "AES-CBC",
+    true,
+    ["decrypt"]
+  );
+}
+
+/* Split cyphertext bundle and try to decrypt it */
+async function decrypt_content_from_bundle(key, ciphertext_bundle) {
+  // grab the ciphertext bundle and try to decrypt it
+  if (ciphertext_bundle) {
+    let parts = ciphertext_bundle.split(';');
+    if (parts.length == 2) {
+      return await decrypt_content(key, parts[0], parts[1]);
+    }
+  }
+  return false;
+};
+
+/* Decrypts the content from the ciphertext bundle. */
+async function decrypt_content(key, iv_b64, ciphertext_b64) {
+    const iv = fromBase64(iv_b64);
+    const ciphertext = fromBase64(ciphertext_b64);
+    try {
+        const decrypted = await crypto.subtle.decrypt(
+            {
+                name: "AES-CBC",
+                iv: iv
+            },
+            key,
+            ciphertext
+        );
+        const decoder = new TextDecoder();
+        return decoder.decode(decrypted);
+    }
+    catch (err) {
+        // encoding failed; wrong key
+        return false;
+    }
+};
+
+async function onEncryptedJSONLoaded () {
+  let could_decrypt = false;
+  let encrypted_search = JSON.parse(this.responseText);
+  for (let key_id in encrypted_search) {
+    let keys = {}; //crypto keys
+    if (key_id in encryption_keys) {
+      let key;
+      if (key_id in keys) {
+          key = keys[key_id];
+      } else {
+          key = await getCryptoKey(encryption_keys[key_id]);
+          keys[key_id] = key;
+      }
+      if (key) { //we got a valid key
+        let entries_decrypted = await decrypt_content_from_bundle(key, encrypted_search[key_id]);
+        if (entries_decrypted) {
+          const encrypted_docs = JSON.parse(entries_decrypted);
+          for (let i = 0; i < encrypted_docs.length; i++) {
+            data.docs.push(encrypted_docs[i]);
+          }
+        } else {
+          keys[key_id] = null; //set key to invalid
+        }
+      }
+    }
+  }
+  if (could_decrypt) {
+    console.log('Could decrypt entries from encrypted_index');
+  }
+  getScripts();
+}
+
+function getScripts () {
   var scriptsToLoad = ['lunr.js'];
   if (data.config && data.config.lang && data.config.lang.length) {
     lang = data.config.lang;
@@ -95,26 +190,18 @@ function onScriptsLoaded () {
   allowSearch = true;
   postMessage({config: data.config});
   postMessage({allowSearch: allowSearch});
-  // Skip data return if searchIndex exist on sessionStorage
-  if (!session) {
-    postMessage({saveIndex: JSON.stringify(data)});
-  }
 }
 
-function init (sessionIndex) {
-  if (!session) {
-    var oReq = new XMLHttpRequest();
-    oReq.addEventListener("load", onJSONLoaded);
-    var index_path = base_path + '/search_index.json';
-    if ( 'function' === typeof importScripts ) {
-        index_path = 'search_index.json';
-    }
-    oReq.open("GET", index_path);
-    oReq.send();
-  } else {
-    data = JSON.parse(sessionIndex);
-    onJSONLoaded();
+function init (keys) {
+  encryption_keys = keys;
+  var oReq = new XMLHttpRequest();
+  oReq.addEventListener("load", onJSONLoaded);
+  var index_path = base_path + '/search_index.json';
+  if( 'function' === typeof importScripts ){
+      index_path = 'search_index.json';
   }
+  oReq.open("GET", index_path);
+  oReq.send();
 }
 
 function search (query) {
@@ -137,12 +224,7 @@ function search (query) {
 if( 'function' === typeof importScripts ) {
   onmessage = function (e) {
     if (e.data.init) {
-      if (e.data.sessionIndex) {
-        session = true;
-        init(e.data.sessionIndex);
-      } else {
-        init();
-      }
+      init(e.data.encryption_keys);
     } else if (e.data.query) {
       postMessage({ results: search(e.data.query) });
     } else {

@@ -4,14 +4,14 @@ from setuptools import setup, find_packages
 
 def read(fname):
     file_path = os.path.join(os.path.dirname(__file__), fname)
-    with open(file_path) as file:
+    with open(file_path, encoding='utf-8') as file:
         content = file.read()
     return content if content else 'no content read'
 
 
 setup(
     name='mkdocs-encryptcontent-plugin',
-    version='3.0.5',
+    version='3.1.0',
     author='unverbuggt',
     author_email='unverbuggt@xn--rthlein-n2a.de',
     description='A MkDocs plugin that encrypt/decrypt markdown content with AES',

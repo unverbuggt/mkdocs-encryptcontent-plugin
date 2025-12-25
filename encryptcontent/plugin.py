@@ -114,7 +114,7 @@ class encryptContentPlugin(BasePlugin):
         ('kdf_pow', config_options.Type(int, default=int(-1))), # -1: default on whether webcrypto is set or not
         ('sign_files', config_options.Type(string_types, default=None)),
         ('sign_key', config_options.Type(string_types, default='encryptcontent.key')),
-        ('webcrypto', config_options.Type(bool, default=False)),
+        ('webcrypto', config_options.Type(bool, default=True)),
         ('esm', config_options.Type(bool, default=False)),
         ('insecure_test', config_options.Type(bool, default=False)), # insecure test build
         # legacy features
@@ -509,6 +509,11 @@ class encryptContentPlugin(BasePlugin):
         if self.config.get('use_secret'):
             logger.error('DEPRECATED: Feature "use_secret" is no longer supported. Please use !ENV at password_inventory instead.')
             os._exit(1)                                 # prevent build without password to avoid leak0
+
+        # Warn about deprecated features on Version 3.2.x
+        if not (self.config['webcrypto'] or self.config['esm']):
+            logger.warning('DEPRECATED: crypto-js support will be removed in the 3.2.x release')
+            deprecated_options_detected = True
 
         # Enable experimental code .. :popcorn:
         if self.config['search_index'] == 'dynamically':
@@ -1066,22 +1071,26 @@ class encryptContentPlugin(BasePlugin):
                         item.string = encrypted_content
                         if item.has_attr('style'):
                             if isinstance(item['style'], list):
-                                item['style'].append("display:none")
+                                item['style'].append("display:none !important")
                             else:
                                 # if style contains a single element (str)
-                                item['style'] = item['style'] + "display:none"
+                                item['style'] = item['style'] + "display:none !important"
                         else:
-                            item['style'] = "display:none"
+                            item['style'] = "display:none !important"
 
             if 'inject' in page.encryptcontent:
                 name, tag = list(page.encryptcontent['inject'].items())[0]
                 injector = soup.new_tag("div")
                 something_search = soup.find(tag[0], {tag[1]: name})
                 if not something_search:
-                    logger.error('Could not find tag to inject!\n{name}: [{tag0}, {tag1}]'.format(tag0=tag[0], tag1=tag[1], name=name))
-                    os._exit(1)
-                something_search.insert_before(injector)
-                injector.append(BeautifulSoup(page.encryptcontent['decrypt_form'], 'html.parser'))
+                    if 'template' in page.meta.keys():
+                        logger.warning('Could not find tag to inject! URL={url}\n{name}: [{tag0}, {tag1}]'.format(tag0=tag[0], tag1=tag[1], name=name, url=page.url))
+                    else:
+                        logger.error('Could not find tag to inject! URL={url}\n{name}: [{tag0}, {tag1}]'.format(tag0=tag[0], tag1=tag[1], name=name, url=page.url))
+                        os._exit(1)
+                else:
+                    something_search.insert_before(injector)
+                    injector.append(BeautifulSoup(page.encryptcontent['decrypt_form'], 'html.parser'))
                 page.encryptcontent['decrypt_form'] = None
 
             output_content = str(soup)
@@ -1132,6 +1141,10 @@ class encryptContentPlugin(BasePlugin):
         #modify search_index in the style of mkdocs-exclude-search
         if self.setup['search_plugin_found'] and self.config['search_index'] != 'clear':
             search_index_filename = Path(config.data["site_dir"]).joinpath('search/search_index.json')
+            if self.config['search_index'] == 'dynamically':
+                encrypted_search_index_filename = Path(config.data["site_dir"]).joinpath('search/encrypted_search_index.json')
+                encrypted_search = {}
+
             try:
                 with open(search_index_filename, "r") as f:
                     search_entries = json.load(f)
@@ -1145,22 +1158,24 @@ class encryptContentPlugin(BasePlugin):
                         page_key = self.setup['locations'][location][0]
                         page_id = self.setup['locations'][location][1]
                         if self.config['search_index'] == 'encrypted':
-                            search_entries['docs'].remove(entry)
+                            search_entries['docs'].remove(entry) #remove encrypted entries from search-index
                         elif self.config['search_index'] == 'dynamically' and page_key is not None:
-                            #encrypt text/title/location
-                            text = entry['text']
-                            title = entry['title']
-                            location = entry['location']
-                            code = self.__encrypt_text__(location, page_key)
-                            entry['location'] = page_id + ';' + ';'.join(code) # add encryptcontent_id
-                            code = self.__encrypt_text__(text, page_key )
-                            entry['text'] = ';'.join(code)
-                            code = self.__encrypt_text__(title, page_key)
-                            entry['title'] = ';'.join(code)
+                            if page_id not in encrypted_search:
+                                encrypted_search[page_id] = (page_key, [])
+                            encrypted_search[page_id][1].append(entry)
+                            search_entries['docs'].remove(entry) #remove encrypted entries from search-index
                         break
             try:
                 with open(search_index_filename, "w") as f:
                     json.dump(search_entries, f)
+                if self.config['search_index'] == 'dynamically':
+                    for key_id in encrypted_search:
+                        key = encrypted_search[key_id][0]
+                        entries = json.dumps(encrypted_search[key_id][1])
+                        code = self.__encrypt_text__(entries, key)
+                        encrypted_search[key_id] = ';'.join(code)
+                    with open(encrypted_search_index_filename, "w") as f:
+                        json.dump(encrypted_search, f)
             except:
                 logger.error('Search index needs modification, but could not write "search_index.json"!')
                 os._exit(1)
