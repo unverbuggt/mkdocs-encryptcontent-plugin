@@ -803,6 +803,7 @@ Apply the patch before [Building the theme](https://squidfunk.github.io/mkdocs-m
 ```bash
 patch -p 0 < material_browser_request9.patch # until Material 9.3
 patch -p 0 < material_browser_request9_4p.patch # Material 9.4+
+patch -p 0 < material_bundle9_7.patch # Material 9.7+
 ```
 
 
