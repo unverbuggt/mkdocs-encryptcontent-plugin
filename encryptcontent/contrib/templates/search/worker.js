@@ -43,9 +43,9 @@ function onJSONLoaded () {
     var eReq = new XMLHttpRequest();
     eReq.addEventListener("load", onEncryptedJSONLoaded);
     eReq.addEventListener("error", getScripts); //if not found
-    var index_path = base_path + '/encrypted_index.json';
+    var index_path = base_path + '/encrypted_search_index.json';
     if( 'function' === typeof importScripts ){
-      index_path = 'encrypted_index.json';
+      index_path = 'encrypted_search_index.json';
     }
     eReq.open("GET", index_path);
     eReq.send();

@@ -63,7 +63,6 @@ nav:
         - Anchors: 'testbench/anchor.md'
       - Obfuscate: 'testbench/obfuscate.md'
       - JS test: 'testbench/jstest.md'
-      - Search encryption: 'testbench/search.md'
       - Share Link: 'testbench/share.md'
       - Hash files: 'testbench/hashfilenames.md'
 

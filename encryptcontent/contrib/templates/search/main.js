@@ -119,13 +119,16 @@ function startSearchWorker() {
 
 if (typeof(encryptcontent_event) == "undefined") {
   //A normal page. No decrypt-form.tpl got injected
+  console.log('A normal page. No decrypt-form.tpl got injected');
   startSearchWorker();
 } else {
   if (encryptcontent_done) {
     //encryptcontent event already dispatched.
+    console.log('encryptcontent event already dispatched.');
     startSearchWorker();
   } else {
     //Wait for the encryptcontent event to get dispatched.
+    console.log('Wait for the encryptcontent event to get dispatched.');
     window.addEventListener("encryptcontent_event", startSearchWorker);
   }
 }

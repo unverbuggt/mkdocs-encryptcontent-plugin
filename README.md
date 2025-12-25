@@ -43,10 +43,13 @@ In order to use environment variables in user names or passwords, use the
 [special yaml tag](https://www.mkdocs.org/user-guide/configuration/#special-yaml-tags) `!ENV`.
 
 ## Todos for 3.1.x
+* find a better way for search decryption
+
+
+## Todos for 3.2.x
 * outsource some functionality to separate plugins, like:
     * Filename obfuscation
     * Signing of generated files
-* find a better way for search decryption
 * add better alternative to PBKDF2
 * optional server side keystore (allows throtteling)
     * still no waterproof solution...
@@ -106,7 +109,7 @@ Install the package from source with pip:
 ```bash
 cd mkdocs-encryptcontent-plugin/
 python setup.py sdist bdist_wheel
-pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.0.5-py3-none-any.whl
+pip install --force-reinstall --no-deps dist/mkdocs_encryptcontent_plugin-3.1.0-py3-none-any.whl
 ```
 
 Enable the plugin in your `mkdocs.yml`:
