@@ -1,5 +1,5 @@
---- src/templates/assets/javascripts/bundle.ts	2025-12-25 22:10:30.784053809 +0100
-+++ src/templates/assets/javascripts/bundle-encryptcontent.ts	2025-12-25 22:05:08.531304794 +0100
+--- src/templates/assets/javascripts/bundle-org.ts	2025-12-29 14:31:56.683762815 +0100
++++ src/templates/assets/javascripts/bundle.ts	2025-12-29 14:25:18.729507531 +0100
 @@ -34,7 +34,8 @@
    merge,
    mergeWith,
@@ -10,7 +10,7 @@
  } from "rxjs"
  
  import { configuration, feature } from "./_"
-@@ -95,6 +96,134 @@
+@@ -95,6 +96,139 @@
   * Functions - @todo refactor
   * ------------------------------------------------------------------------- */
  
@@ -110,6 +110,11 @@
 +      //Wait for the encryptcontent event to get dispatched.
 +      console.log('Wait for the encryptcontent event to get dispatched.');
 +      await getPromiseFromEvent(window, 'encryptcontent_event');
++      const listener = () => {
++        window.removeEventListener('encryptcontent_event', listener);
++        window.location.reload();
++      }
++      window.addEventListener('encryptcontent_event', listener);
 +    }
 +  }
 +  for (let key_id in encrypted_search) {
@@ -145,7 +150,7 @@
  /**
   * Fetch search index
   *
-@@ -113,6 +242,26 @@
+@@ -113,6 +247,26 @@
    } else {
      return requestJSON<SearchIndex>(
        new URL("search/search_index.json", config.base)
