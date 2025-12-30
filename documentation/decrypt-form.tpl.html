@@ -42,7 +42,20 @@ var encryptcontent_done = false;
 if (!window.hasOwnProperty("init_decryptor")) {
     {%- if not webcrypto %}
     import("{{ js_libraries[0] }}").then((module) => {
-        window["CryptoJS"] = module.default;
+        window["CryptoJS"] = Object();
+        CryptoJS.enc = Object();
+        CryptoJS.enc.Base64 = module.Base64;
+        CryptoJS.enc.Hex = module.Hex;
+        CryptoJS.enc.Utf8 = module.Utf8;
+        CryptoJS.algo = Object();
+        CryptoJS.algo.SHA256 = module.SHA256Algo;
+        CryptoJS.PBKDF2 = module.PBKDF2;
+        CryptoJS.mode = Object();
+        CryptoJS.mode.CBC = module.CBC;
+        CryptoJS.pad = Object();
+        CryptoJS.pad.Pkcs7 = module.Pkcs7;
+        CryptoJS.AES = module.AES;
+        CryptoJS.SHA256 = module.SHA256;
     {%- endif %}
     import("{{ base_path }}assets/javascripts/decrypt-contents.js");
     {%- if not webcrypto %}

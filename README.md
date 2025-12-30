@@ -962,16 +962,24 @@ plugins:
 
 ### Crypto-js or crypto-es or webcrypto?
 
-By default the plugin uses the crypto-js library for page decryption, but using
-the browser's built-in webcrypto engine is also possible (set `webcrypto: true`).
+By default the plugin uses the browser's built-in webcrypto engine for page decryption, but using
+the crypto-js library is also possible (set `webcrypto: false`).
 
 The main advantage of webcrypto over crypto-js is that it is much faster, allowing higher
-calculation difficulty for key derivation (`kdf_pow`). Also it may be easier to implement
+calculation difficulty for key derivation (`kdf_pow`). Also it may be easier to use
 key derivation functions other than PBKDF2 with webcrypto in the future.
 
 On the other hand crypto-js is implemented in pure Javascript without any dependencies and well
-tested (but it probably won't receive any updates as development stalled in 2021, see [here](https://github.com/brix/crypto-js/#discontinued))
+tested (but it probably won't receive any updates as development stalled in 2023, see [here](https://github.com/brix/crypto-js/#discontinued))
 and we know nothing about how good or bad webcrypto is implemented in different browsers.
+
+There is one problem with the browsers webcrypto engine though:  
+It is disabled in a non-secure context, meaning it is only available if the connection to the web server
+is made through a TLS connection (https) or if served through localhost (127.0.0.1).  
+But this plugin handles the decryption purely on the client side, so a non-secure connection
+to the server is only a security risk in terms of that the traffic could be manipulated to inject malware.
+But this also is possible if someone evil has access to the webspace and manipulates the files there.
+In both cases it is only possible to detect modifications by [checking signatures](#signing-of-generated-files).
 
 There is a new variation of [crypto-js](https://github.com/brix/crypto-js), called [crypto-es](https://github.com/entronad/crypto-es).
 It provides the same functions, but is implemented in modern javascript and can be activated by setting `esm: true`.  
@@ -981,6 +989,7 @@ javascript module (speeding up material theme with instant loading feature).
 > Crypto-js causes a bug when browsing through encrypted pages,
 > if used in `mkdocs-material` together with the `navigation.instant` feature.
 > It is advised to use `webcrypto: true` or crypto-es with `esm: true` in this case.
+
 
 #### Self-host Crypto-js or Crypto-es
 

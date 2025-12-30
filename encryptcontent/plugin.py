@@ -30,7 +30,7 @@ except ImportError:
     string_types = str
 
 CRYPTO_ES_LIBRARIES = [
-    ['//cdn.jsdelivr.net/npm/crypto-es@2.1.0/+esm','fd3628cef78b155ff3da3554537e2d76','crypto-es.mjs'],
+    ['//cdn.jsdelivr.net/npm/crypto-es@3.1.2/+esm','389c1dca1c5317456ace9594f66bdc61','crypto-es.mjs'],
 ]
 
 CRYPTO_JS_LIBRARIES = [
