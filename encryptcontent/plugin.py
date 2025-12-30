@@ -129,7 +129,7 @@ class encryptContentPlugin(BasePlugin):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
-    def __download_and_check__(self, filename, url, hash):
+    def __download_and_check__(self, filename, url, hash, warn_hash=False):
         hash_md5 = MD5.new()
         if not Path(filename).exists():
             with urlopen(url) as response:
@@ -141,8 +141,11 @@ class encryptContentPlugin(BasePlugin):
                         file.write(filecontent)
                         logger.info('Downloaded external asset "' + filename.name + '"')
                 else:
-                    logger.error('Error downloading asset "' + filename.name + '" hash mismatch!')
-                    os._exit(1)
+                    if warn_hash:
+                        logger.warning('Error downloading asset "' + filename.name + '" hash mismatch!')
+                    else:
+                        logger.error('Error downloading asset "' + filename.name + '" hash mismatch!')
+                        os._exit(1)
 
     def __sign_file__(self, fname, url, key):
         h = SHA512.new()

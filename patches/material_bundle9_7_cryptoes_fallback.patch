@@ -1,0 +1,218 @@
+--- src/templates/assets/javascripts/bundle-org.ts	2025-12-29 14:31:56.683762815 +0100
++++ src/templates/assets/javascripts/bundle.ts	2025-12-30 19:18:37.539852591 +0100
+@@ -34,7 +34,8 @@
+   merge,
+   mergeWith,
+   shareReplay,
+-  switchMap
++  switchMap,
++  tap
+ } from "rxjs"
+ 
+ import { configuration, feature } from "./_"
+@@ -91,10 +92,178 @@
+ } from "./patches"
+ import "./polyfills"
+ 
++import {
++  Hex,
++  Base64,
++  CBC,
++  Pkcs7,
++  AES,
++  Utf8
++} from "crypto-es"
++
+ /* ----------------------------------------------------------------------------
+  * Functions - @todo refactor
+  * ------------------------------------------------------------------------- */
+ 
++
++function fromHex(hexString) { // https://stackoverflow.com/a/50868276
++  return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
++}
++
++function fromBase64(base64String) { // https://stackoverflow.com/a/41106346
++    return Uint8Array.from(atob(base64String), c => c.charCodeAt(0));
++}
++
++function getPromiseFromEvent(item, event) { // https://stackoverflow.com/a/70789108
++  return new Promise((resolve) => {
++    const listener = () => {
++      item.removeEventListener(event, listener);
++      resolve();
++    }
++    item.addEventListener(event, listener);
++  })
++}
++
++function getKeysFromSession () {
++  let keys = {};
++  let value;
++  Object.keys(sessionStorage).forEach((id) => {
++    value = sessionStorage.getItem(id);
++    if (value.length == 64) {
++      if (window.crypto && window.crypto.subtle) {
++        keys[id] = fromHex(value);
++      } else {
++        keys[id] = Hex.parse(value);
++      }
++    }
++  });
++  return keys;
++}
++
++async function getCryptoKey(rawKey) {
++  if (window.crypto && window.crypto.subtle) {
++    return await crypto.subtle.importKey(
++      "raw",
++      rawKey,
++      "AES-CBC",
++      true,
++      ["decrypt"]
++    );
++  } else {
++    return rawKey;
++  }
++}
++
++/* Split cyphertext bundle and try to decrypt it */
++async function decrypt_content_from_bundle(key, ciphertext_bundle) {
++  // grab the ciphertext bundle and try to decrypt it
++  if (ciphertext_bundle) {
++    let parts = ciphertext_bundle.split(';');
++    if (parts.length == 2) {
++      return await decrypt_content(key, parts[0], parts[1]);
++    }
++  }
++  return false;
++}
++
++/* Decrypts the content from the ciphertext bundle. */
++async function decrypt_content(key, iv_b64, ciphertext_b64) {
++    if (window.crypto && window.crypto.subtle) {
++      const iv = fromBase64(iv_b64);
++      const ciphertext = fromBase64(ciphertext_b64);
++      try {
++        const decrypted = await crypto.subtle.decrypt(
++          {
++            name: "AES-CBC",
++            iv: iv
++          },
++          key,
++          ciphertext
++        );
++        const decoder = new TextDecoder();
++        return decoder.decode(decrypted);
++      }
++      catch (err) {
++        // encoding failed; wrong key
++        return false;
++      }
++    } else {
++      const iv = Base64.parse(iv_b64);
++      const encrypted = {ciphertext: Base64.parse(ciphertext_b64)};
++      const cfg = {iv: iv, mode: CBC, padding: Pkcs7};
++      const plaintext = AES.decrypt(encrypted, key, cfg);
++      if(plaintext.sigBytes >= 0) {
++        try {
++          return plaintext.toString(Utf8)
++        } catch (err) {
++          // encoding failed; wrong key
++          return false;
++        }
++      } else {
++        // negative sigBytes; wrong key
++        return false;
++      }
++    }
++}
++
++async function readEncryptedSearchIndex(encrypted_search) {
++  let encryption_keys = getKeysFromSession(); //try to get encryption keys from sessionStorage
++  let could_decrypt = false;
++  let decrypted_docs = [];
++
++  if (typeof(encryptcontent_event) == "undefined") {
++    //A normal page. No decrypt-form.tpl got injected
++    console.log('A normal page. No decrypt-form.tpl got injected');
++  } else {
++    if (encryptcontent_done) {
++      //encryptcontent event already dispatched.
++      console.log('encryptcontent event already dispatched.');
++      const listener = () => {
++        window.removeEventListener('encryptcontent_event', listener);
++        window.location.reload();
++      }
++      window.addEventListener('encryptcontent_event', listener);
++    } else {
++      //Wait for the encryptcontent event to get dispatched.
++      console.log('Wait for the encryptcontent event to get dispatched.');
++      await getPromiseFromEvent(window, 'encryptcontent_event');
++      const listener = () => {
++        window.removeEventListener('encryptcontent_event', listener);
++        window.location.reload();
++      }
++      window.addEventListener('encryptcontent_event', listener);
++    }
++  }
++  for (let key_id in encrypted_search) {
++    let keys = {}; //crypto keys
++    if (key_id in encryption_keys) {
++      let key;
++      if (key_id in keys) {
++          key = keys[key_id];
++      } else {
++          key = await getCryptoKey(encryption_keys[key_id]);
++          keys[key_id] = key;
++      }
++      if (key) { //we got a valid key
++        let entries_decrypted = await decrypt_content_from_bundle(key, encrypted_search[key_id]);
++        if (entries_decrypted) {
++          could_decrypt = true;
++          const encrypted_docs = JSON.parse(entries_decrypted);
++          for (let i = 0; i < encrypted_docs.length; i++) {
++            decrypted_docs.push(encrypted_docs[i]);
++          }
++        } else {
++          keys[key_id] = null; //set key to invalid
++        }
++      }
++    }
++  }
++  if (could_decrypt) {
++    console.log('Could decrypt entries from encrypted_index');
++  }
++  return decrypted_docs;
++}
++
+ /**
+  * Fetch search index
+  *
+@@ -113,6 +282,26 @@
+   } else {
+     return requestJSON<SearchIndex>(
+       new URL("search/search_index.json", config.base)
++    ).pipe(
++      tap(index => console.log('search_index:',index)),
++      switchMap(searchIndex =>
++        requestJSON<EncryptedIndex>(
++          new URL("search/encrypted_search_index.json", config.base)
++        ).pipe(
++          switchMap(index => readEncryptedSearchIndex(index)),
++          tap(index => console.log('decrypted_index:',index)),
++          map(EncryptedIndex => ({
++              ...searchIndex,
++              docs: [
++                ...searchIndex.docs,
++                ...EncryptedIndex
++              ]
++            })
++          ),
++          tap(index => console.log('updated_search_index:',index)),
++        )
++      ),
++      shareReplay(1)
+     )
+   }
+ }
