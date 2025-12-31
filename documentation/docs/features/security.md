@@ -15,7 +15,7 @@ and we know nothing about how good or bad webcrypto is implemented in different 
 
 There is one problem with the browsers webcrypto engine though:  
 It is disabled in a non-secure context, meaning it is only available if the connection to the web server
-is made through a TLS connection (https) or if served through localhost (127.0.0.1).  
+is made through a TLS connection (https) or if served through localhost (127.0.0.1).
 But this plugin handles the decryption purely on the client side, so a non-secure connection
 to the server is only a security risk in terms of that the traffic could be manipulated to inject malware.
 But this also is possible if someone evil has access to the webspace and manipulates the files there.

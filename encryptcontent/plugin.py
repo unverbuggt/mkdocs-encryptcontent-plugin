@@ -115,7 +115,7 @@ class encryptContentPlugin(BasePlugin):
         ('sign_files', config_options.Type(string_types, default=None)),
         ('sign_key', config_options.Type(string_types, default='encryptcontent.key')),
         ('webcrypto', config_options.Type(bool, default=True)),
-        ('esm', config_options.Type(bool, default=False)),
+        ('esm', config_options.Type(bool, default=True)),
         ('insecure_test', config_options.Type(bool, default=False)), # insecure test build
         # legacy features
     )
