@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="René Rüthlein" name="author"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/usage/" rel="canonical"/>
+<link href="../img/logo.ico" rel="shortcut icon"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/usage/" hreflang="de" rel="alternate"/>
+<title>Usage - MkDocs encryptcontent plugin V3</title>
+<link href="../css/w3.css" rel="stylesheet"/>
+<link href="../css/w3-theme.css" id="theme-auto" rel="stylesheet"/>
+<link href="../css/w3-theme-light.css" id="theme-light" media="none" rel="stylesheet"/>
+<link href="../css/w3-theme-dark.css" id="theme-dark" media="none" rel="stylesheet"/>
+<link href="../css/theme.css" rel="stylesheet"/>
+<script>
+  var base_url = "..";
+  var themeItem = 'risonia_theme_'+encodeURIComponent('https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/');
+
+  function checkTheme() {
+    let theme = localStorage.getItem(themeItem);
+    if (theme) {
+      if (theme == 'light') {
+        document.getElementById('theme-dark').media = 'none';
+        document.getElementById('theme-light').media = '';
+      }
+      if (theme == 'dark') {
+        document.getElementById('theme-light').media = 'none';
+        document.getElementById('theme-dark').media = '';
+      }
+    }
+  }
+  checkTheme()
+  </script>
+</head>
+<body class="w3-theme-l5">
+<svg style="display: none;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<symbol fill="currentColor" id="open-menu" viewbox="0 0 10 10">
+<rect height="2" width="10" y="0"></rect>
+<rect height="2" width="10" y="4"></rect>
+<rect height="2" width="10" y="8"></rect>
+</symbol>
+<symbol fill="currentColor" id="drop-down" viewbox="0 0 10 10">
+<path d="m2 1h6l-3 8z"></path>
+</symbol>
+<symbol fill="currentColor" id="to-top" viewbox="0 0 10 10">
+<path d="m2 9h6l-3-8z"></path>
+</symbol>
+<symbol id="theme-toggle" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.35" ry="4.35" stroke="currentColor" stroke-width="1.2"></ellipse>
+<path d="M 5,0.5 A 4.5,4.5 0 0 1 9.5,5 4.5,4.5 0 0 1 5,9.5 V 5 Z" fill="currentColor"></path>
+</symbol>
+<symbol fill="none" id="close-menu" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m0.71 0.71 8.58 8.58" stroke-width="2"></path>
+<path d="m9.29 0.71-8.58 8.58" stroke-width="2"></path>
+</symbol>
+<symbol fill="none" id="toc" stroke="currentColor" stroke-width="1.5" viewbox="0 0 10 10">
+<path d="m2.75 1.25h6.75"></path>
+<path d="m0.5 1.25h1.5"></path>
+<path d="m5 6.13h4.5"></path>
+<path d="m2.75 6.13h1.5"></path>
+<path d="m2.75 3.87h6.75"></path>
+<path d="m0.5 3.87h1.5"></path>
+<path d="m2.75 8.75h6.75"></path>
+<path d="m0.5 8.75h1.5"></path>
+</symbol>
+<symbol fill="none" id="extlink" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m5 5 4-4" stroke-width=".75"></path>
+<path d="m9 4v-3h-3" stroke-width=".75"></path>
+<path d="m5 3h-3.5v5.5h5.5v-3.5" stroke-width="1.25"></path>
+</symbol>
+<symbol fill="none" id="i18n" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.63" ry="4.63" stroke-width=".732"></ellipse>
+<g fill="none" stroke-width=".75" transform="matrix(1 0 0 .989 0 .0527)">
+<path d="m0.5 5 9 5.1e-6"></path>
+<path d="m1.6 1.6c3.39 3.4 6.8 0 6.8 0"></path>
+<path d="m1.6 8.4c3.39-3.4 6.8 0 6.8 0"></path>
+<path d="m5 0.23s5.5 4.77 0 9.54"></path>
+<path d="m5 0.23s-5.5 4.77 0 9.54"></path>
+<path d="m5 0.452v9.1"></path>
+</g>
+</symbol>
+<symbol fill="none" id="search" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="3.25" cy="3.25" fill="none" rx="2.75" ry="2.75"></ellipse>
+<path d="m5 5 4.65 4.65" fill="none"></path>
+</symbol>
+<symbol id="encrypted" viewbox="0 0 10 10">
+<path d="m5.67 15.1v22.7h26.5v-22.7zm13.2 4.28c2.87 6.63e-4 5.19 1.88 5.19 4.21-6.29e-4 1.85-1.5 3.49-3.69 4.02l2.05 6.54h-7.1l2.05-6.54c-2.19-0.537-3.69-2.17-3.69-4.02 1.62e-4 -2.32 2.32-4.21 5.19-4.21z" fill="currentColor" stroke="none" transform="scale(.265)"></path>
+<path d="m5 0.874c-1.4-1.61e-4 -2.53 1.13-2.53 2.53 3.17e-4 0.179 0.0197 0.887 0.0579 1.06h4.94c0.0382-0.175 0.0576-0.883 0.0579-1.06 1.61e-4 -1.4-1.13-2.53-2.53-2.53z" fill="none" stroke="currentColor" stroke-width="1"></path>
+</symbol>
+</svg>
+<div class="w3-container w3-cell-row w3-top w3-theme w3-medium no-print" id="myTop" style="z-index:2;">
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small" onclick="w3_open()"><img class="svg-2em" src="../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-top">Usage</span>
+</div>
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-left w3-hide no-print" id="myToTop" onclick="topFunction()"><svg class="svg-1em"><use xlink:href="#to-top"></use></svg></button>
+</div>
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" id="myThemeToggle" onclick="toggleTheme(themeItem)"><svg class="svg-1em"><use xlink:href="#theme-toggle"></use></svg></button>
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" onclick="openSearch()"><svg class="svg-1em"><use xlink:href="#search"></use></svg></button>
+<a class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">&lt;/&gt;</a>
+</div>
+</div>
+<header class="w3-container w3-theme w3-medium">
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme w3-hover-theme w3-padding-small" style="background-color: transparent!important;"><img class="svg-2em" src="../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-head">Usage</span>
+</div>
+</header>
+<nav class="w3-sidebar w3-bar-block w3-collapse-custom w3-animate-left w3-theme-l4" id="mySidebar" style="z-index:3;width:300px;">
+<div id="myNav" style="font-weight: bold;">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="..">
+      Encryptcontent plugin V3
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../installation/">
+      Installation
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l2" href="./">
+      Usage
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../features/">
+      Features<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../explanations/">
+      How does it work?
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../testbench/">
+      Test bench<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-overlay w3-hide-huge w3-animate-opacity" id="myOverlay" onclick="w3_close()" style="cursor:pointer;"></div>
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-animate-right w3-theme-l4" id="myTocbar" style="z-index:3;width:300px;right:0;">
+<div id="myToc">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="#usage">Usage</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#password-inventory">Password inventory</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#password-inventory-in-external-file" style="padding-left: 24px;">Password inventory in external file</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#global-password-protection">Global password protection</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#global-passwords-in-inventory" style="padding-left: 24px;">Global passwords in inventory</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#secret-from-environment">Secret from environment</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#default-vars-customization">Default vars customization</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#translations">Translations</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#custom-per-page-strings" style="padding-left: 24px;">Custom per-page strings</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#obfuscate-pages">Obfuscate pages</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#example-plugin-configuration">Example plugin configuration</a>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-main-custom" id="main-view" style="margin-left:300px; margin-right:300px;">
+<div class="w3-container" style="padding: 32px;">
+<div class="w3-right w3-margin-bottom no-print">
+<div class="w3-dropdown-hover w3-hide-large" id="myTocButton" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3 w3-hover-theme"><svg class="svg-1em"><use xlink:href="#toc"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l3" href="#usage">Usage</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#password-inventory">Password inventory</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#password-inventory-in-external-file" style="padding-left: 24px;">Password inventory in external file</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#global-password-protection">Global password protection</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#global-passwords-in-inventory" style="padding-left: 24px;">Global passwords in inventory</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#secret-from-environment">Secret from environment</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#default-vars-customization">Default vars customization</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#translations">Translations</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#custom-per-page-strings" style="padding-left: 24px;">Custom per-page strings</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#obfuscate-pages">Obfuscate pages</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#example-plugin-configuration">Example plugin configuration</a>
+</div>
+</div>
+<div class="w3-dropdown-hover" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3"><svg class="svg-1em"><use xlink:href="#i18n"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l2" href="/mkdocs-encryptcontent-plugin/usage/">English</a>
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="/mkdocs-encryptcontent-plugin/de/usage/">Deutsch</a>
+</div>
+</div>
+</div>
+<h1 id="usage">Usage</h1>
+<p>Add a tag like <code class="w3-codespan">password: secret password</code> to your pages <a href="https://www.mkdocs.org/user-guide/writing-your-docs/#yaml-style-meta-data" target="_blank">Meta-Data<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a> to protect them.</p>
+<p>Alternatively add a meta tag like <code class="w3-codespan">level: secret</code> to use one or more secrets defined at the
+plugin's <code class="w3-codespan">password_inventory</code> or <code class="w3-codespan">password_file</code> in your "mkdocs.yml" (see below).</p>
+<h2 id="password-inventory">Password inventory</h2>
+<p>With the <code class="w3-codespan">password_inventory</code> you can define protection levels (assigned with the meta tag <code class="w3-codespan">level</code> in markdown files).</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        password_inventory:
+          classified: 'password1'
+          confidential:
+            - 'password2'
+            - 'password3'
+          secret:
+            user4: 'password4'
+            user5: 'password5'
+</code></pre>
+<p>These levels may be only one password (f.ex. classified), a list of multiple passwords (f.ex. confidential)
+or multiple username/password pairs (f.ex. secret).
+It is possible to reuse credentials at different levels.</p>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p>Note that a "list of multiple passwords" comes with a downside: All entries may be tested because unlike "user/password pairs"
+there is no hint to determine the distinct entry to try
+(At least I found no hint that wouldn't make it easier for a brute force attacker).
+This means, that a high <code class="w3-codespan">kdf_pow</code> could cause long waiting time even if the right password was entered.</p>
+</div>
+<p>The plugin will generate one secret key for each level, which is then used to encrypt the assigned sites.</p>
+<p>To indicate that your Markdown file should be encrypted for level "secret", add the following metadata at the beginning of the file:</p>
+<pre class="w3-code w3-responsive"><code class="language-markdown">---
+level: secret
+---
+This is the first paragraph of the document.
+</code></pre>
+<h3 id="password-inventory-in-external-file">Password inventory in external file</h3>
+<p>You can define password levels in an external yaml file and link it with <code class="w3-codespan">password_file</code>.
+The intention is to separate sensitive information from configuration options.</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        password_file: 'passwords.yml'
+</code></pre>
+<p>passwords.yml:</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">classified: 'password1'
+confidential:
+    - 'password2'
+    - 'password3'
+secret:
+    user4: 'password4'
+    user5: 'password5'
+</code></pre>
+<h2 id="global-password-protection">Global password protection</h2>
+<p>Add <code class="w3-codespan">global_password: your_password</code> in plugin configuration variable, to protect all pages with this password by default</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        global_password: 'your_password'
+</code></pre>
+<p>If the password meta tag is defined in a markdown file, it will <strong>ALWAYS</strong> override the global password.</p>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>NOTE</strong> Keep in mind that if the <code class="w3-codespan">password:</code> tag exists without value in a page, it will <strong>not be protected</strong> !
+Use this to <strong>disable</strong> <code class="w3-codespan">global_password</code> on specific pages.</p>
+</div>
+<h3 id="global-passwords-in-inventory">Global passwords in inventory</h3>
+<p>You can add the special level <code class="w3-codespan">_global</code>, which will be applied globally on all sites like this:</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        password_inventory:
+            _global: 'either define one password'
+            _global:
+                - 'or define'
+                - 'multiple passwords'
+            _global:
+                user1: 'or use user'
+                user2: 'and password pairs'
+</code></pre>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>NOTE</strong> Add the meta tag <code class="w3-codespan">level:</code> (without a value) to pages which should be excluded from global password level.
+Also note that it is always possible to set the page to a different level than the global one with the <code class="w3-codespan">level</code> meta tag.</p>
+</div>
+<h2 id="secret-from-environment">Secret from environment</h2>
+<p>It is possible to read values from environment variable
+(as discribed <a href="https://www.mkdocs.org/user-guide/configuration/#environment-variables" target="_blank">here<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>).
+This replaces the deprecated <code class="w3-codespan">use_secret</code> option from previous versions.</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        password_inventory:
+            secret:
+                user1: !ENV PASSWORD1_FROM_ENV
+                user2: !ENV [PASSWORD2_FROM_ENV, 'Password if PASSWORD2_FROM_ENV undefined or empty']
+                user3: !ENV [PASSWORD3_FROM_ENV, FALLBACK_PASSWORD3_FROM_ENV, 'Password if neither PASSWORD3_FROM_ENV nor FALLBACK_PASSWORD3_FROM_ENV defined']
+</code></pre>
+<h2 id="default-vars-customization">Default vars customization</h2>
+<p>Optionally you can use some extra variables in plugin configuration to customize default strings.</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        title_prefix: '[LOCK]'
+        summary: 'another informational message to encrypted content'
+        placeholder: 'another password placeholder'
+        decryption_failure_message: 'another informational message when decryption fails'
+        encryption_info_message: "another information message when you don't have access !"
+        input_class: 'md-search__form md-search__input'
+        button_class: 'md-search__icon'
+</code></pre>
+<p>Default prefix title is <code class="w3-codespan">[Protected]</code>.</p>
+<p>Default summary message is <code class="w3-codespan">This content is protected with AES encryption.</code>.</p>
+<p>Default password palceholder is <code class="w3-codespan">Provide password and press ENTER</code>.</p>
+<p>Default decryption failure message is <code class="w3-codespan">Invalid password.</code>.</p>
+<p>Defaut encryption information message is <code class="w3-codespan">Contact your administrator for access to this page.</code>.</p>
+<div class="w3-panel w3-theme-l3 w3-leftbar w3-border-theme">
+<p><strong>NOTE</strong> Adding a prefix to the title does not change the default navigation path !</p>
+</div>
+<h2 id="translations">Translations</h2>
+<p>If the plugin is used in conjunction with the <a href="https://ultrabug.github.io/mkdocs-static-i18n/" target="_blank">static-i18n<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+plugin you can provide <code class="w3-codespan">translations</code> for the used <code class="w3-codespan">i18n_page_locale</code>.</p>
+<pre class="w3-code w3-responsive"><code class="language-yaml">    - encryptcontent:
+        #...
+        translations:
+          de:
+            title_prefix: '[Verschlüsselt] '
+            summary: 'Der Inhalt dieser Seite ist mit AES verschlüsselt. '
+            placeholder: 'Mit Strg+Enter wird das Passwort global gesetzt'
+            password_button_text: 'Entschlüsseln'
+            decryption_failure_message: 'Falsches passwort.'
+            encryption_info_message: 'Bitte wenden Sie sich an den Systemadministrator um auf diese Seite zuzugreifen.'
+</code></pre>
+<h3 id="custom-per-page-strings">Custom per-page strings</h3>
+<p>You can set the  meta tag <code class="w3-codespan">encryption_summary</code> to customize <code class="w3-codespan">summary</code> and <code class="w3-codespan">encryption_info_message</code> on every page.</p>
+<h2 id="obfuscate-pages">Obfuscate pages</h2>
+<p>If you want to make it harder for search engines to scrape you pages content,
+you can set <code class="w3-codespan">obfuscate: SomeNotSoSecretPassword</code> meta tag in markdown.</p>
+<p>The page then will display <code class="w3-codespan">summary</code> and <code class="w3-codespan">encryption_info_message</code> together with a button labeled with
+<code class="w3-codespan">password_button_text</code>. In order to view the pages content one hast to press the button first.</p>
+<p>If a <code class="w3-codespan">password</code> or <code class="w3-codespan">level</code> is set, then the <code class="w3-codespan">obfuscate</code> feature will be disabled.
+If you want to use <code class="w3-codespan">obfuscate</code> in a configuration where <code class="w3-codespan">global_password</code> or <code class="w3-codespan">_global</code> level is defined,
+you'll need to set the <code class="w3-codespan">password:</code> or rather <code class="w3-codespan">level:</code> meta tag (with no password/level defined) to undefine the password on this page.</p>
+<p>The keys to all obfuscated pages are also saved in every keystore, so they are decrypted if someone entered
+correct credentials.</p>
+<h2 id="example-plugin-configuration">Example plugin configuration</h2>
+<pre class="w3-code w3-responsive"><code class="language-yaml">plugins:
+    - encryptcontent:
+        title_prefix: ''
+        summary: ''
+        placeholder: 'Password'
+        placeholder_user: User
+        password_button_text: 'ENTER'
+        decryption_failure_message: 'Wrong user name or password.'
+        encryption_info_message: 'Legitimation required.'
+        translations:
+          de:
+            title_prefix: ''
+            summary: ''
+            placeholder: 'Passwort'
+            placeholder_user: Benutzer
+            password_button_text: 'ENTER'
+            decryption_failure_message: 'Falscher Benutzer oder Passwort.'
+            encryption_info_message: 'Legitimation erforderlich.'
+        html_template_path: "decrypt-form.tpl.html" # override default html template
+        password_button: True
+        input_class: 'w3-input' # CSS class used for input username and password
+        button_class: 'w3-button w3-theme-l1 w3-hover-theme' # CSS class for password_button
+        hljs: False
+        arithmatex: False
+        mermaid2: False
+        remember_keys: true # keys from keystore will temporarily saved to sessionStorage
+        remember_password: false # the entered credentials are not saved
+        remember_prefix: encryptcontent_plugin_ # use different prefixes if other sites are running on the same domain
+        encrypted_something: # additionally encrypt some html elements
+          #myNav: [div, id]
+          myToc: [div, id]
+          myTocButton: [div, id]
+        search_index: 'dynamically' # dynamically encrypt mkdocs search index
+        webcrypto: true # use browsers webcrypto support
+        #selfhost: true # use self-hosted crypto-js
+        #selfhost_download: true # download crypt-js for self-hosting
+        #selfhost_dir: 'theme_override' # where to download crypto-js
+        #reload_scripts:
+        #  - '#theme'
+        password_file: 'passwords.yml' # file with password inventory
+        threshold_warning_min_entropy: 100 # warn if password entropy is below this value
+        #kdf_pow: 4 # default for crypto-js: 4, default for webcrypto: 5
+        sign_files: 'encryptcontent-plugin.json' # save ed25519 signatures here
+        #hash_filenames: # add hash to file names of assets (to make them impossible to guess
+        #  extensions:
+        #    - 'png'
+        #    - 'jpg'
+        #    - 'jpeg'
+        #    - 'svg'
+        #  except:
+        #    - 'logo.svg'
+</code></pre>
+<div class="w3-modal" id="mkdocs_search_modal">
+<div class="w3-modal-content">
+<div class="w3-theme-l4">
+<span class="w3-theme-l2 w3-button w3-hover-theme w3-display-topright" onclick="closeSearch();"><svg class="svg-1em"><use xlink:href="#close-menu"></use></svg></span>
+<span class="w3-display-topleft" style="padding: 8px 16px;"><svg class="svg-2em"><use xlink:href="#search"></use></svg></span>
+<form id="content_search">
+<div class="w3-container"> </div>
+<div class="w3-container"> </div>
+<div class="w3-container">
+<input class="w3-input w3-border w3-round w3-theme-l5 w3-hover-theme" id="mkdocs-search-query" placeholder="" type="search"/>
+</div>
+</form>
+<div class="w3-container search-results" data-no-results-text="-" id="mkdocs-search-results"> </div>
+</div>
+</div>
+</div>
+</div>
+<div class="w3-modal" id="zoom_img_modal" onclick="this.style.display='none'">
+<div class="w3-modal-content w3-animate-zoom">
+<img id="img_modal" style="width:100%;"/>
+</div>
+</div>
+<footer class="w3-container w3-theme no-print">
+<p class="w3-left w3-tiny">
+<a href="https://www.mkdocs.org" target="_blank">MkDocs<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+<span class="w3-hide-small"> / <a href="https://ultrabug.github.io/mkdocs-static-i18n/" target="_blank">static i18n<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">encryptcontent<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://www.w3schools.com/w3css/" target="_blank">w3.css<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+    / <a href="https://github.com/unverbuggt/mkdocs-risonia-theme" target="_blank">Risonia theme<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+</p>
+<p class="w3-right w3-tiny">
+<span id="show-user"></span>
+</p>
+</footer>
+</div>
+<script src="../js/theme.js"></script>
+<script src="../assets/javascripts/highlight.min.js"></script>
+<script src="../assets/javascripts/languages/django.min.js"></script>
+<script src="../assets/javascripts/tex-chtml.js"></script>
+<script src="../assets/javascripts/mermaid.min.js"></script>
+<script src="../search/main.js"></script>
+<script>
+  var DOMContentLoaded_fired = false;
+</script>
+<script id="theme">
+function runWhenDOMContentLoaded() {
+  document.querySelectorAll('pre code').forEach((el) => {
+    hljs.highlightElement(el);
+  });
+  MathJax.typesetPromise();
+  //small test for "additional variables in keystore"
+  username = sessionStorage.getItem('username');
+  if (username) {
+    document.getElementById('show-user').textContent = username;
+  }
+}
+if (DOMContentLoaded_fired) {
+  runWhenDOMContentLoaded();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  DOMContentLoaded_fired=true;
+  runWhenDOMContentLoaded();
+});
+</script>
+</body>
+</html>

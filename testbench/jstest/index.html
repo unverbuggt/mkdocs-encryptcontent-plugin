@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="René Rüthlein" name="author"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/testbench/jstest/" rel="canonical"/>
+<link href="../../img/logo.ico" rel="shortcut icon"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/testbench/jstest/" hreflang="de" rel="alternate"/>
+<title>JS test - MkDocs encryptcontent plugin V3</title>
+<link href="../../css/w3.css" rel="stylesheet"/>
+<link href="../../css/w3-theme.css" id="theme-auto" rel="stylesheet"/>
+<link href="../../css/w3-theme-light.css" id="theme-light" media="none" rel="stylesheet"/>
+<link href="../../css/w3-theme-dark.css" id="theme-dark" media="none" rel="stylesheet"/>
+<link href="../../css/theme.css" rel="stylesheet"/>
+<script>
+  var base_url = "../..";
+  var themeItem = 'risonia_theme_'+encodeURIComponent('https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/');
+
+  function checkTheme() {
+    let theme = localStorage.getItem(themeItem);
+    if (theme) {
+      if (theme == 'light') {
+        document.getElementById('theme-dark').media = 'none';
+        document.getElementById('theme-light').media = '';
+      }
+      if (theme == 'dark') {
+        document.getElementById('theme-light').media = 'none';
+        document.getElementById('theme-dark').media = '';
+      }
+    }
+  }
+  checkTheme()
+  </script>
+</head>
+<body class="w3-theme-l5">
+<svg style="display: none;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<symbol fill="currentColor" id="open-menu" viewbox="0 0 10 10">
+<rect height="2" width="10" y="0"></rect>
+<rect height="2" width="10" y="4"></rect>
+<rect height="2" width="10" y="8"></rect>
+</symbol>
+<symbol fill="currentColor" id="drop-down" viewbox="0 0 10 10">
+<path d="m2 1h6l-3 8z"></path>
+</symbol>
+<symbol fill="currentColor" id="to-top" viewbox="0 0 10 10">
+<path d="m2 9h6l-3-8z"></path>
+</symbol>
+<symbol id="theme-toggle" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.35" ry="4.35" stroke="currentColor" stroke-width="1.2"></ellipse>
+<path d="M 5,0.5 A 4.5,4.5 0 0 1 9.5,5 4.5,4.5 0 0 1 5,9.5 V 5 Z" fill="currentColor"></path>
+</symbol>
+<symbol fill="none" id="close-menu" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m0.71 0.71 8.58 8.58" stroke-width="2"></path>
+<path d="m9.29 0.71-8.58 8.58" stroke-width="2"></path>
+</symbol>
+<symbol fill="none" id="toc" stroke="currentColor" stroke-width="1.5" viewbox="0 0 10 10">
+<path d="m2.75 1.25h6.75"></path>
+<path d="m0.5 1.25h1.5"></path>
+<path d="m5 6.13h4.5"></path>
+<path d="m2.75 6.13h1.5"></path>
+<path d="m2.75 3.87h6.75"></path>
+<path d="m0.5 3.87h1.5"></path>
+<path d="m2.75 8.75h6.75"></path>
+<path d="m0.5 8.75h1.5"></path>
+</symbol>
+<symbol fill="none" id="extlink" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m5 5 4-4" stroke-width=".75"></path>
+<path d="m9 4v-3h-3" stroke-width=".75"></path>
+<path d="m5 3h-3.5v5.5h5.5v-3.5" stroke-width="1.25"></path>
+</symbol>
+<symbol fill="none" id="i18n" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.63" ry="4.63" stroke-width=".732"></ellipse>
+<g fill="none" stroke-width=".75" transform="matrix(1 0 0 .989 0 .0527)">
+<path d="m0.5 5 9 5.1e-6"></path>
+<path d="m1.6 1.6c3.39 3.4 6.8 0 6.8 0"></path>
+<path d="m1.6 8.4c3.39-3.4 6.8 0 6.8 0"></path>
+<path d="m5 0.23s5.5 4.77 0 9.54"></path>
+<path d="m5 0.23s-5.5 4.77 0 9.54"></path>
+<path d="m5 0.452v9.1"></path>
+</g>
+</symbol>
+<symbol fill="none" id="search" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="3.25" cy="3.25" fill="none" rx="2.75" ry="2.75"></ellipse>
+<path d="m5 5 4.65 4.65" fill="none"></path>
+</symbol>
+<symbol id="encrypted" viewbox="0 0 10 10">
+<path d="m5.67 15.1v22.7h26.5v-22.7zm13.2 4.28c2.87 6.63e-4 5.19 1.88 5.19 4.21-6.29e-4 1.85-1.5 3.49-3.69 4.02l2.05 6.54h-7.1l2.05-6.54c-2.19-0.537-3.69-2.17-3.69-4.02 1.62e-4 -2.32 2.32-4.21 5.19-4.21z" fill="currentColor" stroke="none" transform="scale(.265)"></path>
+<path d="m5 0.874c-1.4-1.61e-4 -2.53 1.13-2.53 2.53 3.17e-4 0.179 0.0197 0.887 0.0579 1.06h4.94c0.0382-0.175 0.0576-0.883 0.0579-1.06 1.61e-4 -1.4-1.13-2.53-2.53-2.53z" fill="none" stroke="currentColor" stroke-width="1"></path>
+</symbol>
+</svg>
+<div class="w3-container w3-cell-row w3-top w3-theme w3-medium no-print" id="myTop" style="z-index:2;">
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small" onclick="w3_open()"><img class="svg-2em" src="../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-top">Javascript test</span>
+</div>
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-left w3-hide no-print" id="myToTop" onclick="topFunction()"><svg class="svg-1em"><use xlink:href="#to-top"></use></svg></button>
+</div>
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" id="myThemeToggle" onclick="toggleTheme(themeItem)"><svg class="svg-1em"><use xlink:href="#theme-toggle"></use></svg></button>
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" onclick="openSearch()"><svg class="svg-1em"><use xlink:href="#search"></use></svg></button>
+<a class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">&lt;/&gt;</a>
+</div>
+</div>
+<header class="w3-container w3-theme w3-medium">
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme w3-hover-theme w3-padding-small" style="background-color: transparent!important;"><img class="svg-2em" src="../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-head">Javascript test</span>
+</div>
+</header>
+<nav class="w3-sidebar w3-bar-block w3-collapse-custom w3-animate-left w3-theme-l4" id="mySidebar" style="z-index:3;width:300px;">
+<div id="myNav" style="font-weight: bold;">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../..">
+      Encryptcontent plugin V3
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../installation/">
+      Installation
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../usage/">
+      Usage
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../features/">
+      Features<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../../explanations/">
+      How does it work?
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../">
+      Test bench<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<div class="w3-animate-left" id="acc1">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="javascript:void(0)" onclick="myAccordion('acc2')" style="padding-left: 24px;">
+        Passwords<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<div class="w3-animate-left w3-hide" id="acc2">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../onlypasswords1/" style="padding-left: 32px;">
+          Test1 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../onlypasswords2/" style="padding-left: 32px;">
+          Test2 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../onlypasswords3/" style="padding-left: 32px;">
+          Test3 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+</div>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="javascript:void(0)" onclick="myAccordion('acc3')" style="padding-left: 24px;">
+        User/Password<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<div class="w3-animate-left w3-hide" id="acc3">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../userpass1/" style="padding-left: 32px;">
+          Test1 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../userpass2/" style="padding-left: 32px;">
+          Test2 <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../anchor/" style="padding-left: 32px;">
+          Anchors <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+</div>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../obfuscate/" style="padding-left: 24px;">
+        Obfuscate <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l2" href="./" style="padding-left: 24px;">
+        JS test <svg class="svg-1em"><use xlink:href="#encrypted"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../share/" style="padding-left: 24px;">
+        Share Link
+      </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../hashfilenames/" style="padding-left: 24px;">
+        Hash files
+      </a>
+</div>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-overlay w3-hide-huge w3-animate-opacity" id="myOverlay" onclick="w3_close()" style="cursor:pointer;"></div>
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-animate-right w3-theme-l4" id="myTocbar" style="z-index:3;width:300px;right:0;">
+<div id="myToc" style="display:none !important">0Bi/taIQ9nIC/dah30Yebg==;SVKt4vZr+lMKK1INoqSk1SDJ/U/QuYC6cYfekw3AGFgO90QHeI2I2YH7rpVR5u3Aodo/5SDZcMIHd2aw4CYabUP/t+COBMEpsy2oD4kBh2O2P128bie/YshxZccEgEFuUrjwsdWBkuHg6VvyIl2dq5bJzgprOoV+uaFjNhxXwCfiT9AfB7M572Za+BdomX5O5Jju+SB+pKP7T48f02UAC2aT8XzZDn6Bq3hAqweII8K6VXJXiEu70MmMvHsaF5GQA5R1WVymIShmAZplWARYnawNmHgMxyZMR2hwyP0mkr8PT//uhiIcBEUN2AjnKucLYgLr3CBhAxJ/17bLA/m42QfWPXVayhyOGq2Je5qS/Mhk6KcICVJIg6psqGSIB4ZSP0uxaMy8r7QmSP1tXoQCBd8xQrp5josRz5HL9Jdonqaw4XpAa4gcnlGCamgeXnerp88V02ZIcjL4Axg72axgVHAI/p8nRgbhh6qULMYTQsktcLA4s2d8JI7zpUV0chA3su/Z1b7P52cPQhz8idOlbA==</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-main-custom" id="main-view" style="margin-left:300px; margin-right:300px;">
+<div class="w3-container" style="padding: 32px;">
+<div class="w3-right w3-margin-bottom no-print">
+<div class="w3-dropdown-hover w3-hide-large" id="myTocButton" style="z-index:1;display:none !important">bOA7v4h+YZX/RESlC+IYzg==;dVwzXGm4EWCt7AaAfHDrVVRB2LZnoSPO0GFBcrd2gLsTS97qTBTgnNpeo10T3S0Bo86YonfGYKPRTCwpe6/dYu7r86s8OIgfEe1k0JeyjCU2D5skvoW0eSknyeEDxvhcI+n+5Q3zHmmd2R3CAsh0xeY2idSiVc7i83G1BNyv6OqTZKjzYX2iChlNHiIXTRcjBJrTmmGn281tXtmeiyWRGLU3Sz3shJBHtiZJBXgRHxV0A7oydOItqkELMU5MGI4F350N1uDO1dA1oDtEa2hM5PfH6qhTJFKusincKYKZoRN0rIAXKzGdrwH2fXvgOBCY2ic/F5Wl7VoJkBPaJWDb/CQOCbgAhwdsktgKAg04ISjI8vMZmplpbzjdMLVR4nX9MruQTh//ocAuQpBBKL7eICArtHYpXSef9xqbAsrod5N2sxp9+rBKipiTtUuAE1GsMhJFehE2v4pq+5N9OjnYFnxbkNV9QhAJmdWDCW1RlcMOB2ZwWIxGMPn092wAzcVdITNlEVep9P/uce6XLhaFi/z1m+bUy2oREnegp2ogT039Gd98L4YSLOP3r49mTPHVxqjBUjZ66Ku8p2QmaqqvSNumHinCw+zP5yAfP+3fI5UmrR3XR2qcKafI3BGBwB5vGnqQS5zmAV0JRjXL+Dx6kxcaO4CebPKISDsz1a6Es+w0J7RxHe7+Fq3lYUzyDCgeyP6SgMwHwFC4yopS2DkJo1FnC3BJ6V8aySJOR9l1UH1rG8IT9qePJzwo43yfjEBgy2/JPXGJeG5Uyaap3/Dk33MeVX4koMoHCfl5cTvXyrU=</div>
+<div class="w3-dropdown-hover" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3"><svg class="svg-1em"><use xlink:href="#i18n"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l2" href="/mkdocs-encryptcontent-plugin/testbench/jstest/">English</a>
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="/mkdocs-encryptcontent-plugin/de/testbench/jstest/">Deutsch</a>
+</div>
+</div>
+</div>
+<p>These tests demonstate the correct execution of <a href="../../features/jsext/">Javascript extensions</a></p>
+<div><div id="mkdocs-encrypted-content" style="display:none">KHJcdmTq8m1H06UHlcthvw==;sLt6ju2vZYDFk+y3zC/QJA==</div>
+<div id="mkdocs-decrypted-content" style="display:none">
+<form id="mkdocs-decrypt-form">
+<h1>Humans are allowed to press ENTER</h1>
+<p>This page is just obfuscated to counter web crawlers.</p>
+<div class="w3-row-padding" style="padding-left: 0px;">
+<input id="mkdocs-content-password" type="hidden" value="Crawler be gone!"/>
+<div class="w3-third">
+<button class="w3-button w3-theme-l1 w3-hover-theme" id="mkdocs-decrypt-button">ENTER</button>
+</div>
+</div>
+<p id="mkdocs-decrypt-msg"></p>
+</form>
+</div>
+<div id="encryptcontent-info"></div>
+<script type="text/javascript">
+var encryptcontent_id = "encryptcontent_plugin_10";
+var encryptcontent_path = "mkdocs-encryptcontent-plugin/testbench/jstest/";
+var decryption_failure_message = "Wrong user name or password.";
+var encryptcontent_keystore = ["KBwqnU3X2KupUlLTsda91w==;gs+zSReNZDXV95GvHxYT/S9eQ44AK0Zxxz+l9N0/u+54gkN7o5Juuvy/3Dm9Ql0cxn7jOWWTUijkD6eToEMM8u6caMQMDtxeOJ0S7cFhXZHOvEyzli6KdYi3PV+UcDRnz/uhRzc4fb4+BBqVMl0cgg==;rE6Eq02AwZqxD6HI/6kdSA=="];
+var encryptcontent_obfuscate = 1;
+var inject_something = {'inject': ['div', 'id']};
+const encryptcontent_event = new Event("encryptcontent_event");
+var encryptcontent_done = false;
+</script>
+<script type="module">
+if (!window.hasOwnProperty("init_decryptor")) {
+    import("../../assets/javascripts/decrypt-contents.js");
+} else {
+    init_decryptor();
+}
+</script>
+<script>
+var encryptcontent_info = document.getElementById('encryptcontent-info');
+encryptcontent_info.innerHTML = '<b>keystore length:</b> '+ encryptcontent_keystore.length + '<br>encryptcontent id:<b>:</b> ' + encryptcontent_id;
+</script></div><div id="inject" style="display:none !important">Lq0B2XueW+y1E6Wiv4rLiw==;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</div>
+<div class="w3-modal" id="mkdocs_search_modal">
+<div class="w3-modal-content">
+<div class="w3-theme-l4">
+<span class="w3-theme-l2 w3-button w3-hover-theme w3-display-topright" onclick="closeSearch();"><svg class="svg-1em"><use xlink:href="#close-menu"></use></svg></span>
+<span class="w3-display-topleft" style="padding: 8px 16px;"><svg class="svg-2em"><use xlink:href="#search"></use></svg></span>
+<form id="content_search">
+<div class="w3-container"> </div>
+<div class="w3-container"> </div>
+<div class="w3-container">
+<input class="w3-input w3-border w3-round w3-theme-l5 w3-hover-theme" id="mkdocs-search-query" placeholder="" type="search"/>
+</div>
+</form>
+<div class="w3-container search-results" data-no-results-text="-" id="mkdocs-search-results"> </div>
+</div>
+</div>
+</div>
+</div>
+<div class="w3-modal" id="zoom_img_modal" onclick="this.style.display='none'">
+<div class="w3-modal-content w3-animate-zoom">
+<img id="img_modal" style="width:100%;"/>
+</div>
+</div>
+<footer class="w3-container w3-theme no-print">
+<p class="w3-left w3-tiny">
+<a href="https://www.mkdocs.org" target="_blank">MkDocs<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+<span class="w3-hide-small"> / <a href="https://ultrabug.github.io/mkdocs-static-i18n/" target="_blank">static i18n<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">encryptcontent<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://www.w3schools.com/w3css/" target="_blank">w3.css<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+    / <a href="https://github.com/unverbuggt/mkdocs-risonia-theme" target="_blank">Risonia theme<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+</p>
+<p class="w3-right w3-tiny">
+<span id="show-user"></span>
+</p>
+</footer>
+</div>
+<script src="../../js/theme.js"></script>
+<script src="../../assets/javascripts/highlight.min.js"></script>
+<script src="../../assets/javascripts/languages/django.min.js"></script>
+<script src="../../assets/javascripts/tex-chtml.js"></script>
+<script src="../../assets/javascripts/mermaid.min.js"></script>
+<script src="../../search/main.js"></script>
+<script>
+  var DOMContentLoaded_fired = false;
+</script>
+<script id="theme">
+function runWhenDOMContentLoaded() {
+  document.querySelectorAll('pre code').forEach((el) => {
+    hljs.highlightElement(el);
+  });
+  MathJax.typesetPromise();
+  //small test for "additional variables in keystore"
+  username = sessionStorage.getItem('username');
+  if (username) {
+    document.getElementById('show-user').textContent = username;
+  }
+}
+if (DOMContentLoaded_fired) {
+  runWhenDOMContentLoaded();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  DOMContentLoaded_fired=true;
+  runWhenDOMContentLoaded();
+});
+</script>
+<script>mermaid.initialize({});</script></body>
+</html>

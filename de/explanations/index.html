@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="René Rüthlein" name="author"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/de/explanations/" rel="canonical"/>
+<link href="../../img/logo.ico" rel="shortcut icon"/>
+<link href="https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/explanations/" hreflang="x-default" rel="alternate"/>
+<title>How does it work? - MkDocs Encryptcontent Plugin V3</title>
+<link href="../../css/w3.css" rel="stylesheet"/>
+<link href="../../css/w3-theme.css" id="theme-auto" rel="stylesheet"/>
+<link href="../../css/w3-theme-light.css" id="theme-light" media="none" rel="stylesheet"/>
+<link href="../../css/w3-theme-dark.css" id="theme-dark" media="none" rel="stylesheet"/>
+<link href="../../css/theme.css" rel="stylesheet"/>
+<script>
+  var base_url = "../..";
+  var themeItem = 'risonia_theme_'+encodeURIComponent('https://unverbuggt.github.io/mkdocs-encryptcontent-plugin/');
+
+  function checkTheme() {
+    let theme = localStorage.getItem(themeItem);
+    if (theme) {
+      if (theme == 'light') {
+        document.getElementById('theme-dark').media = 'none';
+        document.getElementById('theme-light').media = '';
+      }
+      if (theme == 'dark') {
+        document.getElementById('theme-light').media = 'none';
+        document.getElementById('theme-dark').media = '';
+      }
+    }
+  }
+  checkTheme()
+  </script>
+</head>
+<body class="w3-theme-l5">
+<svg style="display: none;" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<symbol fill="currentColor" id="open-menu" viewbox="0 0 10 10">
+<rect height="2" width="10" y="0"></rect>
+<rect height="2" width="10" y="4"></rect>
+<rect height="2" width="10" y="8"></rect>
+</symbol>
+<symbol fill="currentColor" id="drop-down" viewbox="0 0 10 10">
+<path d="m2 1h6l-3 8z"></path>
+</symbol>
+<symbol fill="currentColor" id="to-top" viewbox="0 0 10 10">
+<path d="m2 9h6l-3-8z"></path>
+</symbol>
+<symbol id="theme-toggle" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.35" ry="4.35" stroke="currentColor" stroke-width="1.2"></ellipse>
+<path d="M 5,0.5 A 4.5,4.5 0 0 1 9.5,5 4.5,4.5 0 0 1 5,9.5 V 5 Z" fill="currentColor"></path>
+</symbol>
+<symbol fill="none" id="close-menu" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m0.71 0.71 8.58 8.58" stroke-width="2"></path>
+<path d="m9.29 0.71-8.58 8.58" stroke-width="2"></path>
+</symbol>
+<symbol fill="none" id="toc" stroke="currentColor" stroke-width="1.5" viewbox="0 0 10 10">
+<path d="m2.75 1.25h6.75"></path>
+<path d="m0.5 1.25h1.5"></path>
+<path d="m5 6.13h4.5"></path>
+<path d="m2.75 6.13h1.5"></path>
+<path d="m2.75 3.87h6.75"></path>
+<path d="m0.5 3.87h1.5"></path>
+<path d="m2.75 8.75h6.75"></path>
+<path d="m0.5 8.75h1.5"></path>
+</symbol>
+<symbol fill="none" id="extlink" stroke="currentColor" viewbox="0 0 10 10">
+<path d="m5 5 4-4" stroke-width=".75"></path>
+<path d="m9 4v-3h-3" stroke-width=".75"></path>
+<path d="m5 3h-3.5v5.5h5.5v-3.5" stroke-width="1.25"></path>
+</symbol>
+<symbol fill="none" id="i18n" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="5" cy="5" fill="none" rx="4.63" ry="4.63" stroke-width=".732"></ellipse>
+<g fill="none" stroke-width=".75" transform="matrix(1 0 0 .989 0 .0527)">
+<path d="m0.5 5 9 5.1e-6"></path>
+<path d="m1.6 1.6c3.39 3.4 6.8 0 6.8 0"></path>
+<path d="m1.6 8.4c3.39-3.4 6.8 0 6.8 0"></path>
+<path d="m5 0.23s5.5 4.77 0 9.54"></path>
+<path d="m5 0.23s-5.5 4.77 0 9.54"></path>
+<path d="m5 0.452v9.1"></path>
+</g>
+</symbol>
+<symbol fill="none" id="search" stroke="currentColor" viewbox="0 0 10 10">
+<ellipse cx="3.25" cy="3.25" fill="none" rx="2.75" ry="2.75"></ellipse>
+<path d="m5 5 4.65 4.65" fill="none"></path>
+</symbol>
+<symbol id="encrypted" viewbox="0 0 10 10">
+<path d="m5.67 15.1v22.7h26.5v-22.7zm13.2 4.28c2.87 6.63e-4 5.19 1.88 5.19 4.21-6.29e-4 1.85-1.5 3.49-3.69 4.02l2.05 6.54h-7.1l2.05-6.54c-2.19-0.537-3.69-2.17-3.69-4.02 1.62e-4 -2.32 2.32-4.21 5.19-4.21z" fill="currentColor" stroke="none" transform="scale(.265)"></path>
+<path d="m5 0.874c-1.4-1.61e-4 -2.53 1.13-2.53 2.53 3.17e-4 0.179 0.0197 0.887 0.0579 1.06h4.94c0.0382-0.175 0.0576-0.883 0.0579-1.06 1.61e-4 -1.4-1.13-2.53-2.53-2.53z" fill="none" stroke="currentColor" stroke-width="1"></path>
+</symbol>
+</svg>
+<div class="w3-container w3-cell-row w3-top w3-theme w3-medium no-print" id="myTop" style="z-index:2;">
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small" onclick="w3_open()"><img class="svg-2em" src="../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-top">How does it work?</span>
+</div>
+<div class="w3-cell w3-cell-middle" style="width:0;">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-left w3-hide no-print" id="myToTop" onclick="topFunction()"><svg class="svg-1em"><use xlink:href="#to-top"></use></svg></button>
+</div>
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" id="myThemeToggle" onclick="toggleTheme(themeItem)"><svg class="svg-1em"><use xlink:href="#theme-toggle"></use></svg></button>
+<button class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" onclick="openSearch()"><svg class="svg-1em"><use xlink:href="#search"></use></svg></button>
+<a class="w3-button w3-theme-d1 w3-hover-theme w3-padding-small w3-right no-print" href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">&lt;/&gt;</a>
+</div>
+</div>
+<header class="w3-container w3-theme w3-medium">
+<div class="w3-cell w3-cell-middle">
+<button class="w3-button w3-theme w3-hover-theme w3-padding-small" style="background-color: transparent!important;"><img class="svg-2em" src="../../img/logo.svg"/></button>
+</div>
+<div class="w3-cell w3-cell-middle w3-padding-24" style="width:0;">
+<span style="height:2em;display:inline-block;padding:16px 0px;"> </span>
+</div>
+<div class="w3-cell w3-cell-middle">
+<span class="w3-left" id="title-head">How does it work?</span>
+</div>
+</header>
+<nav class="w3-sidebar w3-bar-block w3-collapse-custom w3-animate-left w3-theme-l4" id="mySidebar" style="z-index:3;width:300px;">
+<div id="myNav" style="font-weight: bold;">
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../">
+      Encryptcontent Plugin V3
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../installation/">
+      Installation
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../usage/">
+      Usage
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../features/">
+      Features<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l2" href="./">
+      How does it work?
+    </a>
+<a class="w3-bar-item w3-padding-16 w3-button w3-hover-theme w3-theme-l4" href="../testbench/">
+      Testaufbau<svg class="svg-1em"><use xlink:href="#drop-down"></use></svg>
+</a>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-overlay w3-hide-huge w3-animate-opacity" id="myOverlay" onclick="w3_close()" style="cursor:pointer;"></div>
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-animate-right w3-theme-l4" id="myTocbar" style="z-index:3;width:300px;right:0;">
+<div id="myToc">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="#how-does-this-work">How does this work?</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#aes">AES</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l4" href="#kdf">KDF</a>
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="#a-word-on-password-strength">A word on password strength</a>
+</div>
+<div class="w3-container w3-large" style="height: 8em;"> </div>
+</nav>
+<div class="w3-main-custom" id="main-view" style="margin-left:300px; margin-right:300px;">
+<div class="w3-container" style="padding: 32px;">
+<div class="w3-right w3-margin-bottom no-print">
+<div class="w3-dropdown-hover w3-hide-large" id="myTocButton" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3 w3-hover-theme"><svg class="svg-1em"><use xlink:href="#toc"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l3" href="#how-does-this-work">How does this work?</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#aes">AES</a>
+<a class="w3-bar-item w3-small w3-button w3-hover-theme w3-theme-l3" href="#kdf">KDF</a>
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l3" href="#a-word-on-password-strength">A word on password strength</a>
+</div>
+</div>
+<div class="w3-dropdown-hover" style="z-index:1;">
+<button class="w3-button w3-hover-theme w3-theme-l3"><svg class="svg-1em"><use xlink:href="#i18n"></use></svg></button>
+<div class="w3-dropdown-content w3-bar-block" style="right:0;">
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l4" href="/mkdocs-encryptcontent-plugin/explanations/">English</a>
+<a class="w3-bar-item w3-button w3-hover-theme w3-theme-l2" href="/mkdocs-encryptcontent-plugin/de/explanations/">Deutsch</a>
+</div>
+</div>
+</div>
+<h1 id="how-does-this-work">How does this work?</h1>
+<p>For every <code class="w3-codespan">password</code> and for every <code class="w3-codespan">level</code> we generate a random 256 bit key.
+This key will be used for AES-256 encryption on every page with the same <code class="w3-codespan">password</code> or same <code class="w3-codespan">level</code>.
+Optionally search entries and <a href="#encrypt-something">encrypt something</a><!--todo--> on that page are also encrypted with the same key.</p>
+<p>This random secret key (needed for deciphering the pages content) is then encrypted to a keystore with another key that is derived from
+the defined credentials (a password or a username/password pair).
+If the credential is reused on another <code class="w3-codespan">level</code>, then its random key is also encrypted in the same keystore.
+The function to derive the key to the keystore (PBKDF2) can be adjusted in calculation cycles
+to hopefully throttle the number of passwords a brute force attacker is able to try per second.</p>
+<p><img alt="" class="w3-image" onclick="zoomImg(this);" src="../../img/howitworks_1d82fdfd86ea978359911b84023757ef.svg"/></p>
+<h4 id="aes">AES</h4>
+<p>Is a symmetric encryption algorithm. Symmetric means it uses the same secret key for encryption and decryption.
+The size of the secret keys used in this plugin is 256 Bit (or 32 Bytes).<br/>
+Additionally a random (16 Bytes) initialization vector (called IV) is used (and added to the cyphertext)
+to make sure the same plaintext will always result in a different cyphertext even if the same secret key is used
+for encryption.</p>
+<h4 id="kdf">KDF</h4>
+<p>A <strong>K</strong>ey <strong>D</strong>erivation <strong>F</strong>unction a one-way key generation algorithm,
+so it is not possible to reverse the function to retrieve a lost password.<br/>
+The password is salted, meaning if two people used the same password it would lead to different keys (similar to IV in AES).<br/>
+It is equipped with adjustable difficulty <code class="w3-codespan">kdf_pow</code>. The difficulty has significant weight on the build time and also
+the time needed to decrypt a page, so it shouldn't be increased to any value.<br/>
+The algorithm used (PBKDF2) is not really state-of-the-art, meaning compared to better alternatives like bcrypt, scrypt or argon2
+it is easier to crack with hardware acceleration, however it is supported in both crypto-js and webcrypto and
+is significantly better than MD5 (which was used on all versions prior to 3.x) for key derivation.<br/>
+The secret key derived from PBKDF2 is used to decrypt the keystore containing different keys to decrypt the content.</p>
+<h1 id="a-word-on-password-strength">A word on password strength</h1>
+<p>The strength of a password can be measured in entropy or "possibilities to try" (for a brute force attacker).</p>
+<div class="arithmatex">\[
+S = C^{L} * T
+\]</div>
+<p><strong>S</strong> is the time it takes to try all possibilities (on average a password is found after trying half the possibilities),
+<strong>C</strong> being the number of different characters the password is made of, <strong>L</strong> being the length of the password
+and <strong>T</strong> the time it takes to try one password.</p>
+<p>For example take a tree character password with just lower case letters like "abc".<br/>
+The number of lower case letters is 26, so a three character password leads to 26 * 26 * 26 = 17 576 possibilities to try.</p>
+<p>Now take a three character password which also includes upper case letters like "aBc".<br/>
+The number of possibilities per character doubles to 52, so the three character password leads to 52 * 52 * 52 = 140 608 possibilities.
+So compared to "abc" we got <strong>eight times</strong> more entropy in this case.</p>
+<p>So what happens if we add one character and still only use lower case letters, like "abcd"?<br/>
+It's 26^4 = 456 976 with a four character password, that's <strong>26 times</strong> more entropy compared to only using three lower case characters.</p>
+<p>It's easier to get higher entropy by increasing password size, than with adding more different characters or symbols.
+An attacker could also have watched (or heard) you type the password (paying attention to the use of the shift key,
+space bar or numeric keypad) and this way cross out character that you couldn't possibly have used.</p>
+<p>So, to put it mildly: Every web page that forces you to use at least lower/upper case AND a number AND a symbol,
+BUT only forces you to use eight characters of password size is not steering you to the right measures to gain entropy.</p>
+<p>But, to be fair: A web page can take measures to seriously throttle the passwords try-able per second on the server side
+or f.ex. use captchas after the third failed try. Although there were and most likely will be bad or failed examples of those measures.</p>
+<p>This MkDocs plugin can currently only take additional counter-measures to brute force attacks in form of PBKDF2.
+PBKDF2 itself is more or less obsolete, because it got no defense against being run in parallel, so we should
+consider it to not having a big effect on <strong>T</strong>.
+Other options like bcrypt, scrypt od argon2 exist, but pbkdf2 is the only option
+currently available in crypto-js and webcrypto. However there may be limitations that render the other option impractical,
+like longer build times and high computing or memory requirements on mobile devices.
+So you should really be interested in choosing a <strong>long</strong> password or pass phrases
+(read the <a href="https://en.wikipedia.org/wiki/Diceware" target="_blank">Diceware article on Wikipedia<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>, <a href="https://xkcd.com/936/" target="_blank">xkcd webcomic on password strength<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+and <a href="https://blog.benpri.me/blog/2019/01/13/why-you-shouldnt-be-using-bcrypt-and-scrypt/" target="_blank">this blogpost<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>).</p>
+<div class="w3-modal" id="mkdocs_search_modal">
+<div class="w3-modal-content">
+<div class="w3-theme-l4">
+<span class="w3-theme-l2 w3-button w3-hover-theme w3-display-topright" onclick="closeSearch();"><svg class="svg-1em"><use xlink:href="#close-menu"></use></svg></span>
+<span class="w3-display-topleft" style="padding: 8px 16px;"><svg class="svg-2em"><use xlink:href="#search"></use></svg></span>
+<form id="content_search">
+<div class="w3-container"> </div>
+<div class="w3-container"> </div>
+<div class="w3-container">
+<input class="w3-input w3-border w3-round w3-theme-l5 w3-hover-theme" id="mkdocs-search-query" placeholder="" type="search"/>
+</div>
+</form>
+<div class="w3-container search-results" data-no-results-text="-" id="mkdocs-search-results"> </div>
+</div>
+</div>
+</div>
+</div>
+<div class="w3-modal" id="zoom_img_modal" onclick="this.style.display='none'">
+<div class="w3-modal-content w3-animate-zoom">
+<img id="img_modal" style="width:100%;"/>
+</div>
+</div>
+<footer class="w3-container w3-theme no-print">
+<p class="w3-left w3-tiny">
+<a href="https://www.mkdocs.org" target="_blank">MkDocs<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+<span class="w3-hide-small"> / <a href="https://ultrabug.github.io/mkdocs-static-i18n/" target="_blank">static i18n<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://github.com/unverbuggt/mkdocs-encryptcontent-plugin" target="_blank">encryptcontent<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+<span class="w3-hide-small"> / <a href="https://www.w3schools.com/w3css/" target="_blank">w3.css<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a></span>
+    / <a href="https://github.com/unverbuggt/mkdocs-risonia-theme" target="_blank">Risonia theme<svg class="svg-1em"><use xlink:href="#extlink"></use></svg></a>
+</p>
+<p class="w3-right w3-tiny">
+<span id="show-user"></span>
+</p>
+</footer>
+</div>
+<script src="../../js/theme.js"></script>
+<script src="../../assets/javascripts/highlight.min.js"></script>
+<script src="../../assets/javascripts/languages/django.min.js"></script>
+<script src="../../assets/javascripts/tex-chtml.js"></script>
+<script src="../../assets/javascripts/mermaid.min.js"></script>
+<script src="../../search/main.js"></script>
+<script>
+  var DOMContentLoaded_fired = false;
+</script>
+<script id="theme">
+function runWhenDOMContentLoaded() {
+  document.querySelectorAll('pre code').forEach((el) => {
+    hljs.highlightElement(el);
+  });
+  MathJax.typesetPromise();
+  //small test for "additional variables in keystore"
+  username = sessionStorage.getItem('username');
+  if (username) {
+    document.getElementById('show-user').textContent = username;
+  }
+}
+if (DOMContentLoaded_fired) {
+  runWhenDOMContentLoaded();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  DOMContentLoaded_fired=true;
+  runWhenDOMContentLoaded();
+});
+</script>
+</body>
+</html>
