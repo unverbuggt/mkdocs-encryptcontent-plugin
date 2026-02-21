@@ -9,7 +9,8 @@
             {%- if uname %}
         <input{% if input_class %} class="{{ input_class }}"{% endif %} type="text" id="mkdocs-content-user" placeholder="{{ placeholder_user }}">
             {%- endif %}
-        <input{% if input_class %} class="{{ input_class }}"{% endif %} type="password" id="mkdocs-content-password" placeholder="{{ placeholder }}">
+        <p><input{% if input_class %} class="{{ input_class }}"{% endif %} type="password" id="mkdocs-content-password" placeholder="{{ placeholder }}"></p>
+        <p><input type="checkbox" id="mkdocs-content-show-password" onchange="document.getElementById('mkdocs-content-password').type = this.checked ? 'text' : 'password';"><label for="mkdocs-content-show-password">{{ show_password_text }}</label></p>
         {%- endif %}
         {% if password_button %}<button{% if button_class %} class="{{ button_class }}"{% endif %} id="mkdocs-decrypt-button">{{ password_button_text }}</button>{% endif %}
         <p id="mkdocs-decrypt-msg"></p>
