@@ -53,6 +53,7 @@ SETTINGS = {
     'password_button_text': 'Decrypt',
     'decryption_failure_message': 'Invalid password.',
     'encryption_info_message': 'Contact your administrator for access to this page.',
+    'show_password_checkbox': False,
     'show_password_text': 'Show password',
 }
 
@@ -77,6 +78,7 @@ class encryptContentPlugin(BasePlugin):
         ('form_class', config_options.Type(string_types, default=None)),
         ('input_class', config_options.Type(string_types, default=None)),
         ('button_class', config_options.Type(string_types, default=None)),
+        ('show_password_checkbox', config_options.Type(bool, default=SETTINGS['show_password_checkbox'])),
         ('show_password_text', config_options.Type(string_types, default=str(SETTINGS['show_password_text']))),
         # password feature
         ('global_password', config_options.Type(string_types, default=None)),
@@ -341,6 +343,7 @@ class encryptContentPlugin(BasePlugin):
             'password_button_text': encryptcontent['password_button_text'],
             'encryption_info_message': encryptcontent['encryption_info_message'],
             'decryption_failure_message': json.dumps(encryptcontent['decryption_failure_message']),
+            'show_password_checkbox': self.config['show_password_checkbox'],
             'show_password_text': encryptcontent['show_password_text'],
             'form_class': self.config['form_class'],
             'input_class': self.config['input_class'],
